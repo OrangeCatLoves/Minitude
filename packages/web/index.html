@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#070b17" />
+  <title>Minitude</title>
+  <meta name="description" content="Answer rare. Shrink far. A pixel-art trivia game about getting very, very small." />
+  <style>
+    html, body { margin: 0; height: 100%; background: #070b17; overflow: hidden; }
+    #stage { position: fixed; inset: 0; display: grid; place-items: center; }
+    #game { width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; display: block; background: #070b17; touch-action: manipulation; }
+    #answer { position: fixed; left: 50%; bottom: 8px; width: 2px; height: 2px; opacity: 0; border: 0; padding: 0; font-size: 16px; }
+    #mute { position: fixed; left: 10px; top: 8px; display: none; background: rgba(4,7,18,0.55); color: #a3b0d6; border: 1px solid rgba(163,176,214,0.4); padding: 5px 9px; font: 700 10px/1 Silkscreen, monospace; letter-spacing: 0.18em; cursor: pointer; }
+    #mute:hover, #mute:focus-visible { color: #eef2ff; border-color: #eef2ff; outline: none; }
+    #boot { position: fixed; inset: 0; display: grid; place-items: center; color: #a3b0d6; font: 14px/1.4 monospace; letter-spacing: 0.2em; }
+  </style>
+</head>
+<body>
+  <div id="stage"><canvas id="game" width="1280" height="720"></canvas></div>
+  <input id="answer" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="80" enterkeyhint="send" aria-label="Your answer" />
+  <button id="mute" type="button" aria-label="Turn sound on or off (M)" title="Sound on/off (M)">SOUND ON</button>
+  <div id="boot">LOADING</div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

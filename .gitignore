@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.env.local
+*.log
+.DS_Store
+coverage
+packages/*/dist
+
+# local database, backups and keys
+*.db
+*.db-shm
+*.db-wal
+packages/server/data/backups/

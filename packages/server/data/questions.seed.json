@@ -1,0 +1,4613 @@
+{
+ "version": "seed-1",
+ "note": "Placeholder bank written from memory. Answers, descriptions and tiers are unverified guesses. See tools/build_questions.py.",
+ "categories": [
+  "Places",
+  "Food",
+  "Music",
+  "Miscellaneous",
+  "Animals & Nature",
+  "Movies & TV",
+  "Sports",
+  "Games",
+  "Science & Technology",
+  "History & Mythology",
+  "Transport & Vehicles"
+ ],
+ "questions": [
+  {
+   "id": "food-cheese",
+   "category": "Food",
+   "prompt": "Name a kind of cheese.",
+   "rules": "Any named cheese or cheese style. Processed cheese slices and fresh cheeses count. Brands do not count unless they are also a style.",
+   "answers": [
+    {
+     "name": "Cheddar",
+     "tier": 0,
+     "desc": "A hard English cheese from the village of Cheddar."
+    },
+    {
+     "name": "Mozzarella",
+     "tier": 0,
+     "desc": "A soft, stretchy Italian cheese used on pizza."
+    },
+    {
+     "name": "Parmesan",
+     "tier": 0,
+     "desc": "A hard, salty Italian cheese, often grated.",
+     "aliases": [
+      "parmigiano reggiano",
+      "parmigiano"
+     ]
+    },
+    {
+     "name": "Brie",
+     "tier": 1,
+     "desc": "A soft French cheese with a white rind."
+    },
+    {
+     "name": "Gouda",
+     "tier": 1,
+     "desc": "A Dutch cheese, sold young or aged."
+    },
+    {
+     "name": "Feta",
+     "tier": 1,
+     "desc": "A brined white cheese from Greece."
+    },
+    {
+     "name": "Camembert",
+     "tier": 1,
+     "desc": "A soft white-rind cheese from Normandy."
+    },
+    {
+     "name": "Blue cheese",
+     "tier": 1,
+     "desc": "Cheese veined with blue mould.",
+     "aliases": [
+      "bleu cheese",
+      "bleu"
+     ]
+    },
+    {
+     "name": "Swiss",
+     "tier": 1,
+     "desc": "A pale cheese with holes.",
+     "aliases": [
+      "swiss cheese"
+     ]
+    },
+    {
+     "name": "Cream cheese",
+     "tier": 1,
+     "desc": "A soft, spreadable fresh cheese."
+    },
+    {
+     "name": "Cottage cheese",
+     "tier": 1,
+     "desc": "A fresh cheese of soft white curds."
+    },
+    {
+     "name": "American cheese",
+     "tier": 1,
+     "desc": "A processed cheese sold in slices."
+    },
+    {
+     "name": "Gorgonzola",
+     "tier": 2,
+     "desc": "An Italian blue cheese."
+    },
+    {
+     "name": "Provolone",
+     "tier": 2,
+     "desc": "A smooth Italian cheese."
+    },
+    {
+     "name": "Halloumi",
+     "tier": 2,
+     "desc": "A squeaky Cypriot cheese that can be grilled."
+    },
+    {
+     "name": "Manchego",
+     "tier": 2,
+     "desc": "A Spanish sheep's-milk cheese."
+    },
+    {
+     "name": "Gruyère",
+     "tier": 2,
+     "desc": "A Swiss cheese used in fondue.",
+     "aliases": [
+      "gruyere"
+     ]
+    },
+    {
+     "name": "Edam",
+     "tier": 2,
+     "desc": "A Dutch cheese with a red wax coat."
+    },
+    {
+     "name": "Mascarpone",
+     "tier": 2,
+     "desc": "A creamy Italian cheese used in tiramisu."
+    },
+    {
+     "name": "Ricotta",
+     "tier": 2,
+     "desc": "A soft Italian whey cheese."
+    },
+    {
+     "name": "Roquefort",
+     "tier": 2,
+     "desc": "A French blue cheese made from sheep's milk."
+    },
+    {
+     "name": "Pecorino",
+     "tier": 2,
+     "desc": "A hard Italian sheep's-milk cheese.",
+     "aliases": [
+      "pecorino romano"
+     ]
+    },
+    {
+     "name": "Emmental",
+     "tier": 2,
+     "desc": "A Swiss cheese with big holes.",
+     "aliases": [
+      "emmentaler"
+     ]
+    },
+    {
+     "name": "Monterey Jack",
+     "tier": 2,
+     "desc": "A mild American cheese.",
+     "aliases": [
+      "pepper jack"
+     ]
+    },
+    {
+     "name": "Paneer",
+     "tier": 2,
+     "desc": "A fresh Indian cheese."
+    },
+    {
+     "name": "Stilton",
+     "tier": 2,
+     "desc": "A crumbly English blue cheese."
+    },
+    {
+     "name": "Burrata",
+     "tier": 3,
+     "desc": "A fresh Italian cheese with a creamy centre."
+    },
+    {
+     "name": "Havarti",
+     "tier": 3,
+     "desc": "A buttery Danish cheese."
+    },
+    {
+     "name": "Raclette",
+     "tier": 3,
+     "desc": "A Swiss cheese melted and scraped onto potatoes."
+    },
+    {
+     "name": "Taleggio",
+     "tier": 3,
+     "desc": "A soft, strong-smelling Italian cheese."
+    },
+    {
+     "name": "Wensleydale",
+     "tier": 3,
+     "desc": "A crumbly English cheese from Yorkshire."
+    },
+    {
+     "name": "Red Leicester",
+     "tier": 3,
+     "desc": "An orange English cheese."
+    },
+    {
+     "name": "Jarlsberg",
+     "tier": 3,
+     "desc": "A mild Norwegian cheese with holes."
+    },
+    {
+     "name": "Cotija",
+     "tier": 3,
+     "desc": "A crumbly, salty Mexican cheese."
+    },
+    {
+     "name": "Comté",
+     "tier": 3,
+     "desc": "A nutty French cheese from the Jura.",
+     "aliases": [
+      "comte"
+     ]
+    },
+    {
+     "name": "Reblochon",
+     "tier": 3,
+     "desc": "A soft French cheese from the Alps."
+    },
+    {
+     "name": "Asiago",
+     "tier": 3,
+     "desc": "An Italian cow's-milk cheese."
+    },
+    {
+     "name": "Fontina",
+     "tier": 3,
+     "desc": "An Italian cheese from the Aosta Valley."
+    },
+    {
+     "name": "Grana Padano",
+     "tier": 3,
+     "desc": "A hard Italian grating cheese."
+    },
+    {
+     "name": "Cheshire",
+     "tier": 3,
+     "desc": "A crumbly English cheese."
+    },
+    {
+     "name": "Époisses",
+     "tier": 4,
+     "desc": "A strong, soft French cheese washed in brandy.",
+     "aliases": [
+      "epoisses"
+     ]
+    },
+    {
+     "name": "Limburger",
+     "tier": 4,
+     "desc": "A famously smelly cheese."
+    },
+    {
+     "name": "Mimolette",
+     "tier": 4,
+     "desc": "A bright orange French cheese."
+    },
+    {
+     "name": "Stinking Bishop",
+     "tier": 4,
+     "desc": "A smelly English cheese washed in perry."
+    },
+    {
+     "name": "Vacherin Mont d'Or",
+     "tier": 4,
+     "desc": "A soft winter cheese from the Jura mountains.",
+     "aliases": [
+      "mont d'or"
+     ]
+    },
+    {
+     "name": "Caerphilly",
+     "tier": 4,
+     "desc": "A crumbly Welsh cheese."
+    },
+    {
+     "name": "Appenzeller",
+     "tier": 4,
+     "desc": "A spicy Swiss cheese."
+    },
+    {
+     "name": "Cantal",
+     "tier": 4,
+     "desc": "A French cheese from the Auvergne."
+    },
+    {
+     "name": "Cashel Blue",
+     "tier": 4,
+     "desc": "An Irish blue cheese."
+    },
+    {
+     "name": "Double Gloucester",
+     "tier": 4,
+     "desc": "A hard English cheese."
+    },
+    {
+     "name": "Lancashire",
+     "tier": 4,
+     "desc": "A crumbly English cheese."
+    },
+    {
+     "name": "Queso fresco",
+     "tier": 4,
+     "desc": "A soft, fresh Mexican cheese."
+    },
+    {
+     "name": "Casu marzu",
+     "tier": 5,
+     "desc": "A Sardinian cheese eaten with live fly larvae."
+    },
+    {
+     "name": "Pule",
+     "tier": 5,
+     "desc": "A Serbian cheese made from donkey milk."
+    },
+    {
+     "name": "Chhurpi",
+     "tier": 5,
+     "desc": "A hard yak-milk cheese from the Himalayas."
+    },
+    {
+     "name": "Rubing",
+     "tier": 5,
+     "desc": "A Chinese cheese from Yunnan.",
+     "aliases": [
+      "milk fan"
+     ]
+    },
+    {
+     "name": "Cabrales",
+     "tier": 5,
+     "desc": "A Spanish blue cheese aged in caves."
+    },
+    {
+     "name": "Livarot",
+     "tier": 5,
+     "desc": "A strong Normandy cheese."
+    },
+    {
+     "name": "Gjetost",
+     "tier": 5,
+     "desc": "A brown Norwegian whey cheese."
+    },
+    {
+     "name": "Caciocavallo",
+     "tier": 5,
+     "desc": "An Italian stretched-curd cheese."
+    },
+    {
+     "name": "Humboldt Fog",
+     "tier": 5,
+     "desc": "An American goat cheese with a line of ash."
+    },
+    {
+     "name": "Tête de Moine",
+     "tier": 5,
+     "desc": "A Swiss cheese shaved into rosettes.",
+     "aliases": [
+      "tete de moine"
+     ]
+    },
+    {
+     "name": "Brillat-Savarin",
+     "tier": 5,
+     "desc": "A rich triple-cream French cheese."
+    }
+   ]
+  },
+  {
+   "id": "places-landlocked",
+   "category": "Places",
+   "prompt": "Name a landlocked country.",
+   "rules": "A sovereign country with no sea coast. Countries that only touch a lake or an inland sea (Caspian) still count if they have no ocean access. Kosovo counts.",
+   "answers": [
+    {
+     "name": "Switzerland",
+     "tier": 0,
+     "desc": "An Alpine country in Central Europe."
+    },
+    {
+     "name": "Austria",
+     "tier": 0,
+     "desc": "A country in the Alps, home to Vienna."
+    },
+    {
+     "name": "Nepal",
+     "tier": 1,
+     "desc": "A Himalayan country containing Mount Everest's south side."
+    },
+    {
+     "name": "Mongolia",
+     "tier": 1,
+     "desc": "A huge steppe country between Russia and China."
+    },
+    {
+     "name": "Hungary",
+     "tier": 1,
+     "desc": "A Central European country on the Danube."
+    },
+    {
+     "name": "Czechia",
+     "tier": 1,
+     "desc": "A Central European country; capital Prague.",
+     "aliases": [
+      "czech republic",
+      "czech"
+     ]
+    },
+    {
+     "name": "Bolivia",
+     "tier": 1,
+     "desc": "A South American country with two capitals."
+    },
+    {
+     "name": "Ethiopia",
+     "tier": 1,
+     "desc": "An East African country; landlocked since 1993."
+    },
+    {
+     "name": "Afghanistan",
+     "tier": 1,
+     "desc": "A mountainous country in Central/South Asia."
+    },
+    {
+     "name": "Kazakhstan",
+     "tier": 1,
+     "desc": "The largest landlocked country in the world."
+    },
+    {
+     "name": "Uganda",
+     "tier": 1,
+     "desc": "An East African country beside Lake Victoria."
+    },
+    {
+     "name": "Zimbabwe",
+     "tier": 1,
+     "desc": "A southern African country with Victoria Falls on its border."
+    },
+    {
+     "name": "Zambia",
+     "tier": 1,
+     "desc": "A southern African country on the Zambezi."
+    },
+    {
+     "name": "Belarus",
+     "tier": 1,
+     "desc": "An Eastern European country; capital Minsk."
+    },
+    {
+     "name": "Luxembourg",
+     "tier": 2,
+     "desc": "A tiny country between Belgium, France and Germany."
+    },
+    {
+     "name": "Serbia",
+     "tier": 2,
+     "desc": "A Balkan country; capital Belgrade."
+    },
+    {
+     "name": "Slovakia",
+     "tier": 2,
+     "desc": "A Central European country; capital Bratislava."
+    },
+    {
+     "name": "Botswana",
+     "tier": 2,
+     "desc": "A southern African country with the Okavango Delta."
+    },
+    {
+     "name": "Paraguay",
+     "tier": 2,
+     "desc": "A South American country; capital Asunción."
+    },
+    {
+     "name": "Rwanda",
+     "tier": 2,
+     "desc": "A small, hilly East African country."
+    },
+    {
+     "name": "Bhutan",
+     "tier": 2,
+     "desc": "A small Himalayan kingdom."
+    },
+    {
+     "name": "Laos",
+     "tier": 2,
+     "desc": "The only landlocked country in Southeast Asia."
+    },
+    {
+     "name": "Uzbekistan",
+     "tier": 2,
+     "desc": "A Central Asian country on the old Silk Road."
+    },
+    {
+     "name": "Mali",
+     "tier": 2,
+     "desc": "A West African country containing Timbuktu."
+    },
+    {
+     "name": "Chad",
+     "tier": 2,
+     "desc": "A Central African country around Lake Chad."
+    },
+    {
+     "name": "Niger",
+     "tier": 2,
+     "desc": "A West African country mostly in the Sahara."
+    },
+    {
+     "name": "Malawi",
+     "tier": 2,
+     "desc": "A southern African country along Lake Malawi."
+    },
+    {
+     "name": "Armenia",
+     "tier": 2,
+     "desc": "A Caucasus country; capital Yerevan."
+    },
+    {
+     "name": "Liechtenstein",
+     "tier": 2,
+     "desc": "A tiny Alpine principality."
+    },
+    {
+     "name": "Vatican City",
+     "tier": 2,
+     "desc": "The smallest country in the world.",
+     "aliases": [
+      "vatican",
+      "holy see"
+     ]
+    },
+    {
+     "name": "Andorra",
+     "tier": 2,
+     "desc": "A small country in the Pyrenees."
+    },
+    {
+     "name": "San Marino",
+     "tier": 2,
+     "desc": "A tiny republic inside Italy."
+    },
+    {
+     "name": "Kyrgyzstan",
+     "tier": 3,
+     "desc": "A mountainous Central Asian country."
+    },
+    {
+     "name": "Moldova",
+     "tier": 3,
+     "desc": "A small country between Romania and Ukraine."
+    },
+    {
+     "name": "North Macedonia",
+     "tier": 3,
+     "desc": "A Balkan country; capital Skopje.",
+     "aliases": [
+      "macedonia"
+     ]
+    },
+    {
+     "name": "Burkina Faso",
+     "tier": 3,
+     "desc": "A West African country; capital Ouagadougou."
+    },
+    {
+     "name": "Lesotho",
+     "tier": 3,
+     "desc": "A kingdom entirely surrounded by South Africa."
+    },
+    {
+     "name": "Eswatini",
+     "tier": 3,
+     "desc": "A small southern African kingdom, once called Swaziland.",
+     "aliases": [
+      "swaziland"
+     ]
+    },
+    {
+     "name": "Azerbaijan",
+     "tier": 3,
+     "desc": "A Caucasus country on the Caspian Sea."
+    },
+    {
+     "name": "Turkmenistan",
+     "tier": 3,
+     "desc": "A desert country in Central Asia."
+    },
+    {
+     "name": "Tajikistan",
+     "tier": 3,
+     "desc": "A mountainous Central Asian country."
+    },
+    {
+     "name": "South Sudan",
+     "tier": 3,
+     "desc": "The world's newest widely recognised country (2011)."
+    },
+    {
+     "name": "Burundi",
+     "tier": 4,
+     "desc": "A small East African country beside Lake Tanganyika."
+    },
+    {
+     "name": "Central African Republic",
+     "tier": 4,
+     "desc": "A Central African country; capital Bangui."
+    },
+    {
+     "name": "Kosovo",
+     "tier": 5,
+     "desc": "A Balkan country that declared independence in 2008."
+    }
+   ],
+   "rejects": [
+    {
+     "names": [
+      "Germany",
+      "France",
+      "Italy",
+      "Spain",
+      "Poland",
+      "Russia",
+      "China",
+      "India",
+      "Brazil",
+      "Kenya",
+      "Egypt",
+      "Turkey",
+      "Iran",
+      "Iraq",
+      "Romania",
+      "Bulgaria",
+      "Peru",
+      "Chile",
+      "Argentina"
+     ],
+     "message": "That country has a coastline."
+    }
+   ]
+  },
+  {
+   "id": "music-percussion",
+   "category": "Music",
+   "prompt": "Name a percussion instrument.",
+   "rules": "A musical instrument played by striking, shaking or scraping, including keyboard percussion and drums from any culture. Drum kit counts as a whole; its parts also count.",
+   "answers": [
+    {
+     "name": "Drum",
+     "tier": 0,
+     "desc": "A hollow instrument with a skin that you hit.",
+     "aliases": [
+      "drums"
+     ]
+    },
+    {
+     "name": "Snare drum",
+     "tier": 0,
+     "desc": "A drum with wires across the bottom skin.",
+     "aliases": [
+      "snare"
+     ]
+    },
+    {
+     "name": "Bass drum",
+     "tier": 0,
+     "desc": "A big, low drum.",
+     "aliases": [
+      "kick drum"
+     ]
+    },
+    {
+     "name": "Cymbal",
+     "tier": 0,
+     "desc": "A thin metal plate that crashes.",
+     "aliases": [
+      "cymbals"
+     ]
+    },
+    {
+     "name": "Tambourine",
+     "tier": 0,
+     "desc": "A hoop with jingles."
+    },
+    {
+     "name": "Triangle",
+     "tier": 0,
+     "desc": "A bent metal bar hit with a beater."
+    },
+    {
+     "name": "Xylophone",
+     "tier": 1,
+     "desc": "Wooden bars played with mallets."
+    },
+    {
+     "name": "Bongos",
+     "tier": 1,
+     "desc": "A pair of small joined drums.",
+     "aliases": [
+      "bongo drums"
+     ]
+    },
+    {
+     "name": "Maracas",
+     "tier": 1,
+     "desc": "Shakers filled with seeds.",
+     "aliases": [
+      "maraca"
+     ]
+    },
+    {
+     "name": "Cowbell",
+     "tier": 1,
+     "desc": "A metal bell struck with a stick."
+    },
+    {
+     "name": "Timpani",
+     "tier": 1,
+     "desc": "Large kettle drums tuned to pitches.",
+     "aliases": [
+      "kettle drum",
+      "kettledrum",
+      "timpano",
+      "kettledrums"
+     ]
+    },
+    {
+     "name": "Glockenspiel",
+     "tier": 1,
+     "desc": "Metal bars played with mallets."
+    },
+    {
+     "name": "Marimba",
+     "tier": 1,
+     "desc": "A large wooden-bar instrument with resonators."
+    },
+    {
+     "name": "Hi-hat",
+     "tier": 1,
+     "desc": "A pair of cymbals on a stand.",
+     "aliases": [
+      "hihat",
+      "hi hat"
+     ]
+    },
+    {
+     "name": "Congas",
+     "tier": 1,
+     "desc": "Tall single-headed Afro-Cuban drums.",
+     "aliases": [
+      "conga"
+     ]
+    },
+    {
+     "name": "Gong",
+     "tier": 1,
+     "desc": "A large hanging metal disc."
+    },
+    {
+     "name": "Tom-tom",
+     "tier": 1,
+     "desc": "A cylindrical drum without snares.",
+     "aliases": [
+      "tom tom",
+      "tom",
+      "toms"
+     ]
+    },
+    {
+     "name": "Vibraphone",
+     "tier": 2,
+     "desc": "Metal bars with spinning resonators.",
+     "aliases": [
+      "vibes"
+     ]
+    },
+    {
+     "name": "Castanets",
+     "tier": 2,
+     "desc": "Clacking shells held in the hand."
+    },
+    {
+     "name": "Djembe",
+     "tier": 2,
+     "desc": "A goblet-shaped West African hand drum."
+    },
+    {
+     "name": "Tabla",
+     "tier": 2,
+     "desc": "A pair of Indian hand drums."
+    },
+    {
+     "name": "Woodblock",
+     "tier": 2,
+     "desc": "A hollow block of wood that clacks.",
+     "aliases": [
+      "wood block",
+      "temple block"
+     ]
+    },
+    {
+     "name": "Claves",
+     "tier": 2,
+     "desc": "Two short wooden sticks struck together."
+    },
+    {
+     "name": "Cajón",
+     "tier": 2,
+     "desc": "A box drum you sit on.",
+     "aliases": [
+      "cajon"
+     ]
+    },
+    {
+     "name": "Steelpan",
+     "tier": 2,
+     "desc": "A tuned oil-drum instrument from Trinidad.",
+     "aliases": [
+      "steel drum",
+      "steel drums",
+      "steel pan"
+     ]
+    },
+    {
+     "name": "Shaker",
+     "tier": 2,
+     "desc": "A container filled with grains or beads.",
+     "aliases": [
+      "egg shaker"
+     ]
+    },
+    {
+     "name": "Tubular bells",
+     "tier": 2,
+     "desc": "Hanging metal tubes struck with a hammer.",
+     "aliases": [
+      "chimes"
+     ]
+    },
+    {
+     "name": "Güiro",
+     "tier": 2,
+     "desc": "A notched gourd you scrape.",
+     "aliases": [
+      "guiro"
+     ]
+    },
+    {
+     "name": "Bodhrán",
+     "tier": 2,
+     "desc": "An Irish frame drum.",
+     "aliases": [
+      "bodhran"
+     ]
+    },
+    {
+     "name": "Taiko",
+     "tier": 2,
+     "desc": "Japanese drums.",
+     "aliases": [
+      "taiko drum"
+     ]
+    },
+    {
+     "name": "Sleigh bells",
+     "tier": 2,
+     "desc": "A strap of jingling bells.",
+     "aliases": [
+      "jingle bells"
+     ]
+    },
+    {
+     "name": "Finger cymbals",
+     "tier": 3,
+     "desc": "Tiny cymbals worn on the fingers.",
+     "aliases": [
+      "zills"
+     ]
+    },
+    {
+     "name": "Cabasa",
+     "tier": 3,
+     "desc": "A steel-beaded cylinder you twist.",
+     "aliases": [
+      "afuche"
+     ]
+    },
+    {
+     "name": "Agogô",
+     "tier": 3,
+     "desc": "Two connected bells from Brazil.",
+     "aliases": [
+      "agogo"
+     ]
+    },
+    {
+     "name": "Darbuka",
+     "tier": 3,
+     "desc": "A goblet-shaped drum from the Middle East.",
+     "aliases": [
+      "doumbek",
+      "darbouka",
+      "derbake"
+     ]
+    },
+    {
+     "name": "Handpan",
+     "tier": 3,
+     "desc": "A tuned steel dish played with the hands.",
+     "aliases": [
+      "hang drum",
+      "hang"
+     ]
+    },
+    {
+     "name": "Crotales",
+     "tier": 3,
+     "desc": "Tiny tuned metal discs.",
+     "aliases": [
+      "antique cymbals"
+     ]
+    },
+    {
+     "name": "Thunder sheet",
+     "tier": 3,
+     "desc": "A hanging metal sheet shaken for thunder.",
+     "aliases": [
+      "thundersheet"
+     ]
+    },
+    {
+     "name": "Frame drum",
+     "tier": 3,
+     "desc": "A drum with a shallow wooden frame."
+    },
+    {
+     "name": "Ratchet",
+     "tier": 3,
+     "desc": "A rotating cog that clacks.",
+     "aliases": [
+      "rattle"
+     ]
+    },
+    {
+     "name": "Rainstick",
+     "tier": 3,
+     "desc": "A tube that sounds like rain.",
+     "aliases": [
+      "rain stick"
+     ]
+    },
+    {
+     "name": "Washboard",
+     "tier": 3,
+     "desc": "A ridged board played with thimbles."
+    },
+    {
+     "name": "Celesta",
+     "tier": 3,
+     "desc": "A keyboard that strikes metal plates.",
+     "aliases": [
+      "celeste"
+     ]
+    },
+    {
+     "name": "Vibraslap",
+     "tier": 4,
+     "desc": "A jawbone-like rattle."
+    },
+    {
+     "name": "Udu",
+     "tier": 4,
+     "desc": "A Nigerian clay pot drum."
+    },
+    {
+     "name": "Anvil",
+     "tier": 4,
+     "desc": "An orchestral anvil struck with a hammer."
+    },
+    {
+     "name": "Slapstick",
+     "tier": 4,
+     "desc": "Two boards that clap together.",
+     "aliases": [
+      "whip"
+     ]
+    },
+    {
+     "name": "Cuíca",
+     "tier": 4,
+     "desc": "A Brazilian friction drum that squeaks.",
+     "aliases": [
+      "cuica"
+     ]
+    },
+    {
+     "name": "Mridangam",
+     "tier": 4,
+     "desc": "A two-headed drum from South India."
+    },
+    {
+     "name": "Gamelan",
+     "tier": 4,
+     "desc": "An Indonesian ensemble of tuned metal instruments."
+    },
+    {
+     "name": "Kalimba",
+     "tier": 4,
+     "desc": "A thumb piano.",
+     "aliases": [
+      "thumb piano",
+      "mbira"
+     ]
+    },
+    {
+     "name": "Tamtam",
+     "tier": 5,
+     "desc": "A large gong without a fixed pitch.",
+     "aliases": [
+      "tam-tam",
+      "tam tam"
+     ]
+    },
+    {
+     "name": "Flexatone",
+     "tier": 5,
+     "desc": "A metal sheet that wobbles as you shake it."
+    },
+    {
+     "name": "Glass harmonica",
+     "tier": 5,
+     "desc": "Spinning glass bowls played with wet fingers."
+    },
+    {
+     "name": "Bendir",
+     "tier": 5,
+     "desc": "A North African frame drum with snares."
+    },
+    {
+     "name": "Pandeiro",
+     "tier": 5,
+     "desc": "A Brazilian tambourine."
+    },
+    {
+     "name": "Cymbalom",
+     "tier": 5,
+     "desc": "A hammered dulcimer.",
+     "aliases": [
+      "cimbalom"
+     ]
+    }
+   ],
+   "rejects": [
+    {
+     "names": [
+      "piano",
+      "guitar",
+      "violin",
+      "flute",
+      "trumpet",
+      "saxophone",
+      "cello",
+      "harp",
+      "organ"
+     ],
+     "message": "That is not a percussion instrument."
+    }
+   ]
+  },
+  {
+   "id": "misc-hat",
+   "category": "Miscellaneous",
+   "prompt": "Name a type of hat.",
+   "rules": "A named style of hat or cap worn on the head: everyday, formal, ceremonial or traditional. Helmets only count if they are called hats (hard hat, pith helmet).",
+   "answers": [
+    {
+     "name": "Baseball cap",
+     "tier": 0,
+     "desc": "A cap with a rounded crown and a stiff peak.",
+     "aliases": [
+      "cap",
+      "baseball hat"
+     ]
+    },
+    {
+     "name": "Top hat",
+     "tier": 0,
+     "desc": "A tall, flat-topped formal hat."
+    },
+    {
+     "name": "Cowboy hat",
+     "tier": 0,
+     "desc": "A wide-brimmed hat with a high crown.",
+     "aliases": [
+      "stetson",
+      "ten gallon hat"
+     ]
+    },
+    {
+     "name": "Beanie",
+     "tier": 0,
+     "desc": "A small knitted hat.",
+     "aliases": [
+      "woolly hat",
+      "toque",
+      "knit hat"
+     ]
+    },
+    {
+     "name": "Sombrero",
+     "tier": 0,
+     "desc": "A wide-brimmed Mexican hat."
+    },
+    {
+     "name": "Beret",
+     "tier": 0,
+     "desc": "A soft, round, flat-topped cap."
+    },
+    {
+     "name": "Fedora",
+     "tier": 1,
+     "desc": "A soft felt hat with a pinched crown."
+    },
+    {
+     "name": "Bowler hat",
+     "tier": 1,
+     "desc": "A hard, round felt hat.",
+     "aliases": [
+      "bowler",
+      "derby"
+     ]
+    },
+    {
+     "name": "Sun hat",
+     "tier": 1,
+     "desc": "A wide-brimmed hat for shade.",
+     "aliases": [
+      "sunhat"
+     ]
+    },
+    {
+     "name": "Straw hat",
+     "tier": 1,
+     "desc": "A hat woven from straw."
+    },
+    {
+     "name": "Bucket hat",
+     "tier": 1,
+     "desc": "A soft hat with a downward brim."
+    },
+    {
+     "name": "Flat cap",
+     "tier": 1,
+     "desc": "A round cap with a small stiff brim.",
+     "aliases": [
+      "newsboy cap",
+      "newsboy",
+      "baker boy",
+      "ivy cap"
+     ]
+    },
+    {
+     "name": "Fez",
+     "tier": 1,
+     "desc": "A red, flat-topped cone-shaped hat."
+    },
+    {
+     "name": "Panama hat",
+     "tier": 1,
+     "desc": "A light straw hat from Ecuador.",
+     "aliases": [
+      "panama"
+     ]
+    },
+    {
+     "name": "Trilby",
+     "tier": 1,
+     "desc": "A narrow-brimmed felt hat."
+    },
+    {
+     "name": "Hard hat",
+     "tier": 1,
+     "desc": "A protective hat for building sites."
+    },
+    {
+     "name": "Turban",
+     "tier": 1,
+     "desc": "A long cloth wrapped around the head."
+    },
+    {
+     "name": "Bobble hat",
+     "tier": 1,
+     "desc": "A knitted hat with a pom-pom."
+    },
+    {
+     "name": "Pork pie hat",
+     "tier": 2,
+     "desc": "A hat with a flat top and a short brim.",
+     "aliases": [
+      "pork pie"
+     ]
+    },
+    {
+     "name": "Boater",
+     "tier": 2,
+     "desc": "A flat-topped straw hat with a ribbon."
+    },
+    {
+     "name": "Homburg",
+     "tier": 2,
+     "desc": "A formal felt hat with a dent down the crown."
+    },
+    {
+     "name": "Deerstalker",
+     "tier": 2,
+     "desc": "A cap with front and back peaks and ear flaps."
+    },
+    {
+     "name": "Tricorn",
+     "tier": 2,
+     "desc": "A hat with the brim folded up on three sides.",
+     "aliases": [
+      "tricorne"
+     ]
+    },
+    {
+     "name": "Bicorne",
+     "tier": 2,
+     "desc": "A hat with the brim folded up on two sides.",
+     "aliases": [
+      "bicorn"
+     ]
+    },
+    {
+     "name": "Mortarboard",
+     "tier": 2,
+     "desc": "A square academic cap.",
+     "aliases": [
+      "graduation cap"
+     ]
+    },
+    {
+     "name": "Bonnet",
+     "tier": 2,
+     "desc": "A hat tied under the chin."
+    },
+    {
+     "name": "Cloche",
+     "tier": 2,
+     "desc": "A bell-shaped hat from the 1920s."
+    },
+    {
+     "name": "Pillbox",
+     "tier": 2,
+     "desc": "A small, round, flat-topped hat.",
+     "aliases": [
+      "pillbox hat"
+     ]
+    },
+    {
+     "name": "Ushanka",
+     "tier": 2,
+     "desc": "A Russian fur hat with ear flaps.",
+     "aliases": [
+      "trapper hat",
+      "russian hat"
+     ]
+    },
+    {
+     "name": "Kippah",
+     "tier": 2,
+     "desc": "A small brimless Jewish cap.",
+     "aliases": [
+      "yarmulke",
+      "kippa",
+      "skullcap"
+     ]
+    },
+    {
+     "name": "Tam o' shanter",
+     "tier": 2,
+     "desc": "A Scottish bonnet with a pom-pom.",
+     "aliases": [
+      "tam",
+      "tam o shanter"
+     ]
+    },
+    {
+     "name": "Balmoral",
+     "tier": 3,
+     "desc": "A Scottish bonnet."
+    },
+    {
+     "name": "Busby",
+     "tier": 3,
+     "desc": "A tall fur hat worn by some soldiers."
+    },
+    {
+     "name": "Bearskin",
+     "tier": 3,
+     "desc": "The tall black fur hat of the King's Guard."
+    },
+    {
+     "name": "Shako",
+     "tier": 3,
+     "desc": "A tall military hat with a plume."
+    },
+    {
+     "name": "Kepi",
+     "tier": 3,
+     "desc": "A French flat-topped cap with a peak."
+    },
+    {
+     "name": "Pith helmet",
+     "tier": 3,
+     "desc": "A lightweight tropical sun hat.",
+     "aliases": [
+      "safari hat"
+     ]
+    },
+    {
+     "name": "Akubra",
+     "tier": 3,
+     "desc": "An Australian felt hat."
+    },
+    {
+     "name": "Fascinator",
+     "tier": 3,
+     "desc": "A decorative headpiece on a band or clip."
+    },
+    {
+     "name": "Mitre",
+     "tier": 3,
+     "desc": "A tall pointed hat worn by bishops.",
+     "aliases": [
+      "miter"
+     ]
+    },
+    {
+     "name": "Snapback",
+     "tier": 3,
+     "desc": "A flat-brimmed cap with a plastic strap."
+    },
+    {
+     "name": "Trucker hat",
+     "tier": 3,
+     "desc": "A cap with a mesh back.",
+     "aliases": [
+      "trucker cap"
+     ]
+    },
+    {
+     "name": "Visor",
+     "tier": 3,
+     "desc": "A brim with no crown."
+    },
+    {
+     "name": "Kufi",
+     "tier": 3,
+     "desc": "A short, rounded brimless cap."
+    },
+    {
+     "name": "Coonskin cap",
+     "tier": 4,
+     "desc": "A cap made from raccoon fur."
+    },
+    {
+     "name": "Glengarry",
+     "tier": 4,
+     "desc": "A Scottish cap folded along the top."
+    },
+    {
+     "name": "Stovepipe hat",
+     "tier": 4,
+     "desc": "A tall, straight-sided top hat."
+    },
+    {
+     "name": "Gatsby cap",
+     "tier": 4,
+     "desc": "A full flat cap."
+    },
+    {
+     "name": "Sou'wester",
+     "tier": 4,
+     "desc": "A waterproof hat with a long back brim.",
+     "aliases": [
+      "southwester"
+     ]
+    },
+    {
+     "name": "Chullo",
+     "tier": 4,
+     "desc": "An Andean knitted hat with ear flaps."
+    },
+    {
+     "name": "Pakol",
+     "tier": 4,
+     "desc": "A soft round wool hat from Afghanistan."
+    },
+    {
+     "name": "Kolpik",
+     "tier": 5,
+     "desc": "A Hasidic fur hat."
+    },
+    {
+     "name": "Pileus",
+     "tier": 5,
+     "desc": "A brimless felt cap from ancient Rome."
+    },
+    {
+     "name": "Phrygian cap",
+     "tier": 5,
+     "desc": "A soft cone cap with a forward-curling tip.",
+     "aliases": [
+      "liberty cap"
+     ]
+    },
+    {
+     "name": "Montera",
+     "tier": 5,
+     "desc": "The hat of a Spanish bullfighter."
+    },
+    {
+     "name": "Zucchetto",
+     "tier": 5,
+     "desc": "A small round cap worn by clergy."
+    }
+   ]
+  },
+  {
+   "id": "animals-shark",
+   "category": "Animals & Nature",
+   "prompt": "Name a kind of shark.",
+   "rules": "A shark species or a widely used common name for a group of sharks. Extinct sharks count if they were sharks (Megalodon). Rays, skates and dolphins do not.",
+   "answers": [
+    {
+     "name": "Great white shark",
+     "tier": 0,
+     "desc": "The big, famous predator from Jaws.",
+     "aliases": [
+      "great white",
+      "white shark"
+     ]
+    },
+    {
+     "name": "Hammerhead shark",
+     "tier": 0,
+     "desc": "A shark with a flat, wide head.",
+     "aliases": [
+      "hammerhead"
+     ]
+    },
+    {
+     "name": "Tiger shark",
+     "tier": 0,
+     "desc": "A striped shark that eats almost anything.",
+     "aliases": [
+      "tiger"
+     ]
+    },
+    {
+     "name": "Whale shark",
+     "tier": 0,
+     "desc": "The largest fish in the world."
+    },
+    {
+     "name": "Bull shark",
+     "tier": 1,
+     "desc": "A thick shark that can swim up rivers.",
+     "aliases": [
+      "bull"
+     ]
+    },
+    {
+     "name": "Nurse shark",
+     "tier": 1,
+     "desc": "A slow bottom-dwelling shark.",
+     "aliases": [
+      "nurse"
+     ]
+    },
+    {
+     "name": "Mako shark",
+     "tier": 1,
+     "desc": "The fastest shark.",
+     "aliases": [
+      "mako",
+      "shortfin mako"
+     ]
+    },
+    {
+     "name": "Blue shark",
+     "tier": 1,
+     "desc": "A slim ocean shark."
+    },
+    {
+     "name": "Lemon shark",
+     "tier": 1,
+     "desc": "A yellow-brown shark found in warm shallows.",
+     "aliases": [
+      "lemon"
+     ]
+    },
+    {
+     "name": "Thresher shark",
+     "tier": 1,
+     "desc": "A shark with a very long tail.",
+     "aliases": [
+      "thresher"
+     ]
+    },
+    {
+     "name": "Basking shark",
+     "tier": 1,
+     "desc": "A huge filter-feeding shark.",
+     "aliases": [
+      "basking"
+     ]
+    },
+    {
+     "name": "Megalodon",
+     "tier": 1,
+     "desc": "A giant extinct shark.",
+     "aliases": [
+      "megalodon shark",
+      "otodus megalodon",
+      "carcharocles megalodon"
+     ]
+    },
+    {
+     "name": "Reef shark",
+     "tier": 2,
+     "desc": "A group of sharks that live on coral reefs.",
+     "aliases": [
+      "blacktip reef shark",
+      "whitetip reef shark",
+      "grey reef shark",
+      "gray reef shark",
+      "caribbean reef shark"
+     ]
+    },
+    {
+     "name": "Goblin shark",
+     "tier": 2,
+     "desc": "A pink deep-sea shark with a long snout.",
+     "aliases": [
+      "goblin"
+     ]
+    },
+    {
+     "name": "Greenland shark",
+     "tier": 2,
+     "desc": "A very slow, very long-lived Arctic shark.",
+     "aliases": [
+      "greenland"
+     ]
+    },
+    {
+     "name": "Cookiecutter shark",
+     "tier": 2,
+     "desc": "A small shark that bites round plugs from larger animals.",
+     "aliases": [
+      "cookie cutter shark",
+      "cookiecutter"
+     ]
+    },
+    {
+     "name": "Wobbegong",
+     "tier": 2,
+     "desc": "A carpet shark with a fringe of whiskers.",
+     "aliases": [
+      "wobbegong shark",
+      "carpet shark"
+     ]
+    },
+    {
+     "name": "Leopard shark",
+     "tier": 2,
+     "desc": "A spotted shark from the Pacific coast."
+    },
+    {
+     "name": "Zebra shark",
+     "tier": 2,
+     "desc": "A shark with stripes when young and spots when older."
+    },
+    {
+     "name": "Sand tiger shark",
+     "tier": 2,
+     "desc": "A shark with a toothy, jagged grin.",
+     "aliases": [
+      "sand tiger",
+      "grey nurse shark"
+     ]
+    },
+    {
+     "name": "Oceanic whitetip",
+     "tier": 2,
+     "desc": "An open-ocean shark with white-tipped fins.",
+     "aliases": [
+      "oceanic whitetip shark"
+     ]
+    },
+    {
+     "name": "Silky shark",
+     "tier": 2,
+     "desc": "A smooth-skinned ocean shark."
+    },
+    {
+     "name": "Spinner shark",
+     "tier": 2,
+     "desc": "A shark that leaps and spins out of the water."
+    },
+    {
+     "name": "Blacktip shark",
+     "tier": 2,
+     "desc": "A fast shark with black fin tips.",
+     "aliases": [
+      "blacktip"
+     ]
+    },
+    {
+     "name": "Bonnethead",
+     "tier": 2,
+     "desc": "A small hammerhead with a shovel-shaped head.",
+     "aliases": [
+      "bonnethead shark"
+     ]
+    },
+    {
+     "name": "Angel shark",
+     "tier": 3,
+     "desc": "A flat shark that looks like a ray.",
+     "aliases": [
+      "angelshark"
+     ]
+    },
+    {
+     "name": "Porbeagle",
+     "tier": 3,
+     "desc": "A stocky shark related to the great white.",
+     "aliases": [
+      "porbeagle shark"
+     ]
+    },
+    {
+     "name": "Dogfish",
+     "tier": 3,
+     "desc": "A small shark in the cold shallows.",
+     "aliases": [
+      "spiny dogfish",
+      "dogfish shark"
+     ]
+    },
+    {
+     "name": "Epaulette shark",
+     "tier": 3,
+     "desc": "A shark that \"walks\" on its fins."
+    },
+    {
+     "name": "Port Jackson shark",
+     "tier": 3,
+     "desc": "A shark with a pig-like face and spiral eggs."
+    },
+    {
+     "name": "Salmon shark",
+     "tier": 3,
+     "desc": "A warm-bodied North Pacific shark."
+    },
+    {
+     "name": "Horn shark",
+     "tier": 3,
+     "desc": "A shark with a spine on each dorsal fin."
+    },
+    {
+     "name": "Swell shark",
+     "tier": 3,
+     "desc": "A shark that puffs up with water."
+    },
+    {
+     "name": "Tawny nurse shark",
+     "tier": 3,
+     "desc": "A sandy-brown nurse shark from the Indo-Pacific."
+    },
+    {
+     "name": "Bamboo shark",
+     "tier": 3,
+     "desc": "A small bottom-dwelling shark."
+    },
+    {
+     "name": "Sixgill shark",
+     "tier": 3,
+     "desc": "A deep-water shark with six gill slits.",
+     "aliases": [
+      "bluntnose sixgill shark",
+      "sixgill"
+     ]
+    },
+    {
+     "name": "Frilled shark",
+     "tier": 4,
+     "desc": "An eel-like living fossil."
+    },
+    {
+     "name": "Megamouth shark",
+     "tier": 4,
+     "desc": "A very rare filter-feeding deep-sea shark.",
+     "aliases": [
+      "megamouth"
+     ]
+    },
+    {
+     "name": "Pyjama shark",
+     "tier": 4,
+     "desc": "A striped shark from South Africa.",
+     "aliases": [
+      "pajama shark"
+     ]
+    },
+    {
+     "name": "Lantern shark",
+     "tier": 4,
+     "desc": "A small shark that glows in the dark.",
+     "aliases": [
+      "lanternshark"
+     ]
+    },
+    {
+     "name": "Sleeper shark",
+     "tier": 4,
+     "desc": "A slow, large cold-water shark.",
+     "aliases": [
+      "pacific sleeper shark"
+     ]
+    },
+    {
+     "name": "Tope shark",
+     "tier": 4,
+     "desc": "A slim shark from the Atlantic and Pacific.",
+     "aliases": [
+      "tope",
+      "school shark"
+     ]
+    },
+    {
+     "name": "Smoothhound",
+     "tier": 4,
+     "desc": "A slim, small-toothed shark.",
+     "aliases": [
+      "smooth-hound",
+      "smooth hound"
+     ]
+    },
+    {
+     "name": "Cat shark",
+     "tier": 4,
+     "desc": "A group of small, slim sharks.",
+     "aliases": [
+      "catshark",
+      "cat sharks"
+     ]
+    },
+    {
+     "name": "Kitefin shark",
+     "tier": 5,
+     "desc": "A deep-sea shark with very large eyes."
+    },
+    {
+     "name": "Crocodile shark",
+     "tier": 5,
+     "desc": "A small deep-sea shark with big eyes."
+    },
+    {
+     "name": "Bigeye thresher",
+     "tier": 5,
+     "desc": "A deep-living thresher with huge eyes."
+    },
+    {
+     "name": "Cow shark",
+     "tier": 5,
+     "desc": "A shark with six or seven gill slits."
+    }
+   ],
+   "rejects": [
+    {
+     "names": [
+      "dolphin",
+      "whale",
+      "orca",
+      "killer whale",
+      "manta ray",
+      "stingray",
+      "barracuda",
+      "swordfish",
+      "marlin",
+      "tuna",
+      "ghost shark",
+      "chimaera"
+     ],
+     "message": "That is not a shark."
+    }
+   ]
+  },
+  {
+   "id": "movies-pixar",
+   "category": "Movies & TV",
+   "prompt": "Name a Pixar feature film.",
+   "rules": "A feature-length film released by Pixar Animation Studios, from Toy Story (1995) through Elio (2025). Short films, Disney Animation films and DreamWorks films do not count.",
+   "answers": [
+    {
+     "name": "Toy Story",
+     "tier": 0,
+     "desc": "Pixar's first feature film (1995)."
+    },
+    {
+     "name": "Finding Nemo",
+     "tier": 0,
+     "desc": "A clownfish crosses the ocean to find his son (2003)."
+    },
+    {
+     "name": "The Incredibles",
+     "tier": 0,
+     "desc": "A family of superheroes in hiding (2004).",
+     "aliases": [
+      "incredibles"
+     ]
+    },
+    {
+     "name": "Monsters, Inc.",
+     "tier": 0,
+     "desc": "Monsters harvest children's screams for power (2001).",
+     "aliases": [
+      "monsters inc",
+      "monsters incorporated"
+     ]
+    },
+    {
+     "name": "Cars",
+     "tier": 0,
+     "desc": "A race car gets stuck in Radiator Springs (2006)."
+    },
+    {
+     "name": "Up",
+     "tier": 1,
+     "desc": "An old man flies his house away with balloons (2009)."
+    },
+    {
+     "name": "WALL-E",
+     "tier": 1,
+     "desc": "A lonely robot cleans up a deserted Earth (2008).",
+     "aliases": [
+      "wall e",
+      "walle"
+     ]
+    },
+    {
+     "name": "Inside Out",
+     "tier": 1,
+     "desc": "Emotions run a girl's mind (2015)."
+    },
+    {
+     "name": "Coco",
+     "tier": 1,
+     "desc": "A boy visits the Land of the Dead (2017)."
+    },
+    {
+     "name": "Ratatouille",
+     "tier": 1,
+     "desc": "A rat dreams of becoming a chef (2007)."
+    },
+    {
+     "name": "Toy Story 2",
+     "tier": 1,
+     "desc": "Woody is stolen by a toy collector (1999)."
+    },
+    {
+     "name": "Toy Story 3",
+     "tier": 1,
+     "desc": "Andy goes to college (2010)."
+    },
+    {
+     "name": "Toy Story 4",
+     "tier": 1,
+     "desc": "Woody meets Forky (2019)."
+    },
+    {
+     "name": "Finding Dory",
+     "tier": 1,
+     "desc": "Dory looks for her parents (2016)."
+    },
+    {
+     "name": "Brave",
+     "tier": 1,
+     "desc": "A Scottish princess changes her fate (2012)."
+    },
+    {
+     "name": "Soul",
+     "tier": 2,
+     "desc": "A jazz teacher in the afterlife (2020)."
+    },
+    {
+     "name": "Inside Out 2",
+     "tier": 1,
+     "desc": "Anxiety arrives in Riley's head (2024)."
+    },
+    {
+     "name": "A Bug's Life",
+     "tier": 1,
+     "desc": "An ant stands up to grasshoppers (1998).",
+     "aliases": [
+      "bugs life",
+      "a bugs life"
+     ]
+    },
+    {
+     "name": "Monsters University",
+     "tier": 2,
+     "desc": "Mike and Sulley meet in college (2013)."
+    },
+    {
+     "name": "Cars 2",
+     "tier": 2,
+     "desc": "Mater becomes a spy (2011)."
+    },
+    {
+     "name": "Cars 3",
+     "tier": 2,
+     "desc": "Lightning McQueen faces a new generation (2017)."
+    },
+    {
+     "name": "Incredibles 2",
+     "tier": 2,
+     "desc": "Elastigirl leads while Mr. Incredible stays home (2018).",
+     "aliases": [
+      "the incredibles 2"
+     ]
+    },
+    {
+     "name": "The Good Dinosaur",
+     "tier": 2,
+     "desc": "A young apatosaurus gets lost (2015).",
+     "aliases": [
+      "good dinosaur"
+     ]
+    },
+    {
+     "name": "Luca",
+     "tier": 3,
+     "desc": "Sea monsters enjoy a summer in Italy (2021)."
+    },
+    {
+     "name": "Turning Red",
+     "tier": 2,
+     "desc": "A girl turns into a giant red panda (2022)."
+    },
+    {
+     "name": "Onward",
+     "tier": 3,
+     "desc": "Two elf brothers try to bring their dad back for a day (2020)."
+    },
+    {
+     "name": "Lightyear",
+     "tier": 4,
+     "desc": "The origin story of Buzz Lightyear (2022)."
+    },
+    {
+     "name": "Elemental",
+     "tier": 3,
+     "desc": "Fire and water characters fall in love (2023)."
+    },
+    {
+     "name": "Elio",
+     "tier": 5,
+     "desc": "A boy is mistaken for Earth's ambassador in space (2025)."
+    }
+   ],
+   "rejects": [
+    {
+     "names": [
+      "Frozen",
+      "Moana",
+      "Shrek",
+      "Encanto",
+      "Zootopia",
+      "Tangled",
+      "Madagascar",
+      "Kung Fu Panda",
+      "Lion King",
+      "The Lion King",
+      "Aladdin",
+      "Despicable Me",
+      "Ice Age",
+      "Bambi"
+     ],
+     "message": "That is not a Pixar film."
+    }
+   ]
+  },
+  {
+   "id": "sports-racket",
+   "category": "Sports",
+   "prompt": "Name a racket sport.",
+   "rules": "A sport played with a racket, paddle-racket or bat-like strung implement: tennis, badminton, squash and similar. Sports played with a bat, stick or the bare hand do not count. Table tennis counts.",
+   "answers": [
+    {
+     "name": "Tennis",
+     "tier": 0,
+     "desc": "Played over a net with strung rackets on a court.",
+     "aliases": [
+      "lawn tennis"
+     ]
+    },
+    {
+     "name": "Badminton",
+     "tier": 0,
+     "desc": "Played with a shuttlecock."
+    },
+    {
+     "name": "Squash",
+     "tier": 0,
+     "desc": "Played in an enclosed court."
+    },
+    {
+     "name": "Table tennis",
+     "tier": 0,
+     "desc": "Played on a table with small bats.",
+     "aliases": [
+      "ping pong",
+      "ping-pong",
+      "pingpong"
+     ]
+    },
+    {
+     "name": "Pickleball",
+     "tier": 1,
+     "desc": "A paddle game on a small court.",
+     "aliases": [
+      "pickle ball"
+     ]
+    },
+    {
+     "name": "Racquetball",
+     "tier": 1,
+     "desc": "Played in a four-walled court with a rubber ball.",
+     "aliases": [
+      "racketball"
+     ]
+    },
+    {
+     "name": "Padel",
+     "tier": 1,
+     "desc": "A walled court game with solid rackets.",
+     "aliases": [
+      "padel tennis"
+     ]
+    },
+    {
+     "name": "Beach tennis",
+     "tier": 2,
+     "desc": "Tennis on sand with solid paddles."
+    },
+    {
+     "name": "Real tennis",
+     "tier": 2,
+     "desc": "The old indoor ancestor of lawn tennis.",
+     "aliases": [
+      "royal tennis",
+      "court tennis"
+     ]
+    },
+    {
+     "name": "Rackets",
+     "tier": 2,
+     "desc": "A fast game in a large walled court.",
+     "aliases": [
+      "racquets"
+     ]
+    },
+    {
+     "name": "Platform tennis",
+     "tier": 3,
+     "desc": "A winter paddle game on a raised court.",
+     "aliases": [
+      "paddle tennis"
+     ]
+    },
+    {
+     "name": "Crossminton",
+     "tier": 3,
+     "desc": "Badminton-like with no net.",
+     "aliases": [
+      "speedminton",
+      "speed badminton"
+     ]
+    },
+    {
+     "name": "Soft tennis",
+     "tier": 3,
+     "desc": "Tennis with a soft rubber ball."
+    },
+    {
+     "name": "Racketlon",
+     "tier": 3,
+     "desc": "A combination of four racket sports."
+    },
+    {
+     "name": "Frontenis",
+     "tier": 4,
+     "desc": "A Mexican game played with rackets against a wall."
+    },
+    {
+     "name": "Matkot",
+     "tier": 4,
+     "desc": "A beach paddle game from Israel."
+    },
+    {
+     "name": "Short tennis",
+     "tier": 4,
+     "desc": "A junior form of tennis with smaller courts.",
+     "aliases": [
+      "mini tennis"
+     ]
+    },
+    {
+     "name": "Jokari",
+     "tier": 5,
+     "desc": "A ball tethered to a bat, played with a racket."
+    },
+    {
+     "name": "Paddleball",
+     "tier": 4,
+     "desc": "A racket-and-ball wall game."
+    },
+    {
+     "name": "Pelota",
+     "tier": 5,
+     "desc": "A family of Basque racket and ball games.",
+     "aliases": [
+      "basque pelota"
+     ]
+    }
+   ],
+   "rejects": [
+    {
+     "names": [
+      "cricket",
+      "baseball",
+      "softball",
+      "golf",
+      "hockey",
+      "ice hockey",
+      "lacrosse",
+      "volleyball",
+      "football",
+      "basketball",
+      "rugby",
+      "polo",
+      "handball",
+      "water polo",
+      "boxing",
+      "curling"
+     ],
+     "message": "That sport does not use a racket."
+    }
+   ]
+  },
+  {
+   "id": "games-board",
+   "category": "Games",
+   "prompt": "Name a board game.",
+   "rules": "A tabletop game played on a board or with a board-like layout and pieces: classic, family or hobby. Card games, dice-only games and video games do not count.",
+   "answers": [
+    {
+     "name": "Monopoly",
+     "tier": 0,
+     "desc": "Buy, rent and trade properties."
+    },
+    {
+     "name": "Chess",
+     "tier": 0,
+     "desc": "A strategy game of kings, queens and pawns."
+    },
+    {
+     "name": "Scrabble",
+     "tier": 0,
+     "desc": "Build words from lettered tiles."
+    },
+    {
+     "name": "Clue",
+     "tier": 0,
+     "desc": "Work out who did it, where and with what.",
+     "aliases": [
+      "cluedo"
+     ]
+    },
+    {
+     "name": "Risk",
+     "tier": 0,
+     "desc": "Conquer the world with armies."
+    },
+    {
+     "name": "Checkers",
+     "tier": 0,
+     "desc": "Jump your opponent's pieces.",
+     "aliases": [
+      "draughts"
+     ]
+    },
+    {
+     "name": "Backgammon",
+     "tier": 1,
+     "desc": "Race your checkers home with dice."
+    },
+    {
+     "name": "Connect Four",
+     "tier": 1,
+     "desc": "Drop discs to line up four.",
+     "aliases": [
+      "connect 4"
+     ]
+    },
+    {
+     "name": "Battleship",
+     "tier": 1,
+     "desc": "Guess where the other fleet is.",
+     "aliases": [
+      "battleships"
+     ]
+    },
+    {
+     "name": "Trivial Pursuit",
+     "tier": 1,
+     "desc": "A quiz game with wedges."
+    },
+    {
+     "name": "Catan",
+     "tier": 1,
+     "desc": "Trade and build settlements.",
+     "aliases": [
+      "settlers of catan",
+      "the settlers of catan"
+     ]
+    },
+    {
+     "name": "Ticket to Ride",
+     "tier": 1,
+     "desc": "Claim train routes across a map."
+    },
+    {
+     "name": "Pandemic",
+     "tier": 1,
+     "desc": "Players cooperate to stop diseases."
+    },
+    {
+     "name": "Go",
+     "tier": 1,
+     "desc": "An ancient game of surrounding territory with stones.",
+     "aliases": [
+      "weiqi",
+      "baduk"
+     ]
+    },
+    {
+     "name": "Othello",
+     "tier": 1,
+     "desc": "Flip discs to your colour.",
+     "aliases": [
+      "reversi"
+     ]
+    },
+    {
+     "name": "The Game of Life",
+     "tier": 1,
+     "desc": "Spin and move through life stages.",
+     "aliases": [
+      "game of life"
+     ]
+    },
+    {
+     "name": "Sorry!",
+     "tier": 1,
+     "desc": "Race pawns and send others back to start.",
+     "aliases": [
+      "sorry"
+     ]
+    },
+    {
+     "name": "Candy Land",
+     "tier": 1,
+     "desc": "A colourful race for young children.",
+     "aliases": [
+      "candyland"
+     ]
+    },
+    {
+     "name": "Snakes and Ladders",
+     "tier": 1,
+     "desc": "A race up ladders and down snakes.",
+     "aliases": [
+      "chutes and ladders",
+      "snakes & ladders"
+     ]
+    },
+    {
+     "name": "Ludo",
+     "tier": 1,
+     "desc": "A race to get four pieces home.",
+     "aliases": [
+      "parcheesi",
+      "parchisi"
+     ]
+    },
+    {
+     "name": "Mancala",
+     "tier": 1,
+     "desc": "Sow seeds around pits in a board.",
+     "aliases": [
+      "kalah"
+     ]
+    },
+    {
+     "name": "Jenga",
+     "tier": 1,
+     "desc": "Pull blocks from a tower without toppling it."
+    },
+    {
+     "name": "Operation",
+     "tier": 1,
+     "desc": "Remove body parts without buzzing."
+    },
+    {
+     "name": "Mouse Trap",
+     "tier": 1,
+     "desc": "Build a Rube Goldberg trap.",
+     "aliases": [
+      "mousetrap"
+     ]
+    },
+    {
+     "name": "Guess Who?",
+     "tier": 1,
+     "desc": "Guess your opponent's character from yes/no clues.",
+     "aliases": [
+      "guess who"
+     ]
+    },
+    {
+     "name": "Stratego",
+     "tier": 2,
+     "desc": "Hidden pieces battle on a board."
+    },
+    {
+     "name": "Carcassonne",
+     "tier": 2,
+     "desc": "Place tiles to build a medieval landscape."
+    },
+    {
+     "name": "Azul",
+     "tier": 2,
+     "desc": "Draft tiles to decorate a palace."
+    },
+    {
+     "name": "Codenames",
+     "tier": 2,
+     "desc": "Spymasters give one-word clues."
+    },
+    {
+     "name": "Splendor",
+     "tier": 2,
+     "desc": "Collect gems to buy cards."
+    },
+    {
+     "name": "Wingspan",
+     "tier": 2,
+     "desc": "Attract birds to your wildlife preserve."
+    },
+    {
+     "name": "Terraforming Mars",
+     "tier": 2,
+     "desc": "Turn Mars into a habitable planet."
+    },
+    {
+     "name": "Gloomhaven",
+     "tier": 2,
+     "desc": "A huge cooperative dungeon crawler."
+    },
+    {
+     "name": "Scythe",
+     "tier": 2,
+     "desc": "Alternate-history 1920s farm and mech battles."
+    },
+    {
+     "name": "Agricola",
+     "tier": 2,
+     "desc": "Build a farm and feed your family."
+    },
+    {
+     "name": "Dixit",
+     "tier": 2,
+     "desc": "Guess which picture matches the clue."
+    },
+    {
+     "name": "Blokus",
+     "tier": 2,
+     "desc": "Place coloured shapes touching only at the corners."
+    },
+    {
+     "name": "Qwirkle",
+     "tier": 2,
+     "desc": "Match tiles by colour or shape."
+    },
+    {
+     "name": "Rummikub",
+     "tier": 2,
+     "desc": "Tile rummy on a rack.",
+     "aliases": [
+      "rummy cube"
+     ]
+    },
+    {
+     "name": "Mahjong",
+     "tier": 2,
+     "desc": "A tile game from China.",
+     "aliases": [
+      "mah-jong",
+      "mah jong",
+      "majiang"
+     ]
+    },
+    {
+     "name": "Shogi",
+     "tier": 2,
+     "desc": "Japanese chess.",
+     "aliases": [
+      "japanese chess"
+     ]
+    },
+    {
+     "name": "Xiangqi",
+     "tier": 2,
+     "desc": "Chinese chess.",
+     "aliases": [
+      "chinese chess"
+     ]
+    },
+    {
+     "name": "Chinese checkers",
+     "tier": 2,
+     "desc": "Race marbles across a star-shaped board.",
+     "aliases": [
+      "chinese checker"
+     ]
+    },
+    {
+     "name": "Halma",
+     "tier": 3,
+     "desc": "The game Chinese checkers was based on."
+    },
+    {
+     "name": "Hex",
+     "tier": 3,
+     "desc": "Connect your sides of a hexagonal board."
+    },
+    {
+     "name": "Twilight Imperium",
+     "tier": 3,
+     "desc": "A giant space-empire game."
+    },
+    {
+     "name": "7 Wonders",
+     "tier": 3,
+     "desc": "Draft cards to build an ancient civilisation.",
+     "aliases": [
+      "seven wonders"
+     ]
+    },
+    {
+     "name": "Puerto Rico",
+     "tier": 3,
+     "desc": "Plantation building in the Caribbean."
+    },
+    {
+     "name": "Twilight Struggle",
+     "tier": 3,
+     "desc": "A Cold War card-driven board game."
+    },
+    {
+     "name": "Kingdomino",
+     "tier": 3,
+     "desc": "Build a kingdom with domino-like tiles."
+    },
+    {
+     "name": "Sagrada",
+     "tier": 3,
+     "desc": "Draft dice to build a stained glass window."
+    },
+    {
+     "name": "Cranium",
+     "tier": 3,
+     "desc": "A party game of many challenges."
+    },
+    {
+     "name": "Pictionary",
+     "tier": 3,
+     "desc": "Draw and guess."
+    },
+    {
+     "name": "Taboo",
+     "tier": 3,
+     "desc": "Describe words without using the forbidden ones."
+    },
+    {
+     "name": "Cosmic Encounter",
+     "tier": 4,
+     "desc": "A game of alien powers and alliances."
+    },
+    {
+     "name": "Dune: Imperium",
+     "tier": 4,
+     "desc": "Worker placement and deck building on Arrakis.",
+     "aliases": [
+      "dune imperium"
+     ]
+    },
+    {
+     "name": "Nine Men's Morris",
+     "tier": 4,
+     "desc": "An ancient game of mills.",
+     "aliases": [
+      "mills",
+      "nine mens morris",
+      "merels",
+      "morris"
+     ]
+    },
+    {
+     "name": "Senet",
+     "tier": 4,
+     "desc": "An ancient Egyptian board game."
+    },
+    {
+     "name": "Royal Game of Ur",
+     "tier": 4,
+     "desc": "A very old Mesopotamian race game.",
+     "aliases": [
+      "game of ur"
+     ]
+    },
+    {
+     "name": "Hnefatafl",
+     "tier": 5,
+     "desc": "A Viking strategy game.",
+     "aliases": [
+      "tafl"
+     ]
+    },
+    {
+     "name": "Arimaa",
+     "tier": 5,
+     "desc": "A chess-like game designed to be hard for computers."
+    },
+    {
+     "name": "Abalone",
+     "tier": 5,
+     "desc": "Push marbles off a hexagonal board."
+    }
+   ],
+   "rejects": [
+    {
+     "names": [
+      "Poker",
+      "Uno",
+      "Bridge",
+      "Blackjack",
+      "Solitaire",
+      "Hearts",
+      "Spades",
+      "Magic: The Gathering",
+      "Pokemon",
+      "Fortnite",
+      "Minecraft",
+      "Tetris",
+      "Dungeons & Dragons",
+      "Yahtzee"
+     ],
+     "message": "That is not a board game."
+    }
+   ]
+  },
+  {
+   "id": "science-element",
+   "category": "Science & Technology",
+   "prompt": "Name a chemical element.",
+   "rules": "One of the 118 elements with an official IUPAC name. Symbols of two or more letters count. Compounds, minerals, alloys and isotopes do not.",
+   "answers": [
+    {
+     "name": "Hydrogen",
+     "tier": 0,
+     "desc": "Atomic number 1, a nonmetal."
+    },
+    {
+     "name": "Helium",
+     "tier": 0,
+     "desc": "Atomic number 2, a noble gas."
+    },
+    {
+     "name": "Lithium",
+     "tier": 1,
+     "desc": "Atomic number 3, an alkali metal.",
+     "aliases": [
+      "li"
+     ]
+    },
+    {
+     "name": "Beryllium",
+     "tier": 2,
+     "desc": "Atomic number 4, an alkaline earth metal."
+    },
+    {
+     "name": "Boron",
+     "tier": 1,
+     "desc": "Atomic number 5, a metalloid."
+    },
+    {
+     "name": "Carbon",
+     "tier": 0,
+     "desc": "Atomic number 6, a nonmetal."
+    },
+    {
+     "name": "Nitrogen",
+     "tier": 0,
+     "desc": "Atomic number 7, a nonmetal."
+    },
+    {
+     "name": "Oxygen",
+     "tier": 0,
+     "desc": "Atomic number 8, a nonmetal."
+    },
+    {
+     "name": "Fluorine",
+     "tier": 1,
+     "desc": "Atomic number 9, a halogen."
+    },
+    {
+     "name": "Neon",
+     "tier": 1,
+     "desc": "Atomic number 10, a noble gas.",
+     "aliases": [
+      "ne"
+     ]
+    },
+    {
+     "name": "Sodium",
+     "tier": 1,
+     "desc": "Atomic number 11, an alkali metal.",
+     "aliases": [
+      "na"
+     ]
+    },
+    {
+     "name": "Magnesium",
+     "tier": 1,
+     "desc": "Atomic number 12, an alkaline earth metal.",
+     "aliases": [
+      "mg"
+     ]
+    },
+    {
+     "name": "Aluminium",
+     "tier": 1,
+     "desc": "Atomic number 13, a post-transition metal.",
+     "aliases": [
+      "aluminum",
+      "al"
+     ]
+    },
+    {
+     "name": "Silicon",
+     "tier": 1,
+     "desc": "Atomic number 14, a metalloid.",
+     "aliases": [
+      "si"
+     ]
+    },
+    {
+     "name": "Phosphorus",
+     "tier": 1,
+     "desc": "Atomic number 15, a nonmetal."
+    },
+    {
+     "name": "Sulfur",
+     "tier": 1,
+     "desc": "Atomic number 16, a nonmetal.",
+     "aliases": [
+      "sulphur"
+     ]
+    },
+    {
+     "name": "Chlorine",
+     "tier": 1,
+     "desc": "Atomic number 17, a halogen.",
+     "aliases": [
+      "cl"
+     ]
+    },
+    {
+     "name": "Argon",
+     "tier": 1,
+     "desc": "Atomic number 18, a noble gas.",
+     "aliases": [
+      "ar"
+     ]
+    },
+    {
+     "name": "Potassium",
+     "tier": 1,
+     "desc": "Atomic number 19, an alkali metal."
+    },
+    {
+     "name": "Calcium",
+     "tier": 1,
+     "desc": "Atomic number 20, an alkaline earth metal.",
+     "aliases": [
+      "ca"
+     ]
+    },
+    {
+     "name": "Scandium",
+     "tier": 2,
+     "desc": "Atomic number 21, a transition metal."
+    },
+    {
+     "name": "Titanium",
+     "tier": 1,
+     "desc": "Atomic number 22, a transition metal.",
+     "aliases": [
+      "ti"
+     ]
+    },
+    {
+     "name": "Vanadium",
+     "tier": 2,
+     "desc": "Atomic number 23, a transition metal."
+    },
+    {
+     "name": "Chromium",
+     "tier": 1,
+     "desc": "Atomic number 24, a transition metal.",
+     "aliases": [
+      "cr"
+     ]
+    },
+    {
+     "name": "Manganese",
+     "tier": 2,
+     "desc": "Atomic number 25, a transition metal.",
+     "aliases": [
+      "mn"
+     ]
+    },
+    {
+     "name": "Iron",
+     "tier": 0,
+     "desc": "Atomic number 26, a transition metal.",
+     "aliases": [
+      "fe"
+     ]
+    },
+    {
+     "name": "Cobalt",
+     "tier": 1,
+     "desc": "Atomic number 27, a transition metal.",
+     "aliases": [
+      "co"
+     ]
+    },
+    {
+     "name": "Nickel",
+     "tier": 1,
+     "desc": "Atomic number 28, a transition metal.",
+     "aliases": [
+      "ni"
+     ]
+    },
+    {
+     "name": "Copper",
+     "tier": 1,
+     "desc": "Atomic number 29, a transition metal.",
+     "aliases": [
+      "cu"
+     ]
+    },
+    {
+     "name": "Zinc",
+     "tier": 1,
+     "desc": "Atomic number 30, a transition metal.",
+     "aliases": [
+      "zn"
+     ]
+    },
+    {
+     "name": "Gallium",
+     "tier": 2,
+     "desc": "Atomic number 31, a post-transition metal.",
+     "aliases": [
+      "ga"
+     ]
+    },
+    {
+     "name": "Germanium",
+     "tier": 2,
+     "desc": "Atomic number 32, a metalloid.",
+     "aliases": [
+      "ge"
+     ]
+    },
+    {
+     "name": "Arsenic",
+     "tier": 2,
+     "desc": "Atomic number 33, a metalloid."
+    },
+    {
+     "name": "Selenium",
+     "tier": 2,
+     "desc": "Atomic number 34, a nonmetal.",
+     "aliases": [
+      "se"
+     ]
+    },
+    {
+     "name": "Bromine",
+     "tier": 2,
+     "desc": "Atomic number 35, a halogen.",
+     "aliases": [
+      "br"
+     ]
+    },
+    {
+     "name": "Krypton",
+     "tier": 2,
+     "desc": "Atomic number 36, a noble gas.",
+     "aliases": [
+      "kr"
+     ]
+    },
+    {
+     "name": "Rubidium",
+     "tier": 3,
+     "desc": "Atomic number 37, an alkali metal.",
+     "aliases": [
+      "rb"
+     ]
+    },
+    {
+     "name": "Strontium",
+     "tier": 2,
+     "desc": "Atomic number 38, an alkaline earth metal.",
+     "aliases": [
+      "sr"
+     ]
+    },
+    {
+     "name": "Yttrium",
+     "tier": 3,
+     "desc": "Atomic number 39, a transition metal."
+    },
+    {
+     "name": "Zirconium",
+     "tier": 2,
+     "desc": "Atomic number 40, a transition metal.",
+     "aliases": [
+      "zr"
+     ]
+    },
+    {
+     "name": "Niobium",
+     "tier": 3,
+     "desc": "Atomic number 41, a transition metal.",
+     "aliases": [
+      "nb"
+     ]
+    },
+    {
+     "name": "Molybdenum",
+     "tier": 2,
+     "desc": "Atomic number 42, a transition metal."
+    },
+    {
+     "name": "Technetium",
+     "tier": 3,
+     "desc": "Atomic number 43, a transition metal.",
+     "aliases": [
+      "tc"
+     ]
+    },
+    {
+     "name": "Ruthenium",
+     "tier": 3,
+     "desc": "Atomic number 44, a transition metal.",
+     "aliases": [
+      "ru"
+     ]
+    },
+    {
+     "name": "Rhodium",
+     "tier": 2,
+     "desc": "Atomic number 45, a transition metal.",
+     "aliases": [
+      "rh"
+     ]
+    },
+    {
+     "name": "Palladium",
+     "tier": 2,
+     "desc": "Atomic number 46, a transition metal.",
+     "aliases": [
+      "pd"
+     ]
+    },
+    {
+     "name": "Silver",
+     "tier": 0,
+     "desc": "Atomic number 47, a transition metal.",
+     "aliases": [
+      "ag"
+     ]
+    },
+    {
+     "name": "Cadmium",
+     "tier": 2,
+     "desc": "Atomic number 48, a transition metal.",
+     "aliases": [
+      "cd"
+     ]
+    },
+    {
+     "name": "Indium",
+     "tier": 3,
+     "desc": "Atomic number 49, a post-transition metal."
+    },
+    {
+     "name": "Tin",
+     "tier": 1,
+     "desc": "Atomic number 50, a post-transition metal.",
+     "aliases": [
+      "sn"
+     ]
+    },
+    {
+     "name": "Antimony",
+     "tier": 2,
+     "desc": "Atomic number 51, a metalloid.",
+     "aliases": [
+      "sb"
+     ]
+    },
+    {
+     "name": "Tellurium",
+     "tier": 2,
+     "desc": "Atomic number 52, a metalloid.",
+     "aliases": [
+      "te"
+     ]
+    },
+    {
+     "name": "Iodine",
+     "tier": 1,
+     "desc": "Atomic number 53, a halogen."
+    },
+    {
+     "name": "Xenon",
+     "tier": 2,
+     "desc": "Atomic number 54, a noble gas.",
+     "aliases": [
+      "xe"
+     ]
+    },
+    {
+     "name": "Caesium",
+     "tier": 2,
+     "desc": "Atomic number 55, an alkali metal.",
+     "aliases": [
+      "cesium"
+     ]
+    },
+    {
+     "name": "Barium",
+     "tier": 2,
+     "desc": "Atomic number 56, an alkaline earth metal.",
+     "aliases": [
+      "ba"
+     ]
+    },
+    {
+     "name": "Lanthanum",
+     "tier": 4,
+     "desc": "Atomic number 57, a lanthanide.",
+     "aliases": [
+      "la"
+     ]
+    },
+    {
+     "name": "Cerium",
+     "tier": 2,
+     "desc": "Atomic number 58, a lanthanide.",
+     "aliases": [
+      "ce"
+     ]
+    },
+    {
+     "name": "Praseodymium",
+     "tier": 4,
+     "desc": "Atomic number 59, a lanthanide.",
+     "aliases": [
+      "pr"
+     ]
+    },
+    {
+     "name": "Neodymium",
+     "tier": 2,
+     "desc": "Atomic number 60, a lanthanide.",
+     "aliases": [
+      "nd"
+     ]
+    },
+    {
+     "name": "Promethium",
+     "tier": 4,
+     "desc": "Atomic number 61, a lanthanide.",
+     "aliases": [
+      "pm"
+     ]
+    },
+    {
+     "name": "Samarium",
+     "tier": 4,
+     "desc": "Atomic number 62, a lanthanide.",
+     "aliases": [
+      "sm"
+     ]
+    },
+    {
+     "name": "Europium",
+     "tier": 4,
+     "desc": "Atomic number 63, a lanthanide.",
+     "aliases": [
+      "eu"
+     ]
+    },
+    {
+     "name": "Gadolinium",
+     "tier": 4,
+     "desc": "Atomic number 64, a lanthanide.",
+     "aliases": [
+      "gd"
+     ]
+    },
+    {
+     "name": "Terbium",
+     "tier": 4,
+     "desc": "Atomic number 65, a lanthanide.",
+     "aliases": [
+      "tb"
+     ]
+    },
+    {
+     "name": "Dysprosium",
+     "tier": 4,
+     "desc": "Atomic number 66, a lanthanide.",
+     "aliases": [
+      "dy"
+     ]
+    },
+    {
+     "name": "Holmium",
+     "tier": 4,
+     "desc": "Atomic number 67, a lanthanide."
+    },
+    {
+     "name": "Erbium",
+     "tier": 4,
+     "desc": "Atomic number 68, a lanthanide."
+    },
+    {
+     "name": "Thulium",
+     "tier": 4,
+     "desc": "Atomic number 69, a lanthanide.",
+     "aliases": [
+      "tm"
+     ]
+    },
+    {
+     "name": "Ytterbium",
+     "tier": 4,
+     "desc": "Atomic number 70, a lanthanide.",
+     "aliases": [
+      "yb"
+     ]
+    },
+    {
+     "name": "Lutetium",
+     "tier": 4,
+     "desc": "Atomic number 71, a lanthanide."
+    },
+    {
+     "name": "Hafnium",
+     "tier": 4,
+     "desc": "Atomic number 72, a transition metal."
+    },
+    {
+     "name": "Tantalum",
+     "tier": 4,
+     "desc": "Atomic number 73, a transition metal."
+    },
+    {
+     "name": "Tungsten",
+     "tier": 2,
+     "desc": "Atomic number 74, a transition metal.",
+     "aliases": [
+      "wolfram"
+     ]
+    },
+    {
+     "name": "Rhenium",
+     "tier": 4,
+     "desc": "Atomic number 75, a transition metal."
+    },
+    {
+     "name": "Osmium",
+     "tier": 2,
+     "desc": "Atomic number 76, a transition metal."
+    },
+    {
+     "name": "Iridium",
+     "tier": 2,
+     "desc": "Atomic number 77, a transition metal.",
+     "aliases": [
+      "ir"
+     ]
+    },
+    {
+     "name": "Platinum",
+     "tier": 1,
+     "desc": "Atomic number 78, a transition metal.",
+     "aliases": [
+      "pt"
+     ]
+    },
+    {
+     "name": "Gold",
+     "tier": 0,
+     "desc": "Atomic number 79, a transition metal.",
+     "aliases": [
+      "au"
+     ]
+    },
+    {
+     "name": "Mercury",
+     "tier": 1,
+     "desc": "Atomic number 80, a transition metal.",
+     "aliases": [
+      "quicksilver",
+      "hg"
+     ]
+    },
+    {
+     "name": "Thallium",
+     "tier": 4,
+     "desc": "Atomic number 81, a post-transition metal.",
+     "aliases": [
+      "tl"
+     ]
+    },
+    {
+     "name": "Lead",
+     "tier": 1,
+     "desc": "Atomic number 82, a post-transition metal.",
+     "aliases": [
+      "pb"
+     ]
+    },
+    {
+     "name": "Bismuth",
+     "tier": 2,
+     "desc": "Atomic number 83, a post-transition metal.",
+     "aliases": [
+      "bi"
+     ]
+    },
+    {
+     "name": "Polonium",
+     "tier": 2,
+     "desc": "Atomic number 84, a post-transition metal.",
+     "aliases": [
+      "po"
+     ]
+    },
+    {
+     "name": "Astatine",
+     "tier": 4,
+     "desc": "Atomic number 85, a halogen."
+    },
+    {
+     "name": "Radon",
+     "tier": 1,
+     "desc": "Atomic number 86, a noble gas.",
+     "aliases": [
+      "rn"
+     ]
+    },
+    {
+     "name": "Francium",
+     "tier": 2,
+     "desc": "Atomic number 87, an alkali metal.",
+     "aliases": [
+      "fr"
+     ]
+    },
+    {
+     "name": "Radium",
+     "tier": 1,
+     "desc": "Atomic number 88, an alkaline earth metal."
+    },
+    {
+     "name": "Actinium",
+     "tier": 4,
+     "desc": "Atomic number 89, an actinide.",
+     "aliases": [
+      "ac"
+     ]
+    },
+    {
+     "name": "Thorium",
+     "tier": 2,
+     "desc": "Atomic number 90, an actinide.",
+     "aliases": [
+      "th"
+     ]
+    },
+    {
+     "name": "Protactinium",
+     "tier": 4,
+     "desc": "Atomic number 91, an actinide."
+    },
+    {
+     "name": "Uranium",
+     "tier": 1,
+     "desc": "Atomic number 92, an actinide."
+    },
+    {
+     "name": "Neptunium",
+     "tier": 4,
+     "desc": "Atomic number 93, an actinide.",
+     "aliases": [
+      "np"
+     ]
+    },
+    {
+     "name": "Plutonium",
+     "tier": 1,
+     "desc": "Atomic number 94, an actinide.",
+     "aliases": [
+      "pu"
+     ]
+    },
+    {
+     "name": "Americium",
+     "tier": 2,
+     "desc": "Atomic number 95, an actinide."
+    },
+    {
+     "name": "Curium",
+     "tier": 2,
+     "desc": "Atomic number 96, an actinide.",
+     "aliases": [
+      "cm"
+     ]
+    },
+    {
+     "name": "Berkelium",
+     "tier": 4,
+     "desc": "Atomic number 97, an actinide.",
+     "aliases": [
+      "bk"
+     ]
+    },
+    {
+     "name": "Californium",
+     "tier": 2,
+     "desc": "Atomic number 98, an actinide.",
+     "aliases": [
+      "cf"
+     ]
+    },
+    {
+     "name": "Einsteinium",
+     "tier": 2,
+     "desc": "Atomic number 99, an actinide.",
+     "aliases": [
+      "es"
+     ]
+    },
+    {
+     "name": "Fermium",
+     "tier": 4,
+     "desc": "Atomic number 100, an actinide.",
+     "aliases": [
+      "fm"
+     ]
+    },
+    {
+     "name": "Mendelevium",
+     "tier": 4,
+     "desc": "Atomic number 101, an actinide.",
+     "aliases": [
+      "md"
+     ]
+    },
+    {
+     "name": "Nobelium",
+     "tier": 4,
+     "desc": "Atomic number 102, an actinide."
+    },
+    {
+     "name": "Lawrencium",
+     "tier": 4,
+     "desc": "Atomic number 103, an actinide.",
+     "aliases": [
+      "lr"
+     ]
+    },
+    {
+     "name": "Rutherfordium",
+     "tier": 5,
+     "desc": "Atomic number 104, a transition metal.",
+     "aliases": [
+      "rf"
+     ]
+    },
+    {
+     "name": "Dubnium",
+     "tier": 5,
+     "desc": "Atomic number 105, a transition metal.",
+     "aliases": [
+      "db"
+     ]
+    },
+    {
+     "name": "Seaborgium",
+     "tier": 5,
+     "desc": "Atomic number 106, a transition metal.",
+     "aliases": [
+      "sg"
+     ]
+    },
+    {
+     "name": "Bohrium",
+     "tier": 5,
+     "desc": "Atomic number 107, a transition metal.",
+     "aliases": [
+      "bh"
+     ]
+    },
+    {
+     "name": "Hassium",
+     "tier": 5,
+     "desc": "Atomic number 108, a transition metal.",
+     "aliases": [
+      "hs"
+     ]
+    },
+    {
+     "name": "Meitnerium",
+     "tier": 5,
+     "desc": "Atomic number 109, a transition metal."
+    },
+    {
+     "name": "Darmstadtium",
+     "tier": 5,
+     "desc": "Atomic number 110, a transition metal."
+    },
+    {
+     "name": "Roentgenium",
+     "tier": 5,
+     "desc": "Atomic number 111, a transition metal.",
+     "aliases": [
+      "rg"
+     ]
+    },
+    {
+     "name": "Copernicium",
+     "tier": 5,
+     "desc": "Atomic number 112, a transition metal.",
+     "aliases": [
+      "cn"
+     ]
+    },
+    {
+     "name": "Nihonium",
+     "tier": 5,
+     "desc": "Atomic number 113, a post-transition metal.",
+     "aliases": [
+      "nh"
+     ]
+    },
+    {
+     "name": "Flerovium",
+     "tier": 5,
+     "desc": "Atomic number 114, a post-transition metal.",
+     "aliases": [
+      "fl"
+     ]
+    },
+    {
+     "name": "Moscovium",
+     "tier": 5,
+     "desc": "Atomic number 115, a post-transition metal.",
+     "aliases": [
+      "mc"
+     ]
+    },
+    {
+     "name": "Livermorium",
+     "tier": 5,
+     "desc": "Atomic number 116, a post-transition metal.",
+     "aliases": [
+      "lv"
+     ]
+    },
+    {
+     "name": "Tennessine",
+     "tier": 5,
+     "desc": "Atomic number 117, a halogen.",
+     "aliases": [
+      "ts"
+     ]
+    },
+    {
+     "name": "Oganesson",
+     "tier": 5,
+     "desc": "Atomic number 118, a noble gas.",
+     "aliases": [
+      "og"
+     ]
+    }
+   ],
+   "rejects": [
+    {
+     "names": [
+      "water",
+      "salt",
+      "steel",
+      "brass",
+      "bronze",
+      "diamond",
+      "graphite",
+      "ozone",
+      "quartz",
+      "unobtainium",
+      "kryptonite",
+      "vibranium",
+      "adamantium",
+      "plasma"
+     ],
+     "message": "That is not a chemical element."
+    }
+   ]
+  },
+  {
+   "id": "history-greek-deity",
+   "category": "History & Mythology",
+   "prompt": "Name an ancient Greek god, goddess or Titan.",
+   "rules": "A deity, Titan or primordial being from ancient Greek religion and myth, under its Greek name. Roman names do not count. Heroes and mortals (Heracles, Achilles) and monsters do not count.",
+   "answers": [
+    {
+     "name": "Zeus",
+     "tier": 0,
+     "desc": "King of the gods, ruler of the sky and thunder."
+    },
+    {
+     "name": "Poseidon",
+     "tier": 0,
+     "desc": "God of the sea and earthquakes."
+    },
+    {
+     "name": "Athena",
+     "tier": 0,
+     "desc": "Goddess of wisdom and war strategy."
+    },
+    {
+     "name": "Apollo",
+     "tier": 0,
+     "desc": "God of the sun, music and prophecy."
+    },
+    {
+     "name": "Hades",
+     "tier": 0,
+     "desc": "God of the underworld."
+    },
+    {
+     "name": "Aphrodite",
+     "tier": 0,
+     "desc": "Goddess of love and beauty."
+    },
+    {
+     "name": "Hera",
+     "tier": 1,
+     "desc": "Queen of the gods, goddess of marriage."
+    },
+    {
+     "name": "Artemis",
+     "tier": 1,
+     "desc": "Goddess of the hunt and the Moon."
+    },
+    {
+     "name": "Ares",
+     "tier": 1,
+     "desc": "God of war."
+    },
+    {
+     "name": "Hermes",
+     "tier": 1,
+     "desc": "Messenger of the gods."
+    },
+    {
+     "name": "Demeter",
+     "tier": 1,
+     "desc": "Goddess of the harvest."
+    },
+    {
+     "name": "Dionysus",
+     "tier": 1,
+     "desc": "God of wine and festivity.",
+     "aliases": [
+      "dionysos"
+     ]
+    },
+    {
+     "name": "Hephaestus",
+     "tier": 1,
+     "desc": "God of the forge and fire.",
+     "aliases": [
+      "hephaistos"
+     ]
+    },
+    {
+     "name": "Persephone",
+     "tier": 1,
+     "desc": "Queen of the underworld and goddess of spring."
+    },
+    {
+     "name": "Hestia",
+     "tier": 2,
+     "desc": "Goddess of the hearth."
+    },
+    {
+     "name": "Eros",
+     "tier": 2,
+     "desc": "God of love."
+    },
+    {
+     "name": "Pan",
+     "tier": 2,
+     "desc": "God of shepherds and the wild."
+    },
+    {
+     "name": "Nike",
+     "tier": 2,
+     "desc": "Goddess of victory."
+    },
+    {
+     "name": "Hecate",
+     "tier": 2,
+     "desc": "Goddess of magic and crossroads.",
+     "aliases": [
+      "hekate"
+     ]
+    },
+    {
+     "name": "Helios",
+     "tier": 2,
+     "desc": "The Sun personified."
+    },
+    {
+     "name": "Selene",
+     "tier": 2,
+     "desc": "The Moon personified."
+    },
+    {
+     "name": "Nemesis",
+     "tier": 2,
+     "desc": "Goddess of retribution."
+    },
+    {
+     "name": "Morpheus",
+     "tier": 2,
+     "desc": "God of dreams."
+    },
+    {
+     "name": "Hypnos",
+     "tier": 2,
+     "desc": "God of sleep."
+    },
+    {
+     "name": "Thanatos",
+     "tier": 2,
+     "desc": "Death personified."
+    },
+    {
+     "name": "Gaia",
+     "tier": 2,
+     "desc": "The Earth personified.",
+     "aliases": [
+      "gaea",
+      "gaia"
+     ]
+    },
+    {
+     "name": "Uranus",
+     "tier": 2,
+     "desc": "The sky personified; Gaia's consort.",
+     "aliases": [
+      "ouranos"
+     ]
+    },
+    {
+     "name": "Cronus",
+     "tier": 2,
+     "desc": "Titan king, father of Zeus.",
+     "aliases": [
+      "kronos",
+      "cronos",
+      "chronos"
+     ]
+    },
+    {
+     "name": "Rhea",
+     "tier": 2,
+     "desc": "Titan mother of the Olympians."
+    },
+    {
+     "name": "Prometheus",
+     "tier": 2,
+     "desc": "The Titan who gave fire to humans."
+    },
+    {
+     "name": "Atlas",
+     "tier": 2,
+     "desc": "The Titan who holds up the sky."
+    },
+    {
+     "name": "Eos",
+     "tier": 3,
+     "desc": "Goddess of the dawn."
+    },
+    {
+     "name": "Iris",
+     "tier": 3,
+     "desc": "Goddess of the rainbow."
+    },
+    {
+     "name": "Tyche",
+     "tier": 3,
+     "desc": "Goddess of luck."
+    },
+    {
+     "name": "Eris",
+     "tier": 3,
+     "desc": "Goddess of strife."
+    },
+    {
+     "name": "Hebe",
+     "tier": 3,
+     "desc": "Goddess of youth."
+    },
+    {
+     "name": "Asclepius",
+     "tier": 3,
+     "desc": "God of medicine.",
+     "aliases": [
+      "asklepios"
+     ]
+    },
+    {
+     "name": "Hygieia",
+     "tier": 3,
+     "desc": "Goddess of health.",
+     "aliases": [
+      "hygeia"
+     ]
+    },
+    {
+     "name": "Nyx",
+     "tier": 3,
+     "desc": "Goddess of the night."
+    },
+    {
+     "name": "Chaos",
+     "tier": 3,
+     "desc": "The primordial void."
+    },
+    {
+     "name": "Erebus",
+     "tier": 3,
+     "desc": "Primordial darkness."
+    },
+    {
+     "name": "Tartarus",
+     "tier": 3,
+     "desc": "The deep abyss; also a primordial god."
+    },
+    {
+     "name": "Triton",
+     "tier": 3,
+     "desc": "Merman son of Poseidon."
+    },
+    {
+     "name": "Amphitrite",
+     "tier": 3,
+     "desc": "Sea goddess and wife of Poseidon."
+    },
+    {
+     "name": "Hyperion",
+     "tier": 3,
+     "desc": "Titan of light."
+    },
+    {
+     "name": "Oceanus",
+     "tier": 3,
+     "desc": "Titan of the world-encircling river.",
+     "aliases": [
+      "okeanos"
+     ]
+    },
+    {
+     "name": "Themis",
+     "tier": 3,
+     "desc": "Titaness of divine law."
+    },
+    {
+     "name": "Mnemosyne",
+     "tier": 3,
+     "desc": "Titaness of memory."
+    },
+    {
+     "name": "Leto",
+     "tier": 3,
+     "desc": "Mother of Apollo and Artemis."
+    },
+    {
+     "name": "Metis",
+     "tier": 4,
+     "desc": "Titaness of wisdom; Athena's mother."
+    },
+    {
+     "name": "Tethys",
+     "tier": 4,
+     "desc": "Titaness of fresh water."
+    },
+    {
+     "name": "Phoebe",
+     "tier": 4,
+     "desc": "Titaness of the bright mind."
+    },
+    {
+     "name": "Coeus",
+     "tier": 4,
+     "desc": "Titan of intellect.",
+     "aliases": [
+      "koios"
+     ]
+    },
+    {
+     "name": "Crius",
+     "tier": 4,
+     "desc": "Titan of constellations.",
+     "aliases": [
+      "krios"
+     ]
+    },
+    {
+     "name": "Iapetus",
+     "tier": 4,
+     "desc": "Titan of mortality."
+    },
+    {
+     "name": "Theia",
+     "tier": 4,
+     "desc": "Titaness of sight."
+    },
+    {
+     "name": "Epimetheus",
+     "tier": 4,
+     "desc": "Titan, brother of Prometheus."
+    },
+    {
+     "name": "Boreas",
+     "tier": 4,
+     "desc": "God of the north wind."
+    },
+    {
+     "name": "Zephyrus",
+     "tier": 4,
+     "desc": "God of the west wind.",
+     "aliases": [
+      "zephyr"
+     ]
+    },
+    {
+     "name": "Notus",
+     "tier": 4,
+     "desc": "God of the south wind."
+    },
+    {
+     "name": "Eurus",
+     "tier": 4,
+     "desc": "God of the east wind."
+    },
+    {
+     "name": "Aeolus",
+     "tier": 4,
+     "desc": "Keeper of the winds."
+    },
+    {
+     "name": "Nereus",
+     "tier": 4,
+     "desc": "The Old Man of the Sea."
+    },
+    {
+     "name": "Proteus",
+     "tier": 4,
+     "desc": "A shape-shifting sea god."
+    },
+    {
+     "name": "Thetis",
+     "tier": 4,
+     "desc": "Sea nymph and mother of Achilles."
+    },
+    {
+     "name": "Hemera",
+     "tier": 4,
+     "desc": "Day personified."
+    },
+    {
+     "name": "Aether",
+     "tier": 4,
+     "desc": "Primordial god of the upper air."
+    },
+    {
+     "name": "Pontus",
+     "tier": 5,
+     "desc": "The sea personified."
+    },
+    {
+     "name": "Priapus",
+     "tier": 5,
+     "desc": "God of fertility.",
+     "aliases": [
+      "priapos"
+     ]
+    },
+    {
+     "name": "Moros",
+     "tier": 5,
+     "desc": "Doom personified."
+    },
+    {
+     "name": "Momus",
+     "tier": 5,
+     "desc": "God of mockery.",
+     "aliases": [
+      "momos"
+     ]
+    },
+    {
+     "name": "Phobos",
+     "tier": 5,
+     "desc": "Fear personified."
+    },
+    {
+     "name": "Deimos",
+     "tier": 5,
+     "desc": "Terror personified."
+    },
+    {
+     "name": "Enyo",
+     "tier": 5,
+     "desc": "Goddess of war and destruction."
+    },
+    {
+     "name": "Harmonia",
+     "tier": 5,
+     "desc": "Goddess of harmony."
+    },
+    {
+     "name": "Ananke",
+     "tier": 5,
+     "desc": "Necessity personified."
+    },
+    {
+     "name": "Kratos",
+     "tier": 5,
+     "desc": "Strength personified."
+    },
+    {
+     "name": "Bia",
+     "tier": 5,
+     "desc": "Force personified."
+    },
+    {
+     "name": "Zelus",
+     "tier": 5,
+     "desc": "Rivalry personified."
+    },
+    {
+     "name": "Aristaeus",
+     "tier": 5,
+     "desc": "God of beekeeping."
+    },
+    {
+     "name": "Plutus",
+     "tier": 5,
+     "desc": "God of wealth."
+    }
+   ],
+   "rejects": [
+    {
+     "names": [
+      "Jupiter",
+      "Juno",
+      "Mars",
+      "Venus",
+      "Neptune",
+      "Minerva",
+      "Mercury",
+      "Vulcan",
+      "Ceres",
+      "Bacchus",
+      "Pluto",
+      "Diana",
+      "Cupid",
+      "Saturn",
+      "Vesta",
+      "Janus",
+      "Apollo Belvedere"
+     ],
+     "message": "That is the Roman name, not Greek."
+    },
+    {
+     "names": [
+      "Heracles",
+      "Hercules",
+      "Achilles",
+      "Odysseus",
+      "Perseus",
+      "Theseus",
+      "Medusa",
+      "Minotaur",
+      "Cerberus",
+      "Hydra"
+     ],
+     "message": "That is a hero or monster, not a deity."
+    }
+   ]
+  },
+  {
+   "id": "transport-car-maker",
+   "category": "Transport & Vehicles",
+   "prompt": "Name a car manufacturer.",
+   "rules": "A company that makes or has made passenger cars under its own name, including luxury, sports, electric and defunct makers. Individual models do not count. Motorcycle-only, truck-only and aircraft makers do not count.",
+   "answers": [
+    {
+     "name": "Toyota",
+     "tier": 0,
+     "desc": "Japan's biggest carmaker."
+    },
+    {
+     "name": "Ford",
+     "tier": 0,
+     "desc": "American maker of the Model T and Mustang."
+    },
+    {
+     "name": "Honda",
+     "tier": 0,
+     "desc": "Japanese maker of the Civic and Accord."
+    },
+    {
+     "name": "BMW",
+     "tier": 0,
+     "desc": "German maker based in Munich."
+    },
+    {
+     "name": "Mercedes-Benz",
+     "tier": 0,
+     "desc": "German luxury carmaker.",
+     "aliases": [
+      "mercedes",
+      "mercedes benz"
+     ]
+    },
+    {
+     "name": "Volkswagen",
+     "tier": 0,
+     "desc": "German maker of the Beetle and Golf.",
+     "aliases": [
+      "vw"
+     ]
+    },
+    {
+     "name": "Audi",
+     "tier": 0,
+     "desc": "German maker with four rings."
+    },
+    {
+     "name": "Chevrolet",
+     "tier": 0,
+     "desc": "American maker of the Corvette.",
+     "aliases": [
+      "chevy"
+     ]
+    },
+    {
+     "name": "Nissan",
+     "tier": 0,
+     "desc": "Japanese maker of the Leaf and GT-R."
+    },
+    {
+     "name": "Tesla",
+     "tier": 0,
+     "desc": "American electric car maker."
+    },
+    {
+     "name": "Hyundai",
+     "tier": 1,
+     "desc": "South Korean carmaker."
+    },
+    {
+     "name": "Kia",
+     "tier": 1,
+     "desc": "South Korean carmaker."
+    },
+    {
+     "name": "Porsche",
+     "tier": 1,
+     "desc": "German sports car maker."
+    },
+    {
+     "name": "Ferrari",
+     "tier": 1,
+     "desc": "Italian maker of red sports cars."
+    },
+    {
+     "name": "Lamborghini",
+     "tier": 1,
+     "desc": "Italian supercar maker."
+    },
+    {
+     "name": "Jaguar",
+     "tier": 1,
+     "desc": "British luxury car maker."
+    },
+    {
+     "name": "Land Rover",
+     "tier": 1,
+     "desc": "British maker of off-road vehicles.",
+     "aliases": [
+      "landrover"
+     ]
+    },
+    {
+     "name": "Mazda",
+     "tier": 1,
+     "desc": "Japanese maker of the MX-5."
+    },
+    {
+     "name": "Subaru",
+     "tier": 1,
+     "desc": "Japanese maker known for all-wheel drive."
+    },
+    {
+     "name": "Volvo",
+     "tier": 1,
+     "desc": "Swedish maker known for safety."
+    },
+    {
+     "name": "Fiat",
+     "tier": 1,
+     "desc": "Italian maker of the 500."
+    },
+    {
+     "name": "Peugeot",
+     "tier": 1,
+     "desc": "French maker with a lion badge."
+    },
+    {
+     "name": "Renault",
+     "tier": 1,
+     "desc": "French maker of the Clio."
+    },
+    {
+     "name": "Citroën",
+     "tier": 1,
+     "desc": "French maker of the 2CV.",
+     "aliases": [
+      "citroen"
+     ]
+    },
+    {
+     "name": "Suzuki",
+     "tier": 1,
+     "desc": "Japanese small-car maker."
+    },
+    {
+     "name": "Mitsubishi",
+     "tier": 1,
+     "desc": "Japanese maker with three diamonds."
+    },
+    {
+     "name": "Lexus",
+     "tier": 1,
+     "desc": "Toyota's luxury brand."
+    },
+    {
+     "name": "Jeep",
+     "tier": 1,
+     "desc": "American maker of off-road vehicles."
+    },
+    {
+     "name": "Dodge",
+     "tier": 1,
+     "desc": "American maker of the Charger."
+    },
+    {
+     "name": "Cadillac",
+     "tier": 1,
+     "desc": "American luxury brand."
+    },
+    {
+     "name": "Mini",
+     "tier": 1,
+     "desc": "British small-car brand now owned by BMW.",
+     "aliases": [
+      "mini cooper"
+     ]
+    },
+    {
+     "name": "Rolls-Royce",
+     "tier": 1,
+     "desc": "Britain's ultra-luxury marque.",
+     "aliases": [
+      "rolls royce"
+     ]
+    },
+    {
+     "name": "Bentley",
+     "tier": 2,
+     "desc": "British luxury car maker."
+    },
+    {
+     "name": "Aston Martin",
+     "tier": 2,
+     "desc": "British sports car maker; James Bond's car."
+    },
+    {
+     "name": "McLaren",
+     "tier": 2,
+     "desc": "British supercar maker."
+    },
+    {
+     "name": "Maserati",
+     "tier": 2,
+     "desc": "Italian luxury car maker with a trident badge."
+    },
+    {
+     "name": "Bugatti",
+     "tier": 2,
+     "desc": "French-origin hypercar maker."
+    },
+    {
+     "name": "Alfa Romeo",
+     "tier": 2,
+     "desc": "Italian maker with a snake badge."
+    },
+    {
+     "name": "Skoda",
+     "tier": 2,
+     "desc": "Czech carmaker.",
+     "aliases": [
+      "škoda"
+     ]
+    },
+    {
+     "name": "Seat",
+     "tier": 2,
+     "desc": "Spanish carmaker."
+    },
+    {
+     "name": "Opel",
+     "tier": 2,
+     "desc": "German maker, sister of Vauxhall."
+    },
+    {
+     "name": "Vauxhall",
+     "tier": 2,
+     "desc": "British brand of Opel cars."
+    },
+    {
+     "name": "Chrysler",
+     "tier": 2,
+     "desc": "American carmaker."
+    },
+    {
+     "name": "Buick",
+     "tier": 2,
+     "desc": "American General Motors brand."
+    },
+    {
+     "name": "GMC",
+     "tier": 2,
+     "desc": "American truck and SUV brand."
+    },
+    {
+     "name": "Lincoln",
+     "tier": 2,
+     "desc": "Ford's luxury brand."
+    },
+    {
+     "name": "Infiniti",
+     "tier": 2,
+     "desc": "Nissan's luxury brand."
+    },
+    {
+     "name": "Acura",
+     "tier": 2,
+     "desc": "Honda's luxury brand."
+    },
+    {
+     "name": "Dacia",
+     "tier": 2,
+     "desc": "Romanian budget carmaker owned by Renault."
+    },
+    {
+     "name": "Lotus",
+     "tier": 2,
+     "desc": "British lightweight sports car maker."
+    },
+    {
+     "name": "Genesis",
+     "tier": 2,
+     "desc": "Hyundai's luxury brand."
+    },
+    {
+     "name": "BYD",
+     "tier": 2,
+     "desc": "Chinese electric car maker."
+    },
+    {
+     "name": "Polestar",
+     "tier": 2,
+     "desc": "Swedish-Chinese electric car maker."
+    },
+    {
+     "name": "Rivian",
+     "tier": 2,
+     "desc": "American electric truck maker."
+    },
+    {
+     "name": "Ram",
+     "tier": 2,
+     "desc": "American truck brand."
+    },
+    {
+     "name": "Pontiac",
+     "tier": 2,
+     "desc": "A defunct American brand."
+    },
+    {
+     "name": "Saab",
+     "tier": 2,
+     "desc": "A defunct Swedish carmaker."
+    },
+    {
+     "name": "Smart",
+     "tier": 3,
+     "desc": "Tiny two-seat city cars."
+    },
+    {
+     "name": "Daihatsu",
+     "tier": 3,
+     "desc": "Japanese small-car maker."
+    },
+    {
+     "name": "Isuzu",
+     "tier": 3,
+     "desc": "Japanese maker of trucks and SUVs."
+    },
+    {
+     "name": "Tata",
+     "tier": 3,
+     "desc": "Indian maker; owns Jaguar Land Rover.",
+     "aliases": [
+      "tata motors"
+     ]
+    },
+    {
+     "name": "Mahindra",
+     "tier": 3,
+     "desc": "Indian maker of SUVs."
+    },
+    {
+     "name": "Lada",
+     "tier": 3,
+     "desc": "Russian maker."
+    },
+    {
+     "name": "Holden",
+     "tier": 3,
+     "desc": "Australian brand, now closed."
+    },
+    {
+     "name": "Proton",
+     "tier": 3,
+     "desc": "Malaysian carmaker."
+    },
+    {
+     "name": "Geely",
+     "tier": 3,
+     "desc": "Chinese maker that owns Volvo."
+    },
+    {
+     "name": "Lucid",
+     "tier": 3,
+     "desc": "American electric luxury car maker.",
+     "aliases": [
+      "lucid motors"
+     ]
+    },
+    {
+     "name": "Oldsmobile",
+     "tier": 3,
+     "desc": "A defunct American brand."
+    },
+    {
+     "name": "Plymouth",
+     "tier": 3,
+     "desc": "A defunct American Chrysler brand."
+    },
+    {
+     "name": "Hummer",
+     "tier": 3,
+     "desc": "Large military-style SUVs."
+    },
+    {
+     "name": "MG",
+     "tier": 3,
+     "desc": "Morris Garages; British sports car brand now Chinese owned.",
+     "aliases": [
+      "morris garages"
+     ]
+    },
+    {
+     "name": "Datsun",
+     "tier": 3,
+     "desc": "A Nissan brand."
+    },
+    {
+     "name": "Daewoo",
+     "tier": 3,
+     "desc": "A defunct South Korean carmaker."
+    },
+    {
+     "name": "Koenigsegg",
+     "tier": 3,
+     "desc": "Swedish hypercar maker."
+    },
+    {
+     "name": "Pagani",
+     "tier": 3,
+     "desc": "Italian hypercar maker."
+    },
+    {
+     "name": "Morgan",
+     "tier": 3,
+     "desc": "British maker of hand-built classic-style cars."
+    },
+    {
+     "name": "Triumph",
+     "tier": 3,
+     "desc": "A defunct British car marque."
+    },
+    {
+     "name": "Austin",
+     "tier": 3,
+     "desc": "A historic British car maker."
+    },
+    {
+     "name": "Rover",
+     "tier": 3,
+     "desc": "A defunct British brand."
+    },
+    {
+     "name": "Lancia",
+     "tier": 3,
+     "desc": "Italian maker."
+    },
+    {
+     "name": "Abarth",
+     "tier": 3,
+     "desc": "Fiat's performance brand."
+    },
+    {
+     "name": "Alpine",
+     "tier": 3,
+     "desc": "French sports car maker owned by Renault."
+    },
+    {
+     "name": "DeLorean",
+     "tier": 3,
+     "desc": "Maker of the car from Back to the Future.",
+     "aliases": [
+      "delorean motor company"
+     ]
+    },
+    {
+     "name": "Maybach",
+     "tier": 4,
+     "desc": "German ultra-luxury marque."
+    },
+    {
+     "name": "Great Wall",
+     "tier": 4,
+     "desc": "Chinese SUV and truck maker.",
+     "aliases": [
+      "great wall motors"
+     ]
+    },
+    {
+     "name": "Chery",
+     "tier": 4,
+     "desc": "Chinese carmaker."
+    },
+    {
+     "name": "Nio",
+     "tier": 4,
+     "desc": "Chinese electric car maker."
+    },
+    {
+     "name": "Xpeng",
+     "tier": 4,
+     "desc": "Chinese electric car maker."
+    },
+    {
+     "name": "Hongqi",
+     "tier": 4,
+     "desc": "Chinese luxury car marque."
+    },
+    {
+     "name": "Rimac",
+     "tier": 4,
+     "desc": "Croatian electric hypercar maker."
+    },
+    {
+     "name": "Caterham",
+     "tier": 4,
+     "desc": "British maker of Lotus Seven-style cars."
+    },
+    {
+     "name": "TVR",
+     "tier": 4,
+     "desc": "British sports car maker."
+    },
+    {
+     "name": "Ariel",
+     "tier": 4,
+     "desc": "British maker of the Atom."
+    },
+    {
+     "name": "Reliant",
+     "tier": 4,
+     "desc": "British maker of three-wheelers such as the Robin."
+    },
+    {
+     "name": "Trabant",
+     "tier": 4,
+     "desc": "East German maker."
+    },
+    {
+     "name": "Tatra",
+     "tier": 4,
+     "desc": "Czech maker, one of the oldest in the world."
+    },
+    {
+     "name": "Studebaker",
+     "tier": 4,
+     "desc": "A defunct American maker."
+    },
+    {
+     "name": "Packard",
+     "tier": 4,
+     "desc": "A defunct American luxury maker."
+    },
+    {
+     "name": "Tucker",
+     "tier": 4,
+     "desc": "Maker of the 1948 Tucker Torpedo."
+    },
+    {
+     "name": "Spyker",
+     "tier": 4,
+     "desc": "Dutch sports car maker."
+    },
+    {
+     "name": "Ssangyong",
+     "tier": 4,
+     "desc": "South Korean SUV maker.",
+     "aliases": [
+      "kgm",
+      "kg mobility"
+     ]
+    },
+    {
+     "name": "De Tomaso",
+     "tier": 5,
+     "desc": "Italian-Argentine sports car maker.",
+     "aliases": [
+      "detomaso"
+     ]
+    },
+    {
+     "name": "Zastava",
+     "tier": 5,
+     "desc": "Serbian carmaker that built the Yugo.",
+     "aliases": [
+      "yugo"
+     ]
+    },
+    {
+     "name": "Wartburg",
+     "tier": 5,
+     "desc": "East German carmaker."
+    },
+    {
+     "name": "Bristol",
+     "tier": 5,
+     "desc": "A British maker of luxury cars."
+    },
+    {
+     "name": "Zenvo",
+     "tier": 5,
+     "desc": "Danish hypercar maker."
+    },
+    {
+     "name": "Noble",
+     "tier": 5,
+     "desc": "British sports car maker."
+    },
+    {
+     "name": "Lynk & Co",
+     "tier": 5,
+     "desc": "A Chinese-Swedish brand.",
+     "aliases": [
+      "lynk and co"
+     ]
+    },
+    {
+     "name": "Perodua",
+     "tier": 5,
+     "desc": "Malaysian small-car maker."
+    },
+    {
+     "name": "Hudson",
+     "tier": 5,
+     "desc": "A defunct American maker."
+    },
+    {
+     "name": "Iso",
+     "tier": 5,
+     "desc": "Italian maker of the Grifo."
+    }
+   ],
+   "rejects": [
+    {
+     "names": [
+      "Harley-Davidson",
+      "Harley Davidson",
+      "Ducati",
+      "Kawasaki",
+      "Yamaha",
+      "Vespa",
+      "Boeing",
+      "Airbus",
+      "Scania",
+      "Caterpillar",
+      "John Deere",
+      "Kenworth",
+      "Peterbilt",
+      "Mack"
+     ],
+     "message": "That is not a car maker."
+    }
+   ]
+  }
+ ]
+}

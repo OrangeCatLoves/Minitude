@@ -1,0 +1,360 @@
+{
+ "explorer": {
+  "0": {
+   "ox": 199,
+   "oy": 92,
+   "w": 21,
+   "h": 49
+  },
+  "1": {
+   "ox": 197,
+   "oy": 90,
+   "w": 25,
+   "h": 53
+  },
+  "2": {
+   "ox": 195,
+   "oy": 88,
+   "w": 29,
+   "h": 57
+  }
+ },
+ "accents": {
+  "0": [
+   125,
+   105,
+   255
+  ],
+  "1": [
+   195,
+   105,
+   255
+  ],
+  "2": [
+   115,
+   105,
+   255
+  ],
+  "3": [
+   105,
+   135,
+   255
+  ],
+  "4": [
+   105,
+   150,
+   255
+  ],
+  "5": [
+   105,
+   230,
+   255
+  ],
+  "6": [
+   105,
+   200,
+   255
+  ],
+  "7": [
+   105,
+   115,
+   255
+  ],
+  "8": [
+   230,
+   105,
+   255
+  ],
+  "9": [
+   105,
+   145,
+   255
+  ],
+  "10": [
+   105,
+   140,
+   255
+  ],
+  "11": [
+   145,
+   105,
+   255
+  ],
+  "12": [
+   105,
+   185,
+   255
+  ],
+  "13": [
+   105,
+   125,
+   255
+  ],
+  "14": [
+   210,
+   105,
+   255
+  ],
+  "15": [
+   160,
+   105,
+   255
+  ],
+  "16": [
+   110,
+   105,
+   255
+  ],
+  "17": [
+   255,
+   105,
+   170
+  ],
+  "18": [
+   105,
+   110,
+   255
+  ],
+  "19": [
+   105,
+   155,
+   255
+  ],
+  "20": [
+   160,
+   172,
+   255
+  ],
+  "21": [
+   160,
+   172,
+   255
+  ],
+  "22": [
+   160,
+   172,
+   255
+  ],
+  "23": [
+   160,
+   172,
+   255
+  ],
+  "24": [
+   160,
+   172,
+   255
+  ],
+  "25": [
+   160,
+   172,
+   255
+  ],
+  "26": [
+   160,
+   172,
+   255
+  ],
+  "27": [
+   160,
+   172,
+   255
+  ],
+  "28": [
+   160,
+   172,
+   255
+  ],
+  "29": [
+   160,
+   172,
+   255
+  ],
+  "30": [
+   160,
+   172,
+   255
+  ],
+  "31": [
+   160,
+   172,
+   255
+  ],
+  "32": [
+   160,
+   172,
+   255
+  ],
+  "33": [
+   160,
+   172,
+   255
+  ],
+  "34": [
+   160,
+   172,
+   255
+  ],
+  "35": [
+   255,
+   200,
+   87
+  ]
+ },
+ "roster": {
+  "0": {
+   "n": 1,
+   "name": "THE ROOM",
+   "desc": "Start here. A quiet evening room, and you at normal size.",
+   "kind": "SEEN",
+   "label": "NAKED EYE"
+  },
+  "1": {
+   "n": 2,
+   "name": "THE BOOKSHELF",
+   "desc": "Book spines stand like tall walls, with gold lettering on every one.",
+   "kind": "SEEN",
+   "label": "NAKED EYE"
+  },
+  "2": {
+   "n": 3,
+   "name": "THE PILE",
+   "desc": "Each carpet tuft is a tower, and a crumb lies like a fallen log.",
+   "kind": "SEEN",
+   "label": "NAKED EYE"
+  },
+  "3": {
+   "n": 4,
+   "name": "YARN ROPES",
+   "desc": "Strands of yarn rise as thick twisted ropes. A dust ball rolls past.",
+   "kind": "SEEN",
+   "label": "NAKED EYE"
+  },
+  "4": {
+   "n": 5,
+   "name": "THREAD FOREST",
+   "desc": "Fabric fibres rise like cables. Specks of dust drift by like moons.",
+   "kind": "SEEN",
+   "label": "NAKED EYE"
+  },
+  "5": {
+   "n": 6,
+   "name": "DROPLET WORLD",
+   "desc": "One drop of water, as big as a hill, with tiny life swimming inside.",
+   "kind": "SEEN",
+   "label": "LIGHT MICROSCOPE"
+  },
+  "6": {
+   "n": 7,
+   "name": "BACTERIA GARDEN",
+   "desc": "Rod-shaped cells lie like logs, and whip-like tails wave through the water.",
+   "kind": "SEEN",
+   "label": "LIGHT MICROSCOPE"
+  },
+  "7": {
+   "n": 8,
+   "name": "GERM REEF",
+   "desc": "Bacteria loom like islands. Viruses drift past like landers.",
+   "kind": "SEEN",
+   "label": "ELECTRON MICROSCOPE"
+  },
+  "8": {
+   "n": 9,
+   "name": "PROTEIN FACTORY",
+   "desc": "Ribosomes bob along a chain of beads, building proteins.",
+   "kind": "SEEN",
+   "label": "ELECTRON MICROSCOPE"
+  },
+  "9": {
+   "n": 10,
+   "name": "DNA FOREST",
+   "desc": "Spiral towers with coloured rungs fill the horizon.",
+   "kind": "MEASURED",
+   "label": "X-RAY DIFFRACTION"
+  },
+  "10": {
+   "n": 11,
+   "name": "CRYSTAL LATTICE",
+   "desc": "As small as an atom. You stand on one, in a glowing grid.",
+   "kind": "SEEN",
+   "label": "TUNNELLING MICROSCOPE"
+  },
+  "11": {
+   "n": 12,
+   "name": "ELECTRON CLOUDS",
+   "desc": "Glowing lobes of probability float over a flat platform.",
+   "kind": "MEASURED",
+   "label": "BOHR RADIUS"
+  },
+  "12": {
+   "n": 13,
+   "name": "GAMMA SEA",
+   "desc": "Gamma rays from radioactive atoms have waves about as long as you are tall.",
+   "kind": "MEASURED",
+   "label": "CAESIUM-137, 662 KEV"
+  },
+  "13": {
+   "n": 14,
+   "name": "THE GREAT EMPTY",
+   "desc": "Faint orbits sweep around a speck of a nucleus, far away.",
+   "kind": "MEASURED",
+   "label": "RUTHERFORD 1911"
+  },
+  "14": {
+   "n": 15,
+   "name": "NUCLEUS CITY",
+   "desc": "A tight cluster of particles packs together like a city block.",
+   "kind": "MEASURED",
+   "label": "NUCLEAR SIZES"
+  },
+  "15": {
+   "n": 16,
+   "name": "INSIDE THE PROTON",
+   "desc": "Three quarks, tied together by glowing strings.",
+   "kind": "MEASURED",
+   "label": "PROTON RADIUS"
+  },
+  "16": {
+   "n": 17,
+   "name": "FIRST QUARKS",
+   "desc": "Fast electrons bounce off tiny hard points inside a proton.",
+   "kind": "MEASURED",
+   "label": "SLAC 1968"
+  },
+  "17": {
+   "n": 18,
+   "name": "SHORT REACH",
+   "desc": "The weak force reaches only about 1/700th of a proton.",
+   "kind": "MEASURED",
+   "label": "W BOSON MASS"
+  },
+  "18": {
+   "n": 19,
+   "name": "RIPPLE SEA",
+   "desc": "A passing gravitational wave stretched LIGO's arms by about two of you.",
+   "kind": "MEASURED",
+   "label": "LIGO 2015"
+  },
+  "19": {
+   "n": 20,
+   "name": "COLLISION HALL",
+   "desc": "The LHC reaches this small. Quarks still show no parts inside.",
+   "kind": "MEASURED",
+   "label": "LHC 13.6 TEV"
+  },
+  "35": {
+   "n": 21,
+   "name": "PLANCK FOAM",
+   "desc": "About the Planck length, where physicists expect today's theories to stop working.",
+   "kind": "THEORY",
+   "label": "PLANCK LENGTH"
+  },
+  "void": {
+   "n": null,
+   "name": "UNEXPLORED",
+   "desc": "No experiment has looked this small. Nothing is known to exist here.",
+   "kind": "NONE",
+   "label": "NO DATA \u00b7 NOTHING MEASURED HERE"
+  }
+ }
+}

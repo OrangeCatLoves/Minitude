@@ -1,0 +1,49 @@
+# Fly.io settings for Minitude. Steps and explanations: docs/DEPLOY.md
+#
+# Fly app names are shared by everybody. If "minitude" is taken, `fly launch --no-deploy --copy-config` asks for another
+# name and rewrites the next line.
+app = "minitude"
+primary_region = "sin"
+
+[build]
+  # uses the Dockerfile in this folder
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8787"
+  # the database lives on the volume (see [[mounts]]), so it survives deploys and restarts
+  DATABASE_FILE = "/data/minitude.db"
+  # a copy of the database every day on the same volume; the newest 7 are kept
+  BACKUP_DIR = "/data/backups"
+  # Fly's front door puts the visitor's address in this header (the server needs it to limit daily runs per network)
+  CLIENT_IP_HEADER = "fly-client-ip"
+  # secrets are NOT written here: use `fly secrets set GEMINI_API_KEY=...`
+
+[[mounts]]
+  source = "minitude_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  # SQLite lives on one machine's disk: exactly one machine, always on
+  auto_stop_machines = "off"
+  auto_start_machines = false
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/health"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  # the server measured about 110 MB; if the machine ever runs out of memory: `fly scale memory 512`
+  memory = "256mb"

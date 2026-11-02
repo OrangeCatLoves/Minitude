@@ -1,0 +1,26 @@
+{
+  "name": "minitude",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Minitude: answer rare, shrink far. A pixel-art trivia game.",
+  "workspaces": [
+    "packages/core",
+    "packages/web",
+    "packages/server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,magenta \"npm run dev -w @minitude/server\" \"npm run dev -w @minitude/web\"",
+    "build": "npm run build -w @minitude/core && npm run build -w @minitude/web && npm run build -w @minitude/server",
+    "start": "npm run start -w @minitude/server",
+    "test": "npm run test -w @minitude/core && npm run test -w @minitude/server",
+    "typecheck": "npm run typecheck -w @minitude/core && npm run typecheck -w @minitude/web && npm run typecheck -w @minitude/server",
+    "cli": "npm run -s cli -w @minitude/server --"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

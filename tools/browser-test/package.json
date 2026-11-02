@@ -1,0 +1,8 @@
+{
+  "name": "minitude-browser-test",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Headless-browser scripts that play Minitude and save screenshots. Not part of the npm workspaces.",
+  "scripts": { "install-browser": "playwright install chromium" },
+  "devDependencies": { "playwright": "^1.48.0" }
+}
