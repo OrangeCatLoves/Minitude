@@ -9,7 +9,7 @@ Read first: `docs/STATUS.md` (what is done / not done), `docs/SERVER.md` (databa
 ```bash
 npm install
 npm run dev          # API on :8787, game on :5173 (Vite proxies /api)
-npm test             # core (36) + server (128) unit tests
+npm test             # core, web (camera) and server unit tests
 npm run typecheck    # all three packages
 npm run build        # typecheck + build packages/web/dist
 npm start            # one process, game + API on :8787 (needs a build)
@@ -18,7 +18,7 @@ npm run cli -- help  # questions, answers, daily sets, db backup, the question g
 fly deploy --ha=false  # see docs/DEPLOY.md (never run yet)
 ```
 
-Node 20+. No other setup. Never commit keys: the server reads `LLM_PROVIDER`, `GEMINI_API_KEY`, `LLM_MODEL`, `LLM_MAX_PER_MINUTE`, `LLM_MAX_PER_DAY`, `DATABASE_FILE`, `PORT`, `DAILY_PER_IP`, `CLIENT_IP_HEADER`, `BACKUP_DIR`, `BACKUP_KEEP` from the environment or from `packages/server/.env` (git-ignored; copy `.env.example`). With no key the server runs in mock mode. On Fly the key is a secret (`fly secrets set`), never a file in the repo (`.dockerignore` keeps `.env` out of the image).
+Node 20+. No other setup. Never commit keys: the server reads `LLM_PROVIDER`, `GEMINI_API_KEY`, `LLM_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_MAX_PER_MINUTE`, `LLM_MAX_PER_DAY`, `DATABASE_FILE`, `PORT`, `DAILY_PER_IP`, `CLIENT_IP_HEADER`, `BACKUP_DIR`, `BACKUP_KEEP` from the environment or from `packages/server/.env` (git-ignored; copy `.env.example`). With no key the server runs in mock mode. On Fly the key is a secret (`fly secrets set`), never a file in the repo (`.dockerignore` keeps `.env` out of the image).
 
 ## Layout
 
@@ -38,6 +38,9 @@ How the engine works (frame = pure function of the clock and the list of records
 - Edging hint: 2nd landing in a row inside Unexplored shows "Something is getting closer.", 3rd or more "It is very close."; the 1st keeps the Unexplored card. A run ending in Unexplored says "Planck Foam was N points away".
 - After the finale: 1st answer shows one of three lines at random (never the same as last time) plus the small line "Our physics stops here. Keep going."; the 2nd shows "There is nothing left to measure you with." / "You are still shrinking.". Report says "N points past the edge".
 - Each hint is one text line, one glow pulse, one sound. No extra cards.
+- Group names count: an umbrella term where every member would be valid ("rattlesnake", "viper" for venomous snakes) is accepted as Common (tier 0), whatever the question's rules say. The question's own subject word ("snake") and terms that include invalid things do not count. Chosen by the owner; the wording is in `judge/prompt.ts`.
+- Corrections need consent: a misspelling is never accepted on the spot. The game asks "Did you mean X?" (YES / NO); the question clock keeps running while it asks. No means the text is judged as typed, never as the suggested answer. Chosen by the owner; see `docs/SERVER.md`.
+- Players are never told how answers are checked: no model name, no mention of a fallback or of a switch between models, nothing about mock or real, in any API reply, message or browser code (tests guard this). The server's own logs and database may record it. Chosen by the owner.
 - Daily: resets at midnight UTC; guests only (a random id in the browser, no sign-up); mixed categories; hosting is Fly.io. Chosen by the owner.
 - Interface is the v5 video's: minimal, "WORLD n / 21", no fun facts, world title cards skip on tap, 30 s per question.
 - Wording lives in `packages/core/src/hints.ts` and `report.ts`.

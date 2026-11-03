@@ -281,6 +281,9 @@ export class Timeline {
   cam(t: number): Cam {
     let base: Cam | null = null
     for (const r of this.recs) {
+      // A time-out has no dive, so its fs is Infinity and "t < r.fs" would stay true for the rest of the run: the camera would be
+      // held at that question's start for ever and every later dive would be skipped. Once the next question has begun, move on.
+      if (r.miss && t >= r.next) continue
       if (t < r.fs) {
         let pulse = 1.0
         if (t >= r.chg) { const q = clamp01((t - r.chg) / CHARGE); pulse = 1 + 0.035 * q * q }

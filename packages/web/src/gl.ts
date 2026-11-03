@@ -101,22 +101,56 @@ function program(gl: WebGL2RenderingContext, frag: string): WebGLProgram {
 }
 
 export class WorldGL {
-  readonly canvas: HTMLCanvasElement
-  private gl: WebGL2RenderingContext
-  private pa: WebGLProgram
-  private pb: WebGLProgram
-  private tex: WebGLTexture
-  private fbo: WebGLFramebuffer
-  private fboTex: WebGLTexture
+  /** the world picture. Replaced by a new canvas when the browser takes the graphics context away and it has to be rebuilt. */
+  canvas!: HTMLCanvasElement
+  /** false while the world cannot be drawn (the browser has taken the graphics context away) */
+  ready = false
+  private gl!: WebGL2RenderingContext
+  private pa!: WebGLProgram
+  private pb!: WebGLProgram
+  private tex!: WebGLTexture
+  private fbo!: WebGLFramebuffer
+  private fboTex!: WebGLTexture
   private ua: Record<string, WebGLUniformLocation | null> = {}
   private ub: Record<string, WebGLUniformLocation | null> = {}
+  private failures = 0
+  private checks = 0
 
-  constructor(scenes: HTMLImageElement[], inners: HTMLImageElement[]) {
+  constructor(private readonly scenes: HTMLImageElement[], private readonly inners: HTMLImageElement[]) {
+    this.build() // throws, as before, when the browser has no WebGL 2
+  }
+
+  /** Browsers can take the graphics context away at any time (a graphics driver reset, power saving, switching away). Until it is
+   *  rebuilt nothing can be drawn, so the world picture would freeze while everything drawn in 2D carried on. */
+  private rebuild(): void {
+    try {
+      this.build()
+      this.failures = 0
+      console.info('[minitude] world picture rebuilt')
+    } catch (e) {
+      console.error('[minitude] could not rebuild the world picture:', e)
+      if (++this.failures < 10) setTimeout(() => { if (!this.ready) this.rebuild() }, 2000)
+    }
+  }
+
+  private build(): void {
     const canvas = document.createElement('canvas')
     canvas.width = W
     canvas.height = H
     const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, preserveDrawingBuffer: false, premultipliedAlpha: false, powerPreference: 'high-performance' })
     if (!gl) throw new Error('This game needs WebGL 2, which this browser does not provide.')
+    canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault() // asks the browser to give the context back
+      if (canvas !== this.canvas) return
+      this.ready = false
+      console.warn('[minitude] the browser took the graphics context away; rebuilding the world picture')
+      setTimeout(() => { if (canvas === this.canvas && !this.ready) this.rebuild() }, 1500)
+    })
+    canvas.addEventListener('webglcontextrestored', () => { if (canvas === this.canvas && !this.ready) this.rebuild() })
+    const info = gl.getExtension('WEBGL_debug_renderer_info')
+    console.info('[minitude] graphics:', info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : 'unknown')
+    const scenes = this.scenes, inners = this.inners
+    this.ready = false
     this.canvas = canvas
     this.gl = gl
     this.pa = program(gl, FRAG_A)
@@ -155,11 +189,15 @@ export class WorldGL {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.fboTex, 0)
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    this.ready = true
   }
 
-  /** z = camera position in worlds (integer at rest), pulse = camera punch, blur / ab = speed effect strengths (0 = none) */
-  draw(z: number, pulse: number, blur: number, ab: number): void {
+  /** z = camera position in worlds (integer at rest), pulse = camera punch, blur / ab = speed effect strengths (0 = none).
+   *  Returns false when nothing could be drawn (the graphics context is away): the caller must not use the canvas then. */
+  draw(z: number, pulse: number, blur: number, ab: number): boolean {
     const gl = this.gl
+    if (!this.ready) return false
+    if (gl.isContextLost()) { this.ready = false; return false }
     let j = Math.floor(z + 1e-9)
     const f = z - j
     j = Math.min(j, 35)
@@ -197,5 +235,12 @@ export class WorldGL {
     gl.uniform1f(this.ub.uAb, ab)
     gl.uniform2f(this.ub.uFoc, FOC[0], FOC[1])
     gl.drawArrays(gl.TRIANGLES, 0, 3)
+    // a graphics error would otherwise be silent: say so (the first few frames only)
+    if (this.checks < 5) {
+      this.checks++
+      const err = gl.getError()
+      if (err !== gl.NO_ERROR) console.error('[minitude] WebGL error 0x' + err.toString(16) + ' while drawing the world')
+    }
+    return true
   }
 }

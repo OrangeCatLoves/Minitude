@@ -126,7 +126,7 @@ Non-secret settings live in `[env]` in `fly.toml`; change them and run `fly depl
 | `BACKUP_DIR` / `BACKUP_KEEP` | off / 7 | daily copies |
 | `CLIENT_IP_HEADER` | none (uses the connection address) | `fly-client-ip` on Fly |
 | `DAILY_PER_IP` | 10 | Daily runs per network per day; 0 turns the limit off |
-| `LLM_PROVIDER`, `LLM_MODEL`, `LLM_MAX_PER_MINUTE`, `LLM_MAX_PER_DAY` | see `docs/SERVER.md` | the answer checker |
+| `LLM_PROVIDER`, `LLM_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_MAX_PER_MINUTE`, `LLM_MAX_PER_DAY` | see `docs/SERVER.md` | the answer checker |
 | `GEMINI_API_KEY` | none | **secret**: `fly secrets set` only |
 
 ## Leaving Fly later

@@ -46,7 +46,8 @@ export interface NewAnswer {
   at: number
 }
 
-export type Stored = { kind: 'valid'; answer: AnswerRow } | { kind: 'invalid'; message: string }
+/** `via` (valid only) = how the text reached the answer: absent when it IS the answer, else the source of the spelling that points to it ('alias', 'typo', 'llm') */
+export type Stored = { kind: 'valid'; answer: AnswerRow; via?: string } | { kind: 'invalid'; message: string }
 
 export interface RunQuestionRow extends QuestionHead {
   idx: number
@@ -159,16 +160,16 @@ export class Repo {
   findStored(questionId: string, norm: string): Stored | null {
     const a = this.getAnswer(questionId, norm)
     if (a) return { kind: 'valid', answer: a }
-    const s = this.st('SELECT verdict, canon_norm, message FROM spellings WHERE question_id = ? AND norm = ?').get(questionId, norm) as Row | undefined
+    const s = this.st('SELECT verdict, canon_norm, message, source FROM spellings WHERE question_id = ? AND norm = ?').get(questionId, norm) as Row | undefined
     if (!s) return null
     this.st('UPDATE spellings SET hits = hits + 1 WHERE question_id = ? AND norm = ?').run(questionId, norm)
     if (s.verdict === 'invalid') return { kind: 'invalid', message: s.message ?? "That doesn't count." }
     const canon = this.getAnswer(questionId, s.canon_norm)
-    return canon ? { kind: 'valid', answer: canon } : null
+    return canon ? { kind: 'valid', answer: canon, via: s.source } : null
   }
   /** the canonical answer a learned spelling points to (does not count as a use of the spelling) */
-  findStoredSpellingTarget(questionId: string, norm: string): AnswerRow | null {
-    const s = this.st("SELECT canon_norm FROM spellings WHERE question_id = ? AND norm = ? AND verdict = 'valid'").get(questionId, norm) as Row | undefined
+  findStoredSpellingTarget(questionId: string, norm: string, onlyAliases = false): AnswerRow | null {
+    const s = this.st(`SELECT canon_norm FROM spellings WHERE question_id = ? AND norm = ? AND verdict = 'valid'${onlyAliases ? " AND source = 'alias'" : ''}`).get(questionId, norm) as Row | undefined
     return s ? this.getAnswer(questionId, s.canon_norm) ?? null : null
   }
   /** nearest known form within the typo budget, as canonical answers */
@@ -360,8 +361,9 @@ export class Repo {
   startLlm(at: number, purpose: string, model: string): number {
     return Number(this.st("INSERT INTO llm_log (at, purpose, model, ok, ms, error) VALUES (?,?,?,0,0,'running')").run(at, purpose, model).lastInsertRowid)
   }
-  finishLlm(id: number, ok: boolean, ms: number, error?: string | null): void {
-    this.st('UPDATE llm_log SET ok = ?, ms = ?, error = ? WHERE id = ?').run(ok ? 1 : 0, Math.round(ms), error ?? null, id)
+  /** `model` = the model that really answered, when it was not the one the call started with (a fallback) */
+  finishLlm(id: number, ok: boolean, ms: number, error?: string | null, model?: string): void {
+    this.st('UPDATE llm_log SET ok = ?, ms = ?, error = ?, model = COALESCE(?, model) WHERE id = ?').run(ok ? 1 : 0, Math.round(ms), error ?? null, model ?? null, id)
   }
   llmCallsSince(since: number): number {
     return (this.st('SELECT COUNT(*) n FROM llm_log WHERE at > ?').get(since) as Row).n

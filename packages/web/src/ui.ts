@@ -1,7 +1,7 @@
 /** The interface: top bar, depth rail, scale bar, the question / roll / result block, landing lines, title screen and report. */
 import { CYAN, FAINT, H, LINE, OFF, OKG, SOFT, W, AMBER } from './config'
 import { backOut, clamp01, easeInOut, easeOut, lerp, lerpc, rgb, smooth, ck, type RGB } from './util'
-import { ctxOf, drawText, mkCanvas, PXF, radialAdd, rect, SILF, stext, textWidth, type Ctx } from './draw'
+import { ctxOf, drawText, mkCanvas, PXF, radialAdd, rect, SILF, stext, textWidth, wrapText, type Ctx } from './draw'
 import type { Rec, Timeline, Cam } from './timeline'
 import { N_WORLDS, TIERS, MAX_POINTS_DISPLAY, stageOfPoints, worldOfSlot, worldNoOfSlot, type ReportData, type RunRecord } from '@minitude/core'
 import type { Gems } from './celebrate'
@@ -97,6 +97,8 @@ export interface AskView {
   valid: boolean
   /** a line under the field, e.g. why the answer was not accepted */
   message: string
+  /** the checker asks "did you mean ...?": the answer it suggests, or null when it is not asking */
+  confirm: string | null
   remain: number
   total: number
   /** caret shows (blinks while idle) */
@@ -104,9 +106,58 @@ export interface AskView {
   /** 0..1 the field shakes after a rejected answer */
   shake: number
 }
+/** widest a line of the question may be: the screen is 1280 wide */
+const PROMPT_MAXW = 1160
+
+/** The question. 34 px, smaller when it would run off the screen, and on two lines when even 24 px is too wide. */
+export function promptLine(c: Ctx, prompt: string, dy = 0): void {
+  let fs = 34
+  while (fs > 24 && textWidth(PXF(fs, 500), prompt) > PROMPT_MAXW) fs -= 2
+  const font = PXF(fs, 500)
+  if (textWidth(font, prompt) <= PROMPT_MAXW) { stext(c, prompt, 640, 614 + dy, font, OFF, 0, 'c'); return }
+  const lines = wrapText(font, prompt, PROMPT_MAXW).slice(0, 2)
+  lines.forEach((ln, k) => stext(c, ln, 640, 602 + k * 28 + dy, font, OFF, 0, 'c'))
+}
+
+/** one line of small text that must fit: tighter letter spacing first, then a smaller size, then cut with "…" */
+function fitSmall(s: string, maxw: number): { text: string; font: string; ls: number } {
+  for (const [size, ls] of [[11, 2], [11, 1], [10, 1]] as const) {
+    const font = SILF(size, false)
+    if (textWidth(font, s, ls) <= maxw) return { text: s, font, ls }
+  }
+  const font = SILF(10, false)
+  let cut = s
+  while (cut.length > 1 && textWidth(font, cut + '…', 1) > maxw) cut = cut.slice(0, -1)
+  return { text: cut + '…', font, ls: 1 }
+}
+
+/** the YES and NO buttons of "did you mean ...?" (right of the answer field) */
+export const CONFIRM_BOXES: { yes: PlayBox; no: PlayBox } = {
+  yes: { x: 930, y: 648, w: 96, h: 40 },
+  no: { x: 1038, y: 648, w: 96, h: 40 },
+}
+
+/** "did you mean ...?": the suggestion where the answer was, YES / NO, and the clock still running */
+function askConfirm(c: Ctx, v: AskView, dy: number): void {
+  const shown = v.confirm + '?'
+  let fs = 38
+  while (fs > 22 && textWidth(PXF(fs, 500), shown) > 500) fs -= 2
+  stext(c, shown, 640, 676 + dy, PXF(fs, 500), CYAN, 0, 'c')
+  rect(c, 380, 684 + dy, 520, 2, CYAN)
+  for (const [b, label] of [[CONFIRM_BOXES.yes, 'YES'], [CONFIRM_BOXES.no, 'NO']] as [PlayBox, string][]) {
+    const by = b.y + dy
+    rect(c, b.x, by, b.w, 2, CYAN); rect(c, b.x, by + b.h - 2, b.w, 2, CYAN); rect(c, b.x, by, 2, b.h, CYAN); rect(c, b.x + b.w - 2, by, 2, b.h, CYAN)
+    drawText(c, label, b.x + b.w / 2, by + 26, SILF(15), CYAN, 3, 'c')
+  }
+  const m = fitSmall('DID YOU MEAN THIS?   ENTER OR Y = YES   ·   ESC OR N = NO, I MEANT MINE', 1200)
+  stext(c, m.text, 640, 706 + dy, m.font, CYAN, m.ls, 'c')
+  timerBar(c, v.remain, v.total, dy)
+}
+
 export function ask(c: Ctx, t: number, v: AskView, dy = 0): void {
   stext(c, v.category.toUpperCase(), 640, 570 + dy, SILF(12), [190, 202, 232], 3, 'c')
-  stext(c, v.prompt, 640, 614 + dy, PXF(34, 500), OFF, 0, 'c')
+  promptLine(c, v.prompt, dy)
+  if (v.confirm) { askConfirm(c, v, dy); return }
   const sh = v.shake > 0 ? Math.round(Math.sin(v.shake * 40) * 6 * v.shake) : 0
   const has = v.typed.length > 0
   const lc: RGB = v.valid ? OKG : v.message && !v.checking ? WARN : has || v.checking ? OFF : LINE
@@ -130,14 +181,14 @@ export function ask(c: Ctx, t: number, v: AskView, dy = 0): void {
       rect(c, 640 - 14 + w / 2 + 10 + k * 9, 698 + dy, 5, 5, lerpc([20, 28, 52], SOFT, a))
     }
   } else if (v.valid) stext(c, 'VALID', 640, 706 + dy, SILF(12), OKG, 3, 'c')
-  else if (v.message) stext(c, v.message, 640, 706 + dy, SILF(11, false), WARN, 2, 'c')
+  else if (v.message) { const m = fitSmall(v.message.toUpperCase(), 1200); stext(c, m.text, 640, 706 + dy, m.font, WARN, m.ls, 'c') }
   else if (!has) stext(c, 'ENTER', 640, 706 + dy, SILF(11), [112, 126, 172], 3, 'c')
   timerBar(c, v.remain, v.total, dy)
 }
 
 export function timeUp(c: Ctx, v: AskView, dy = 0): void {
   stext(c, v.category.toUpperCase(), 640, 570 + dy, SILF(12), [190, 202, 232], 3, 'c')
-  stext(c, v.prompt, 640, 614 + dy, PXF(34, 500), OFF, 0, 'c')
+  promptLine(c, v.prompt, dy)
   stext(c, 'TIME UP', 640, 676 + dy, PXF(38, 500), WARN, 0, 'c')
   stext(c, 'NO POINTS, NO SHRINK', 640, 706 + dy, SILF(12, false), SOFT, 3, 'c')
 }
@@ -247,8 +298,12 @@ export function introButtons(c: Ctx, t: number, exitT: number, pressedAt: number
 }
 
 // ------------------------------------------------------------------ report
-export interface ReportButtons { share: PlayBox; again: PlayBox }
-export const REPORT_BUTTONS: ReportButtons = { share: { x: 96, y: 650, w: 170, h: 50 }, again: { x: 286, y: 650, w: 170, h: 50 } }
+export interface ReportButtons { share: PlayBox; again: PlayBox; home: PlayBox }
+export const REPORT_BUTTONS: ReportButtons = {
+  share: { x: 96, y: 650, w: 170, h: 50 },
+  again: { x: 286, y: 650, w: 170, h: 50 },
+  home: { x: 476, y: 650, w: 170, h: 50 },
+}
 
 /** what the report shows besides the run itself */
 export interface ReportExtras {
@@ -296,7 +351,7 @@ export function report(c: Ctx, tr: number, recs: Rec[], data: ReportData, toast:
   const ba = easeOut((tr - 2.6) / 0.5)
   if (ba > 0.01) {
     const col = lerpc(dark, OFF, ba)
-    for (const [b, label] of [[REPORT_BUTTONS.share, toast > 0 ? 'COPIED' : 'SHARE'], [REPORT_BUTTONS.again, extras.againLabel]] as [PlayBox, string][]) {
+    for (const [b, label] of [[REPORT_BUTTONS.share, toast > 0 ? 'COPIED' : 'SHARE'], [REPORT_BUTTONS.again, extras.againLabel], [REPORT_BUTTONS.home, 'HOME']] as [PlayBox, string][]) {
       rect(c, b.x, b.y, b.w, 2, col); rect(c, b.x, b.y + b.h - 2, b.w, 2, col); rect(c, b.x, b.y, 2, b.h, col); rect(c, b.x + b.w - 2, b.y, 2, b.h, col)
       drawText(c, label, b.x + b.w / 2, b.y + 31, SILF(label.length > 9 ? 14 : 16), col, 4, 'c')
     }

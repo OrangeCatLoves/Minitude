@@ -16,8 +16,9 @@ import { Repo } from './db/repo'
 import { loadEnv } from './env'
 import { generateQuestions } from './generate/generate'
 import { PipelineJudge } from './judge/pipeline'
+import type { JudgeOutcome } from './judge/types'
 import { makeLlm } from './llm/factory'
-import { loadBank } from './questions'
+import { loadBank, type QuestionHead } from './questions'
 
 type Expect = { kind: 'valid'; tier?: [number, number]; answer?: string } | { kind: 'invalid' } | { kind: 'info' }
 interface Case { q: string; text: string; expect: Expect; why: string }
@@ -66,6 +67,12 @@ const CASES: Case[] = [
   { q: 'sports-racket', text: 'Pickleball', expect: INFO, why: 'paddle, not a racket' },
 ]
 
+/** the trial plays a player who answers "yes" to "did you mean ...?", so corrections are scored like any other answer */
+async function judgeAsPlayer(judge: PipelineJudge, q: QuestionHead, text: string): Promise<JudgeOutcome> {
+  const first = await judge.judge(q, text)
+  return first.res.status === 'confirm' ? judge.judge(q, text, 'confirmed') : first
+}
+
 async function main() {
   loadEnv()
   const repo = new Repo(openDb(':memory:'))
@@ -83,7 +90,7 @@ async function main() {
     const q = repo.getQuestion(c.q)
     if (!q) { console.log(`skip (no such question) ${c.q}`); continue }
     const t0 = Date.now()
-    const { res, via } = await judge.judge(q, c.text)
+    const { res, via } = await judgeAsPlayer(judge, q, c.text)
     const ms = Date.now() - t0
     let verdict = 'INFO'
     if (c.expect.kind === 'valid') {
@@ -96,7 +103,7 @@ async function main() {
   }
   // the same answer typed another way must score the same
   const cheese = repo.getQuestion('food-cheese')!
-  const a = await judge.judge(cheese, 'beenleigh blue'), b = await judge.judge(cheese, 'Beenleigh Blue cheese')
+  const a = await judgeAsPlayer(judge, cheese, 'beenleigh blue'), b = await judgeAsPlayer(judge, cheese, 'Beenleigh Blue cheese')
   console.log(`\nSame answer, two spellings: tier ${a.res.tier} and tier ${b.res.tier}  ${a.res.tier === b.res.tier ? 'PASS' : 'FAIL'}`)
   if (a.res.tier !== b.res.tier) fail++; else pass++
 

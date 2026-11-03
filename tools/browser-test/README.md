@@ -15,7 +15,10 @@ node server-clock.cjs      # the game and the server's question clock
 node daily.cjs             # the Daily Challenge (uses new guests; best run against a fresh database)
 node realtime.cjs
 node audio-levels.cjs 5,5,5,5,5,5,5
+node focus.cjs             # typing still works after Tab, clicks elsewhere, the sound button, switching tabs (submits nothing)
+node home.cjs              # the HOME button on every report (plays a solo run, today's Daily and "today's result"; answers nothing)
+node glloss.cjs            # the world picture rebuilds itself after the browser takes the graphics context away (submits nothing)
 ```
 
-Set `MINITUDE_URL` to test another address (for example the production server: `MINITUDE_URL=http://localhost:8787`).
+Set `MINITUDE_CHANNEL=chrome` (or `msedge`) to use a browser you already have instead of running `install-browser`. Set `MINITUDE_URL` to test another address (for example the production server: `MINITUDE_URL=http://localhost:8787`).
 `daily.cjs` plays today's real Daily, so it uses up that day's attempt for the guests it makes (new random guests each time, so you can run it again). These scripts use the demo checker's seed bank to pick answers of a wanted tier, so they only work against the mock checker.

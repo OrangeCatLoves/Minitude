@@ -42,7 +42,7 @@ Only `approved` questions are ever played.
 ## How an answer is judged (`judge/pipeline.ts`)
 
 1. **Stored?** An answer, alias, learned spelling or stored "does not count" that matches the typed text exactly (after normalising case, accents, punctuation and a leading "the/a/an") is used as it is. No model call.
-2. **Not stored, no model configured (mock mode):** one unambiguous typo is accepted and remembered; anything else is *unresolved* ("The demo checker doesn't know this answer").
+2. **Not stored, no model configured (mock mode):** one typo is *suggested* (see "Corrections need consent" below) and remembered once the player agrees. If the typo fits two answers, the rarer one is suggested; two equally rare ones are not guessed between (*unresolved*, "That could mean more than one answer"). Anything else is *unresolved* ("The demo checker doesn't know this answer"). With a model, the prompt tells it to prefer the rarer answer in the same situation.
 3. **Not stored, model configured:** ask the model once. It is shown the question, its rules, the known answers (or the 40 nearest when there are more than 150), example answers per tier, any known answers spelled close to the typed text, and the typed text as a quoted JSON string. It must reply with JSON: `valid`, `same_as`, `answer`, `tier`, `description`, `reason`, `confidence`. The reply is checked (right shape, tier 0-5, text cleaned) before anything is trusted.
 4. **What is stored:**
    - *valid, same as a known answer* -> the typed text becomes a spelling of it, and the player gets the known answer **with its stored tier**, whatever tier the model said. A spelling that looks nothing like the answer it was matched to is used once but not remembered.
@@ -51,7 +51,12 @@ Only `approved` questions are ever played.
    - *low confidence, model error, bad reply, budget used up* -> **unresolved**: the player sees a message and can try again; nothing is stored or counted.
 5. Two players typing the same new answer at the same moment cost one model call (and get one decision).
 
-Every try is written to `attempts`. Rarity is the **model's own judgement against anchor examples**; there is no web search or other evidence yet, and the one-line descriptions the model writes are unverified.
+**Corrections need consent** (owner's rule). Whenever the text is not the answer's own name (a misspelling, or another name the model matched, including a spelling learned earlier), the checker does not accept it on the spot. `POST /api/run/:id/answer` replies `{status: 'confirm', answer, message: "Did you mean X?"}`: no tier or points, the question stays open, nothing is scored or remembered. Aliases the question was written with are not corrections. The browser then sends the same text again with `confirm`:
+- `"yes"` -> the suggested answer is accepted with **its own** stored tier, and the spelling is remembered (only if it looks like the answer). The suggestion is kept in memory meanwhile, so a yes costs no second model call.
+- `"no"` -> the text is judged on its own (the model is told "this is NOT a misspelling"), so a real, rarer answer is never turned into a common one. If it can still only be read as the suggested answer, it does not count ("That isn't an answer as typed"). Learned corrections are ignored for it.
+- the question clock keeps running while the player decides; only the time the checker itself took is given back.
+
+Every try is written to `attempts` (`status` is `confirm` for the question). Rarity is the **model's own judgement against anchor examples**; there is no web search or other evidence yet, and the one-line descriptions the model writes are unverified.
 
 ## The server's question clock (`app.ts`)
 
@@ -83,7 +88,7 @@ Same seven questions for everyone on each UTC day (resets at 00:00 UTC, 08:00 Si
 | `POST /api/run/:id/start`, `/answer`, `/miss` | as above |
 | `POST /api/run/:id/abandon` | the page is closing: the unanswered questions of a daily run become misses. Nothing happens to a solo run |
 | `GET /api/run/:id` | `{total, answered}` so far |
-| `GET /api/health` | `{ok, checker, questions, policy}` |
+| `GET /api/health` | `{ok, questions, policy}` (nothing about how answers are checked: players are never told which model is used, whether there is one, or that a switch happened) |
 
 **Leaving ends the run.** The game sends `abandon` when the page is hidden or closed (`pagehide`, `sendBeacon`). A run that is silent for 2 minutes (`STALE_RUN_MS`) is closed as misses the next time that guest's day is looked at (opening the page or pressing the daily button). So you cannot reload for a second try, and cannot keep a half-finished day open in another tab.
 
@@ -103,9 +108,11 @@ Same seven questions for everyone on each UTC day (resets at 00:00 UTC, 08:00 Si
 
 `LLM_PROVIDER` / `GEMINI_API_KEY` / `LLM_MODEL` (default `gemini-3.8-flash`, check the exact name in Google AI Studio) can go in `packages/server/.env` (see `.env.example`). With no key the server runs in mock mode.
 
+**Fallback model.** `LLM_FALLBACK_MODEL` (default `gemini-3.5-flash`; `none` turns it off) is used for **live answer checks only** (never the question generator) when the main model fails or does not answer. The main model gets 3 s (`failoverAfterMs`); if it has failed or is silent by then, the fallback gets the rest of the 8 s limit. After a failure the main model is skipped for 60 s (15 s after a rate limit), so players are not made to wait for it each time; if the fallback fails in that window, the main model is tried as the last resort. The server prints a `[llm] ... failed; using ... for the next N s` line when it switches, and `llm_log.model` / `answers.model` name the model that really answered. The fallback model is slower (about 2 to 6 s) and costs a little more per call, but it is used only while the main model is in trouble. The budget guard counts one call however many requests that call made, so keep `LLM_MAX_PER_MINUTE` under your plan's limit with room to spare. Free-tier limits apply to the fallback model too (about 20 a day for `gemini-3.5-flash`).
+
 `LLM_MAX_PER_MINUTE` (default 10) and `LLM_MAX_PER_DAY` (default 200) are a hard budget: calls over it are **refused, not sent** (players see "The answer checker is busy"). Set them below your plan's limits. The command line waits out the per-minute limit instead of refusing.
 
-`llm/gemini.ts` follows the documented `generateContent` request with a JSON response schema and retries rate-limit and server errors once or twice. **It has never made a real call.** Run the trial first.
+`llm/gemini.ts` follows the documented `generateContent` request with a JSON response schema and retries rate-limit and server errors once or twice. It has made real calls with `gemini-3.5-flash-lite` (about 1.1 s each). A call a player is waiting on (`hedgeAfterMs`) is sent a second time if the first has not replied after 2.2 s, and the first reply wins; the budget guard still counts it as one call. The free tier also has a per-minute limit per model (about 15 requests); going over gives HTTP 429 for about 10 s.
 
 ## Question generator and review
 

@@ -35,9 +35,12 @@ export class GuardedLlm implements LlmClient {
     if (this.repo.llmCallsSince(t - 60_000) >= this.budget.perMinute) throw new LlmError('per-minute budget used up', 'budget')
     if (this.repo.llmCallsSince(t - 86_400_000) >= this.budget.perDay) throw new LlmError('daily budget used up', 'budget')
     const id = this.repo.startLlm(t, req.purpose, this.inner.model)
+    let used: string | undefined
+    // a fallback model may answer instead of the main one: the log should say which
+    const watched: JsonRequest = { ...req, onModel: (m) => { used = m; req.onModel?.(m) } }
     try {
-      const out = await this.inner.generateJson(req)
-      this.repo.finishLlm(id, true, this.now() - t)
+      const out = await this.inner.generateJson(watched)
+      this.repo.finishLlm(id, true, this.now() - t, null, used)
       return out
     } catch (e) {
       this.repo.finishLlm(id, false, this.now() - t, e instanceof Error ? e.message.slice(0, 200) : String(e))

@@ -11,6 +11,8 @@ const bank = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'packag
 /** open the game in manual-clock mode (?manual=1): time only moves when the script moves it */
 async function open(manual = true) {
   const browser = await chromium.launch({
+    // MINITUDE_CHANNEL=chrome (or msedge) uses a browser already installed on the machine instead of Playwright's own download
+    ...(process.env.MINITUDE_CHANNEL ? { channel: process.env.MINITUDE_CHANNEL } : {}),
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'],
   })
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })

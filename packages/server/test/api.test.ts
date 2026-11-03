@@ -3,6 +3,7 @@ import { createApp, pickRun, GRACE_MS, MAX_ATTEMPTS_PER_QUESTION, QUESTION_SECON
 import { openDb } from '../src/db/open'
 import { Repo } from '../src/db/repo'
 import { PipelineJudge } from '../src/judge/pipeline'
+import { LlmError } from '../src/llm/types'
 import { lookup } from '../src/match'
 import { bank, dec, FakeLlm, testRepo } from './helpers'
 
@@ -20,7 +21,7 @@ function setup(opts: { llm?: FakeLlm | null; repo?: Repo } = {}) {
   }
   /** starts a run; `questions` is read straight from the database (the API itself sends no prompt before a question starts) */
   const newRun = async () => {
-    const j = (await post('/api/run', {})).json as { runId: string; count: number; seconds: number; checker: string; mode: string }
+    const j = (await post('/api/run', {})).json as { runId: string; count: number; seconds: number; mode: string }
     return { ...j, questions: repo.getRun(j.runId)!.questions.map((q) => ({ id: q.id, category: q.category, prompt: q.prompt })) }
   }
   return { repo, app, clock, post, newRun, llm }
@@ -51,8 +52,8 @@ describe('api basics', () => {
     const { app } = setup()
     const j = (await (await app.request('/api/health')).json()) as any
     expect(j.ok).toBe(true)
-    expect(j.checker).toBe('mock')
     expect(j.questions).toBe(bank.questions.length)
+    expect(j.checker).toBeUndefined() // how answers are checked is not public
   })
   it('a run has seven questions and the clock length, and sends no prompt until a question starts', async () => {
     const { post } = setup()
@@ -213,5 +214,99 @@ describe('answering and the server clock', () => {
     await post(`/api/run/${run.runId}/answer`, { index: 0, text: 'qwerty' })
     await post(`/api/run/${run.runId}/answer`, { index: 0, text: listed(run.questions[0].id) })
     expect(repo.attemptCount(run.runId, 0)).toBe(2)
+  })
+})
+
+describe('"did you mean ...?" over the API', () => {
+  /** a run with the first question started, whose answer list the fake model will be told to match a misspelling to */
+  async function typoRun(extra?: (n: number, name: string) => unknown) {
+    const llm = new FakeLlm()
+    const s = setup({ llm })
+    const run = await s.newRun()
+    const q = run.questions[0]
+    const name = listed(q.id, 1)
+    llm.reply = (_req, n) => extra?.(n, name) ?? dec({ same_as: name, answer: name, tier: 5 })
+    await s.post(`/api/run/${run.runId}/start`, { index: 0 })
+    return { ...s, run, q, name, typo: name + 'x', url: `/api/run/${run.runId}/answer` }
+  }
+
+  it('a misspelling is asked about: the question stays open and no tier or points are sent', async () => {
+    const { post, url, name, typo, repo, run } = await typoRun()
+    const r = await post(url, { index: 0, text: typo })
+    expect(r.status).toBe(200)
+    expect(r.json).toEqual({ status: 'confirm', answer: name, message: `Did you mean ${name}?` })
+    expect(repo.getRun(run.runId)!.questions[0].result).toBeNull()
+  })
+
+  it('yes finishes the question with the known answer and its own tier', async () => {
+    const { post, url, name, typo, repo, run } = await typoRun()
+    await post(url, { index: 0, text: typo })
+    const r = await post(url, { index: 0, text: typo, confirm: 'yes' })
+    expect(r.json).toMatchObject({ status: 'valid', answer: name, tier: 1, points: 20 })
+    expect(repo.getRun(run.runId)!.questions[0].result).not.toBeNull()
+    const log = repo.db.prepare('SELECT status FROM attempts WHERE run_id = ? ORDER BY id').all(run.runId) as { status: string }[]
+    expect(log.map((x) => x.status)).toEqual(['confirm', 'valid'])
+  })
+
+  it('no judges the text as typed: the player keeps a real, different answer', async () => {
+    const { post, url, repo, run } = await typoRun((n) => (n === 1 ? undefined : dec({ answer: 'Zzz Typed Cheese', tier: 4 })))
+    expect((await post(url, { index: 0, text: 'zzz typed cheese' })).json.status).toBe('confirm')
+    const r = await post(url, { index: 0, text: 'zzz typed cheese', confirm: 'no' })
+    expect(r.json).toMatchObject({ status: 'valid', answer: 'Zzz Typed Cheese', tier: 4, points: 80 })
+    expect(repo.getRun(run.runId)!.questions[0].result).not.toBeNull()
+  })
+
+  it('the question clock keeps running while the player decides', async () => {
+    const { post, url, typo, clock } = await typoRun()
+    expect((await post(url, { index: 0, text: typo })).json.status).toBe('confirm')
+    clock.advance(QUESTION_SECONDS * 1000 + START_DELAY_MS + GRACE_MS + 10)
+    const late = await post(url, { index: 0, text: typo, confirm: 'yes' })
+    expect(late.status).toBe(409)
+    expect(late.json.code).toBe('late')
+  })
+
+  it('anything other than yes or no is the same as asking again', async () => {
+    const { post, url, typo } = await typoRun()
+    expect((await post(url, { index: 0, text: typo, confirm: 'maybe' })).json.status).toBe('confirm')
+  })
+})
+
+describe('players are never told about the answer checker, its model, or a switch between models', () => {
+  // anything that would give the model away: its name, a fallback, the word "model" or "llm", an HTTP error from it
+  const LEAK = /backup-model|fake-model|gemini|flash|fallback|failover|\bllm\b|\bmodel\b|http \d{3}|\bmock\b/i
+
+  it('no reply carries a model name, a fallback, or an error from the model', async () => {
+    let n = 0
+    const llm = new FakeLlm((req) => {
+      n++
+      if (n === 1) { req.onModel?.('backup-model'); return dec({ answer: 'Zorbian Brie', tier: 4 }) } // a fallback model answered
+      if (n === 2) throw new LlmError('model http 503')                                                  // then the model fails
+      throw new LlmError('per-minute budget used up', 'budget')                                          // then the budget is used up
+    })
+    const { app, post, repo } = setup({ llm })
+    const seen: string[] = [JSON.stringify(await (await app.request('/api/health')).json())]
+    const created = await post('/api/run', {})
+    seen.push(JSON.stringify(created.json))
+    const id = created.json.runId as string
+    const answer = async (index: number, text: string) => {
+      await post(`/api/run/${id}/start`, { index })
+      const r = await post(`/api/run/${id}/answer`, { index, text })
+      seen.push(JSON.stringify(r.json))
+      return r.json
+    }
+    expect((await answer(0, 'zorbian brie')).status).toBe('valid')          // answered by the "backup" model
+    expect((await answer(1, 'qwertyuiop')).status).toBe('unresolved')       // the model failed
+    expect((await answer(1, 'asdfghjkl')).status).toBe('unresolved')        // the budget was used up
+    seen.push(JSON.stringify(await (await app.request(`/api/run/${id}`)).json()))
+    const daily = await app.request('/api/daily/start', { method: 'POST', headers: { 'content-type': 'application/json', 'x-guest': 'guest-' + 'x'.repeat(20) }, body: '{}' })
+    seen.push(JSON.stringify(await daily.json()))
+    for (const body of seen) expect(body).not.toMatch(LEAK)
+    // the server itself still knows which model answered (for the owner, in the database)
+    expect(repo.db.prepare("SELECT model FROM answers WHERE source = 'live'").get()).toEqual({ model: 'backup-model' })
+  })
+
+  it('the messages a player can be shown name no model', async () => {
+    const { MSG } = await import('../src/judge/pipeline')
+    for (const m of Object.values(MSG)) expect(m).not.toMatch(LEAK)
   })
 })

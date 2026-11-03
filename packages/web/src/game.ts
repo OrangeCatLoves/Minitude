@@ -14,7 +14,7 @@ import { WorldGL } from './gl'
 import { flashAt, shakeAmp, vignetteAt } from './impact'
 import { makeMiss, newRec, schedule, skipCard, Timeline, type Cam, type Rec } from './timeline'
 import {
-  ask, Groups, hud, hudDotsOnly, introButtons, landingLines, rail, report, REPORT_BUTTONS, roll, result, scalebar, TITLE_BOXES, timeUp,
+  ask, CONFIRM_BOXES, Groups, hud, hudDotsOnly, introButtons, landingLines, rail, report, REPORT_BUTTONS, roll, result, scalebar, TITLE_BOXES, timeUp,
   type AskView, type HudState, type LandingLine, type PlayBox, type ReportExtras, type TitleView,
 } from './ui'
 import { clamp01, easeInOut, easeOut, smooth, type RGB } from './util'
@@ -71,6 +71,8 @@ export class Game {
   private records: RunRecord[] = []
   private typed = ''
   private pending = false
+  /** the checker thinks the player made a typo and asked "did you mean ...?". The question clock keeps running while it waits. Null = not asking. */
+  private confirm: { text: string; suggestion: string } | null = null
   private lockT = 0
   private lockRemain = 0
   private deadline = Infinity
@@ -142,17 +144,41 @@ export class Game {
     })
     window.addEventListener('keydown', (e) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return
+      if (this.confirm) {
+        // "did you mean ...?": Enter or Y is yes, Esc or N is no. Nothing else is typed meanwhile.
+        const k = e.key.toLowerCase()
+        if (e.key === 'Enter' || k === 'y') { e.preventDefault(); this.answerConfirm('yes') }
+        else if (e.key === 'Escape' || k === 'n') { e.preventDefault(); this.answerConfirm('no') }
+        return
+      }
+      if (this.canType()) {
+        // Typing must not depend on where keyboard focus happens to be: a click on the page, the Tab key, another tab or app all move it.
+        // Tab has no use here (it would only land on the sound button), so it keeps focus in the box.
+        if (e.key === 'Tab') { e.preventDefault(); this.refocus(); return }
+        // focusing during keydown makes the key press itself land in the box
+        if (document.activeElement !== this.input && (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Process' || e.key === 'Dead')) this.input.focus({ preventScroll: true })
+      }
       if (e.key === 'Enter') {
         e.preventDefault()
         this.onEnter()
       } else if (this.phase === 'title' && (e.key === 's' || e.key === 'S') && this.titleView().secondary) {
         e.preventDefault()
         void this.press('solo')
+      } else if (this.phase === 'report' && (e.key === 'Escape' || e.key === 'h' || e.key === 'H')) {
+        // back to the title (the buttons appear 2.6 s after the report starts)
+        e.preventDefault()
+        if (this.T > this.reportAt + 2.6) this.home()
       } else if (e.key === ' ' && !this.canType() && this.phase !== 'report') {
         e.preventDefault()
         this.onEnter()
       }
     })
+    // A click on the game must not take keyboard focus off the answer box. The canvas cannot hold focus, so by default the browser
+    // moves it to the page when the mouse goes down, undoing the focus() in the pointerdown handler below.
+    this.canvas.addEventListener('mousedown', (e) => e.preventDefault())
+    // coming back from another tab or app
+    window.addEventListener('focus', () => this.refocus())
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) this.refocus() })
     this.canvas.addEventListener('pointerdown', (e) => {
       const p = this.toCanvas(e)
       this.sound.unlock()
@@ -165,6 +191,12 @@ export class Game {
         if (this.reportAt + 2.6 > this.T) return
         if (hit(REPORT_BUTTONS.share, p)) this.share()
         else if (hit(REPORT_BUTTONS.again, p)) this.again()
+        else if (hit(REPORT_BUTTONS.home, p)) this.home()
+        return
+      }
+      if (this.confirm) {
+        if (hit(CONFIRM_BOXES.yes, p)) this.answerConfirm('yes')
+        else if (hit(CONFIRM_BOXES.no, p)) this.answerConfirm('no')
         return
       }
       if (this.skipActiveCard()) return
@@ -175,10 +207,21 @@ export class Game {
     const r = this.canvas.getBoundingClientRect()
     return { x: ((e.clientX - r.left) / r.width) * W, y: ((e.clientY - r.top) / r.height) * H }
   }
+  /** gives the answer box keyboard focus when a question is waiting for an answer */
+  refocus(): void {
+    if (this.canType()) this.input.focus({ preventScroll: true })
+  }
   /** a question is on screen and the player may type */
   canType(): boolean {
     const r = this.tl.last()
-    return this.phase === 'run' && !!r && !r.known && !this.pending && this.T >= r.start + 0.35 && !!this.questions[r.i]
+    return this.phase === 'run' && !!r && !r.known && !this.pending && !this.confirm && this.T >= r.start + 0.35 && !!this.questions[r.i]
+  }
+  /** the player's yes or no to "did you mean ...?" */
+  private answerConfirm(choice: 'yes' | 'no'): void {
+    const c = this.confirm, r = this.tl.last()
+    if (!c || !r || r.known || this.pending) return
+    this.confirm = null
+    this.send(r, c.text, choice)
   }
   private onEnter(): void {
     this.sound.unlock()
@@ -273,6 +316,37 @@ export class Game {
       }
     })
   }
+  /**
+   * From the report (the end of a run, or today's result opened from the title): back to the title screen, where the daily and a
+   * solo run can be chosen again. The title is asked about the daily afresh, so it shows what is true now (TODAY'S RESULT, the countdown).
+   */
+  home(): void {
+    if (this.phase !== 'report') return
+    this.sound.unlock()
+    this.sound.reset()
+    this.run = null
+    this.tl.recs = []
+    this.records = []
+    this.questions = []
+    this.startedIdx = -1
+    this.reportAt = Infinity
+    this.reportData = null
+    this.reportDaily = null
+    this.confirm = null
+    this.pending = false
+    this.typed = ''
+    this.input.value = ''
+    this.message = ''
+    this.titleError = ''
+    this.pressedAt = null
+    this.uiT0 = null
+    this.titleOn = true
+    this.phase = 'title'
+    this.fadeFrom = this.T
+    // A daily that has just ended may not be on record yet in what the browser last heard ("new"): do not offer PLAY DAILY again for a moment.
+    if (this.mode === 'daily' && this.daily?.status !== 'done') this.daily = null
+    void this.loadDaily()
+  }
   /** after the report: straight into a new solo run, no title screen */
   async again(): Promise<void> {
     if (this.phase !== 'report') return
@@ -318,6 +392,7 @@ export class Game {
     this.typed = ''
     this.message = ''
     this.pending = false
+    this.confirm = null
     this.missPending = false
     // the player's clock starts when the prompt is on screen (see fetchQuestion)
     this.deadline = Infinity
@@ -363,6 +438,11 @@ export class Game {
     if (!r || !this.run || !this.canType()) return
     const text = this.typed.trim()
     if (!text) return
+    this.send(r, text)
+  }
+  /** Sends the answer. `confirm` is the player's reply to the checker's "did you mean ...?": 'yes' accepts the suggestion, 'no' says the text is meant as typed. */
+  private send(r: Rec, text: string, confirm?: 'yes' | 'no'): void {
+    if (!this.run) return
     this.pending = true
     this.lockT = this.T
     this.lockRemain = Math.max(0, this.deadline - this.T)
@@ -371,17 +451,29 @@ export class Game {
     this.message = ''
     this.sound.lock(r)
     const runId = this.run.runId
-    const send = () => sendAnswer(runId, r.i, text)
+    const go = () => sendAnswer(runId, r.i, text, confirm)
     // the server must know the question has started; if the first message was lost, send it again first
-    const ready = this.startedIdx === r.i ? send() : sendStart(runId, r.i).then(() => { this.startedIdx = r.i }).then(send)
+    const ready = this.startedIdx === r.i ? go() : sendStart(runId, r.i).then(() => { this.startedIdx = r.i }).then(go)
     ready.then(
       (resp) => this.onAnswer(r, resp, text),
       (err: unknown) => this.onAnswerFailed(r, err),
     )
   }
+  /**
+   * The checker thinks the text is a misspelling of a known answer and asks "did you mean ...?". Nothing is scored until the player
+   * says yes. The question clock keeps running while the player decides; only the time spent waiting for the checker is given back.
+   */
+  private askConfirm(r: Rec, text: string, suggestion: string): void {
+    this.deadline = this.T + this.lockRemain
+    r.lock = Infinity
+    r.typed = ''
+    this.message = ''
+    this.confirm = { text, suggestion }
+  }
   private onAnswer(r: Rec, resp: Awaited<ReturnType<typeof sendAnswer>>, text: string): void {
     if (r.known) return
     this.pending = false
+    if (resp.status === 'confirm' && resp.answer) { this.askConfirm(r, text, resp.answer); return }
     if (resp.status === 'valid' && typeof resp.tier === 'number' && resp.tier >= 0 && resp.tier < TIERS.length) {
       const core = nextRecord(this.records, resp.tier)
       r.answer = resp.answer ?? text
@@ -428,6 +520,7 @@ export class Game {
   private miss(r: Rec): void {
     if (this.missPending || r.known) return
     this.missPending = true
+    this.confirm = null // time ran out while "did you mean ...?" was on screen: the question is lost, as the clock never stopped
     const core = nextRecord(this.records, null)
     this.records.push(core)
     this.typed = ''
@@ -539,6 +632,7 @@ export class Game {
       checking: this.pending ? T >= this.lockT + 0.2 : r.known && !r.miss && T >= r.chk && T < r.val,
       valid: r.known && !r.miss && T >= r.val,
       message: locked ? '' : this.message,
+      confirm: locked ? null : this.confirm ? this.confirm.suggestion : null,
       remain: locked ? this.lockRemain : Number.isFinite(this.deadline) ? Math.min(total, Math.max(0, this.deadline - T)) : total,
       total,
       caret: !locked && (T - this.lastKeyAt < 0.6 || Math.floor(T * 2) % 2 === 0),
@@ -557,8 +651,12 @@ export class Game {
     const fr = rep ? null : finRec(tl, T)
 
     // ---- world
-    this.gl.draw(cam.z, cam.pulse, 0.05 * cam.s, 0.011 * cam.s)
-    f.drawImage(this.gl.canvas, 0, 0)
+    if (this.gl.draw(cam.z, cam.pulse, 0.05 * cam.s, 0.011 * cam.s)) f.drawImage(this.gl.canvas, 0, 0)
+    else {
+      // the world picture is being rebuilt: clear the frame (the 2D layers below are drawn over it, so old pixels would pile up)
+      f.fillStyle = `rgb(${INK[0]},${INK[1]},${INK[2]})`
+      f.fillRect(0, 0, W, H)
+    }
     if (fr) dimPre(f, tl, T)
 
     let p: { sx: number; sy: number; dx: number; dy: number; aura: number; glow: number } = { sx: 1, sy: 1, dx: 0, dy: 0, aura: 0, glow: 0 }
@@ -740,7 +838,7 @@ export class Game {
   debugState(): Record<string, unknown> {
     const r = this.tl.last()
     return {
-      T: this.T, phase: this.phase, pending: this.pending, canType: this.canType(), records: this.records.length,
+      T: this.T, phase: this.phase, pending: this.pending, canType: this.canType(), confirm: this.confirm ? this.confirm.suggestion : null, records: this.records.length,
       rec: r ? { i: r.i, known: r.known, miss: r.miss, start: r.start, next: r.next, card: r.card, clen: r.clen, fs: r.fs, fe: r.fe, rev: r.rev, roll: r.roll, val: r.val, chg: r.chg, chk: r.chk, dur: r.dur, ti: r.ti, cardOn: r.cardOn, dz: r.dz, fin: r.fin } : null,
       total: this.records.length ? this.records[this.records.length - 1].c1 : 0,
       q: r ? this.questions[r.i] ?? null : null,

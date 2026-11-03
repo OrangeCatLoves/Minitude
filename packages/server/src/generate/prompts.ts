@@ -7,7 +7,7 @@ export const PROPOSE_SYSTEM =
   'answers that fewer players would think of. Write prompts that make this fun and fair:\n' +
   '- Every prompt is one sentence starting with "Name a" or "Name an".\n' +
   '- A typical player can think of at least one answer at once, while a knowledgeable player has many less obvious ones. At least 80 different valid answers must exist, from household names to real but obscure ones.\n' +
-  '- The rules sentence draws clear boundaries (real vs fictional, brands vs kinds, species vs broad groups, historical vs current) so that a judge can decide any answer. For facts that change over time, say "as of 2025".\n' +
+  '- The rules sentence draws clear boundaries (real vs fictional, brands vs kinds, historical vs current) so that a judge can decide any answer. Do not write a rule that rejects broad group names (a genus, a family, an umbrella term): the game accepts those on its own as the lowest tier. For facts that change over time, say "as of 2025".\n' +
   '- Avoid disputed origins, vague or subjective groupings, and topics that are sensitive (real tragedies, hot political issues, slurs).\n' +
   '- Prompts in a category must differ from each other and from the ones already used.\n' +
   'Write the rules as plain sentences a judge can apply; they are never shown to players.'

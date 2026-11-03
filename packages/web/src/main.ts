@@ -67,7 +67,7 @@ function setupMute(sfx: Sfx, game: Game): void {
   paint()
   b.style.display = 'block'
   const toggle = (): void => { sfx.setMuted(!sfx.muted); sfx.unlock(); paint() }
-  b.addEventListener('click', (e) => { e.stopPropagation(); toggle(); b.blur() })
+  b.addEventListener('click', (e) => { e.stopPropagation(); toggle(); b.blur(); game.refocus() })
   window.addEventListener('keydown', (e) => {
     if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey && !game.canType()) toggle()
   })

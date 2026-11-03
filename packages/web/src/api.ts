@@ -71,8 +71,9 @@ export const startDaily = (): Promise<StartRunResponse> => call('/api/daily/star
 /** tells the server that question `index` is on screen: its clock starts now, and the prompt comes back in the reply */
 export const sendStart = (runId: string, index: number): Promise<StartQuestionResponse> =>
   call(`/api/run/${encodeURIComponent(runId)}/start`, { index }, 8000)
-export const sendAnswer = (runId: string, index: number, text: string): Promise<AnswerResponse> =>
-  call(`/api/run/${encodeURIComponent(runId)}/answer`, { index, text }, 35000)
+/** `confirm` answers the checker's "did you mean ...?": 'yes' accepts the suggested answer, 'no' says the text is meant as typed */
+export const sendAnswer = (runId: string, index: number, text: string, confirm?: 'yes' | 'no'): Promise<AnswerResponse> =>
+  call(`/api/run/${encodeURIComponent(runId)}/answer`, confirm ? { index, text, confirm } : { index, text }, 35000)
 export const sendMiss = (runId: string, index: number): Promise<unknown> =>
   call(`/api/run/${encodeURIComponent(runId)}/miss`, { index }, 8000)
 

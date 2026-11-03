@@ -14,8 +14,7 @@ export interface StartRunResponse {
   count: number
   /** seconds the player has per question (the game starts the clock only when the question is on screen) */
   seconds: number
-  /** the answer checker in use: 'mock' (a fixed list of demo answers) or 'llm' */
-  checker: 'mock' | 'llm'
+  /** Nothing here says how answers are checked (which model, whether there is one, or a switch between models): players are told none of that. */
   mode: RunMode
   /** daily runs only: the UTC day (YYYY-MM-DD) and its number */
   day?: string
@@ -29,11 +28,16 @@ export interface StartQuestionResponse {
   question: Question
 }
 
-export type AnswerStatus = 'valid' | 'invalid' | 'unresolved'
+/**
+ * valid / invalid / unresolved: the answer was decided or could not be checked.
+ * confirm: the checker thinks the text is a misspelling (or another name) of `answer` and asks the player "did you mean that?".
+ * Nothing is scored, finished or remembered until the player says yes (see `confirm` in the answer request); no tier or points are sent.
+ */
+export type AnswerStatus = 'valid' | 'invalid' | 'unresolved' | 'confirm'
 
 export interface AnswerResponse {
   status: AnswerStatus
-  /** the canonical answer the text was matched to (shown in the result) */
+  /** the canonical answer the text was matched to (shown in the result); for 'confirm', the answer the player is asked about */
   answer?: string
   /** short description of the answer (one line) */
   description?: string

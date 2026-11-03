@@ -35,6 +35,9 @@ node reveals.cjs v 0,1,2,3,4,5               # reveal, charge-up and landing fra
 node server-clock.cjs                        # the game and the server's question clock (start ping, "late", lost start message re-sent)
 node daily.cjs                               # the Daily Challenge: new guest, 7 prompts one at a time, standings, reload, second guest
 node realtime.cjs                 # real clock, real keyboard (waits real seconds)
+node home.cjs                     # the HOME button on every report (plays a solo run, today's Daily and "today's result"; answers nothing)
+node glloss.cjs                   # the world picture (WebGL) rebuilds itself after the browser takes the graphics context away (submits nothing)
+node focus.cjs                    # typing still works after the Tab key, a click on the page or the game, the sound button, another tab (submits nothing)
 node audio-levels.cjs 5,5,5,5,5,5,5          # renders the sound offline and prints levels
 ```
 

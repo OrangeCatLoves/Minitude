@@ -5,7 +5,7 @@ import {
   type DailyState, type StartQuestionResponse, type StartRunResponse,
 } from '@minitude/core'
 import type { QuestionHead } from './questions'
-import type { Judge } from './judge/types'
+import type { Judge, JudgeMode } from './judge/types'
 import { ipFingerprint, isLoopback } from './clientip'
 import { ensureDailySet, epochDay } from './daily'
 import { POLICY_VERSION, runTotal, type DailyPlayRow, type Repo, type RunQuestionRow } from './db/repo'
@@ -145,7 +145,8 @@ export function createApp(deps: AppDeps) {
     }
   }
 
-  app.get('/api/health', (c) => c.json({ ok: true, checker: judge.kind, questions: repo.countByStatus().approved, policy: POLICY_VERSION }))
+  // Public, so it says nothing about how answers are checked (no model, no mock/real, no fallback): that stays on the server.
+  app.get('/api/health', (c) => c.json({ ok: true, questions: repo.countByStatus().approved, policy: POLICY_VERSION }))
 
   app.get('/api/daily', (c) => {
     const guest = guestOf(c)
@@ -178,7 +179,7 @@ export function createApp(deps: AppDeps) {
     }
     const run = repo.startDailyPlay(day, guest, set.questions, judge.kind, isLoopback(ip) ? null : fp, t)
     const body: StartRunResponse = {
-      runId: run.id, count: run.questions.length, seconds, checker: judge.kind, mode: 'daily', day, number: dayNumber(epochDay(repo, day), day),
+      runId: run.id, count: run.questions.length, seconds, mode: 'daily', day, number: dayNumber(epochDay(repo, day), day),
     }
     return c.json(body)
   })
@@ -190,7 +191,7 @@ export function createApp(deps: AppDeps) {
     if (pool.length < RUN_LENGTH) return fail(c, 503, 'There are not enough questions yet.', 'no_questions')
     const picked = pickRun(pool, rand)
     const run = repo.createRun(picked, judge.kind, now())
-    const body: StartRunResponse = { runId: run.id, count: run.questions.length, seconds, checker: judge.kind, mode: 'solo' }
+    const body: StartRunResponse = { runId: run.id, count: run.questions.length, seconds, mode: 'solo' }
     return c.json(body)
   })
 
@@ -223,10 +224,12 @@ export function createApp(deps: AppDeps) {
     if (limited(clientIp(c))) return fail(c, 429, 'Too many answers. Slow down.', 'rate')
     const run = repo.getRun(c.req.param('id'))
     if (!run) return fail(c, 404, 'Unknown run.')
-    let body: { index?: unknown; text?: unknown }
+    let body: { index?: unknown; text?: unknown; confirm?: unknown }
     try { body = await c.req.json() } catch { return fail(c, 400, 'Bad request.') }
     const index = Number(body.index)
     const text = typeof body.text === 'string' ? body.text.trim() : ''
+    // 'yes' / 'no' answer the checker's "did you mean ...?"; without it a correction is only ever suggested, never applied
+    const mode: JudgeMode = body.confirm === 'yes' ? 'confirmed' : body.confirm === 'no' ? 'literal' : 'ask'
     if (!Number.isInteger(index) || index < 0 || index >= run.questions.length) return fail(c, 400, 'Bad question number.')
     if (!text || text.length > MAX_ANSWER_CHARS) return fail(c, 400, 'Answer must be 1 to 80 characters.')
     const q = run.questions[index]
@@ -240,7 +243,7 @@ export function createApp(deps: AppDeps) {
     }
     if (repo.attemptCount(run.id, index) >= MAX_ATTEMPTS_PER_QUESTION) return fail(c, 429, 'Too many tries on this question.', 'too_many')
 
-    const { res, via } = await judge.judge(q, text)
+    const { res, via } = await judge.judge(q, text, mode)
     const t1 = now()
     repo.addBusy(run.id, index, t1 - t0)
     repo.logAttempt({ runId: run.id, idx: index, text, status: res.status, answer: res.answer, tier: res.tier, message: res.message, via, ms: t1 - t0, at: t1 })

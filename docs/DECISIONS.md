@@ -11,7 +11,7 @@ The binding decisions (21 worlds, 440 points, Unexplored 400-439, edging hints, 
 | 3 | A time-out scores 0, does not shrink, shows "TIME UP / NO POINTS, NO SHRINK" and a dark dot on the top bar. | `game.ts` `miss()`, `ui.ts` |
 | 4 | Seven questions per run come from seven different categories, shuffled. | `server/src/app.ts` `pickRun` |
 | 5 | The title screen waits for PLAY (or Enter / Space / tap) instead of auto-pressing. | `game.ts` `press()` |
-| 6 | ~~"DAILY - 26 OCT" became "SOLO RUN" (there is no daily yet).~~ **Phase 3 added the real Daily**; the title now has PLAY DAILY and, below it, SOLO RUN. The report has SHARE and PLAY AGAIN (SOLO RUN after a daily). | `celebrate.ts`, `ui.ts` |
+| 6 | ~~"DAILY - 26 OCT" became "SOLO RUN" (there is no daily yet).~~ **Phase 3 added the real Daily**; the title now has PLAY DAILY and, below it, SOLO RUN. The report has SHARE, PLAY AGAIN (SOLO RUN after a daily) and HOME. | `celebrate.ts`, `ui.ts` |
 | 7 | The finale card's top line is "{points} POINTS - ANSWER {n} OF 7". "PERFECT RUN" appears only on the report of seven Mythic answers. | `finale.ts`, `ui.ts` |
 | 8 | Hint line: lilac glow pulse. Post-finale lines: pink glow pulse; the small line sits under the main line. Both are one line, one pulse, one sound as agreed, no card. | `ui.ts` `landingLines`, `game.ts` |
 | 9 | The first post-finale line is picked at random and never repeats the one shown last (per browser session). | `game.ts`, core `pickPostFirst` |
@@ -71,6 +71,25 @@ The binding decisions (21 worlds, 440 points, Unexplored 400-439, edging hints, 
 | 48 | The server keeps **7 daily copies** of the database on its disk (`BACKUP_DIR`, `BACKUP_KEEP`); Fly volume snapshots are the second layer. | `backup.ts` |
 | 49 | One machine, always on, no auto-stop (SQLite is on that machine's disk; two machines would be two databases). A deploy therefore takes the site down for a moment. | `fly.toml` |
 | 50 | The server runs TypeScript directly through `tsx` in the container (no compile step), one process, about 110 MB. | `Dockerfile` |
+
+## Phase 4 choices (live testing, 2026-11-03; 51 is yours, 52 and 53 are not yet confirmed by you)
+
+| # | Choice | Where |
+| --- | --- | --- |
+| 51 | **You decided: group names count, at the lowest tier.** A broader term where every member would be a valid answer (a genus, a family or an umbrella term, such as "rattlesnake" or "viper" for "Name a living species of venomous snake") is accepted as Common (tier 0, 10 points), whatever the question's rules say. It is stored as its own answer. The line I drew: the question's own subject word ("snake", "pasta", "airline") and a term that also covers invalid things ("python" for venomous snakes) still do not count. New questions are no longer told to reject broad groups. | `judge/prompt.ts`, `generate/prompts.ts` |
+| 52 | If the checker's model call has not replied after 2.2 s, the same request is sent a second time and the first reply wins (it never waits past the overall limit, now 8 s: see row 58). Normal calls take about 1.1 s; the slowest few were 3 to 6 s. Costs one extra call only on a slow one. | `llm/gemini.ts`, `judge/pipeline.ts` |
+| 53 | The checker's model call gives up after 8 s in all (was 15 s; it was 7 s until row 58 added the fallback model) so a stalled call tells the player to retry instead of making them wait. | `judge/pipeline.ts` |
+
+## Phase 4, continued (live testing, 2026-11-03; 54 is yours)
+
+| # | Choice | Where |
+| --- | --- | --- |
+| 54 | **You decided: a correction needs the player's consent.** A misspelling (or another name matched to a known answer) is never accepted on the spot: the game asks "Did you mean X?" with YES / NO (Enter or Y, Esc or N; the buttons can be clicked). The question clock keeps running while it asks. Yes scores the known answer; no judges the text as typed, and a correction is never applied after a no. The spelling is only remembered after a yes. Aliases written into the question are not corrections. | `judge/pipeline.ts`, `app.ts`, `web/game.ts`, `web/ui.ts` |
+| 55 | A question that is too wide for the screen shrinks (34 px down to 24 px), and wraps onto two lines only if it would still not fit. A long "why it does not count" line gets tighter spacing, then a smaller size, then is cut with "…". | `web/ui.ts` |
+| 56 | **You decided: lean toward the rarer answer.** When a misspelling fits more than one known answer, the rarer one is suggested (and asked about), and the model is told to do the same. Only equally rare candidates stay "not guessed between". | `judge/pipeline.ts`, `judge/prompt.ts` |
+| 57 | **You asked for it: a way back to the title.** Every report, both at the end of a run and the "today's result" page opened from the title, has a HOME button (also Esc or H once the buttons are on screen). It returns to the title screen and asks the server about the Daily afresh. | `web/game.ts` (`home()`), `web/ui.ts` |
+| 58 | **You asked for it: an automatic fallback model.** When Google overloads the main model (it happened: `gemini-3.5-flash-lite` hung while others answered), live answer checks switch to `LLM_FALLBACK_MODEL` (default `gemini-3.5-flash`) instead of telling the player "not available". The main model gets 3 s, the whole check 8 s (was 7 s; the fallback model is slower and needs the room). After a failure the main model is skipped for 60 s. Only live answer checks use it, never the question generator. I picked the default fallback because it answered when the flash-lite models did not; change it, or turn it off with `none`. | `llm/gemini.ts`, `llm/factory.ts`, `judge/pipeline.ts` |
+| 59 | **You decided: players are never told how answers are checked.** No reply to the browser names a model, says whether there is one, or hints that a switch to the fallback model happened; the game's code names none of it. A successful switch is invisible (the check is just slower); if both models fail the player sees only the generic "answer checker is not available right now". `/api/health` and the run-start reply no longer carry `checker`. The server's own terminal and logs, the call log and the stored answers still record which model answered, for you. Guarded by tests in `api.test.ts` and `web/test/private.test.ts`. | `app.ts`, `core/types.ts` |
 
 ## Still open (from the planning notes)
 

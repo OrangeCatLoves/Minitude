@@ -51,7 +51,7 @@ Phase 1 = the playable solo game. Phase 2 = the database, the AI answer checker,
 ## Differences from the v5 video, on purpose
 
 - The title screen waits for PLAY instead of pressing it by itself.
-- The title has two buttons: PLAY DAILY (the day's shared run) and SOLO RUN. The video had only "DAILY - 26 OCT". A solo report has PLAY AGAIN; a daily report has a SOLO RUN button, the standings and a countdown to the next daily.
+- The title has two buttons: PLAY DAILY (the day's shared run) and SOLO RUN. The video had only "DAILY - 26 OCT". A solo report has PLAY AGAIN; a daily report has a SOLO RUN button, the standings and a countdown to the next daily. Every report (the end of a run, and today's result opened from the title) also has HOME (or Esc, or H), which goes back to the title.
 - The finale card's top line reads "500 POINTS - ANSWER 5 OF 7" (the video said "PERFECT RUN" because only a perfect run reached it; at 440 points that is no longer true). "PERFECT RUN" now appears only on the report of a true seven-Mythic run.
 - A mute button (top-left, also the M key when you are not typing).
 
