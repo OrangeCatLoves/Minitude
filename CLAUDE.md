@@ -1,6 +1,6 @@
 # Minitude: notes for Claude Code
 
-Pixel-art browser trivia game. Seven prompts per run, the player types any valid answer, rarer answers score more and shrink the player further (1.7 m down to the Planck length). This repo is **Phases 1 to 3: the playable solo game, a SQLite database, an AI answer checker, an AI question generator, a server-side question clock, and the Daily Challenge (same seven questions for everyone each UTC day, one attempt, guests only) with Fly.io deployment files.** The AI parts have only ever run against a scripted fake model, and the Dockerfile / fly.toml have never been built or deployed.
+Pixel-art browser trivia game. Seven prompts per run, the player types any valid answer, rarer answers score more and shrink the player further (1.7 m down to the Planck length). This repo is **Phases 1 to 3: the playable solo game, a SQLite database, an AI answer checker, an AI question generator, a server-side question clock, and the Daily Challenge (same seven questions for everyone each UTC day, one attempt, guests only) with Fly.io deployment files.** The AI parts first ran against the real Gemini model on 2-3 November 2026 (flash-lite, see Known gaps), and the game was deployed to Fly.io on 5 November 2026 as `minitude-lwb` (Singapore; `docs/DEPLOY.md`).
 
 Read first: `docs/STATUS.md` (what is done / not done), `docs/SERVER.md` (database, answer checker, generator, clock, the Daily, commands), `docs/DECISIONS.md` (choices made without asking), `docs/DEPLOY.md` (Fly.io), `docs/PROJECT_CONTEXT.md` (the full planning notes; the end of the file says what Phases 1 to 3 cover).
 
@@ -15,7 +15,7 @@ npm run build        # typecheck + build packages/web/dist
 npm start            # one process, game + API on :8787 (needs a build)
 npm run trial -w @minitude/server -- --generate   # the live Gemini trial (needs your key)
 npm run cli -- help  # questions, answers, daily sets, db backup, the question generator
-fly deploy --ha=false  # see docs/DEPLOY.md (never run yet)
+fly deploy --ha=false  # see docs/DEPLOY.md (first run 5 Nov 2026, app minitude-lwb)
 ```
 
 Node 20+. No other setup. Never commit keys: the server reads `LLM_PROVIDER`, `GEMINI_API_KEY`, `LLM_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_MAX_PER_MINUTE`, `LLM_MAX_PER_DAY`, `DATABASE_FILE`, `PORT`, `DAILY_PER_IP`, `CLIENT_IP_HEADER`, `BACKUP_DIR`, `BACKUP_KEEP` from the environment or from `packages/server/.env` (git-ignored; copy `.env.example`). With no key the server runs in mock mode. On Fly the key is a secret (`fly secrets set`), never a file in the repo (`.dockerignore` keeps `.env` out of the image).
@@ -23,7 +23,7 @@ Node 20+. No other setup. Never commit keys: the server reads `LLM_PROVIDER`, `G
 ## Layout
 
 - `packages/core`: pure TypeScript shared by browser and server (tiers, scoring, depth/size maths, worlds, run records, hints, report/share text). No DOM. Change scoring here, with tests.
-- `packages/server`: Hono API + SQLite (`better-sqlite3`). `src/app.ts` routes, the question clock and the daily rules; `src/daily.ts` choosing the day's set; `src/clientip.ts` visitor address; `src/backup.ts` daily database copies; `src/index.ts` static files, cache headers, hourly job, shutdown; `src/db/` schema (numbered migrations) and `Repo` (all SQL); `src/judge/pipeline.ts` the answer checker (stored ruling -> model once -> store); `src/llm/` model client (`gemini.ts` never run), budget guard, env factory; `src/generate/` the question generator; `src/cli/` the review commands; `data/questions.seed.json` placeholder bank (seeds the database on first start only).
+- `packages/server`: Hono API + SQLite (`better-sqlite3`). `src/app.ts` routes, the question clock and the daily rules; `src/daily.ts` choosing the day's set; `src/clientip.ts` visitor address; `src/backup.ts` daily database copies; `src/index.ts` static files, cache headers, hourly job, shutdown; `src/db/` schema (numbered migrations) and `Repo` (all SQL); `src/judge/pipeline.ts` the answer checker (stored ruling -> model once -> store); `src/llm/` model client (`gemini.ts` verified against the real service on 2-3 Nov 2026 with gemini-3.5-flash-lite), budget guard, env factory; `src/generate/` the question generator; `src/cli/` the review commands; `data/questions.seed.json` placeholder bank (seeds the database on first start only).
 - `packages/web`: the game. `game.ts` (state machine, input, server calls), `timeline.ts` (the schedule of every question), `gl.ts` (WebGL2 world zoom), `draw.ts`/`fx.ts`/`celebrate.ts`/`finale.ts` (effects), `ui.ts` (HUD, question box, report, daily panel), `api.ts` (server calls, guest id), `audio.ts` (live WebAudio sound), `assets.ts` (loads `public/` pictures).
 - `tools/art-source`: the Python pipeline the game was ported from. Reference only, not runnable here.
 - `tools/browser-test`: Playwright scripts that play the game and save screenshots.
@@ -51,11 +51,11 @@ See `docs/DECISIONS.md`. The main ones: wrong or unknown answers can be retried 
 
 ## Known gaps, in the order I would do them
 
-1. Run `npm run trial -w @minitude/server -- --generate` with a Gemini key and read all of it. `llm/gemini.ts` has never made a real call; the default model name (`gemini-3.8-flash`) is unchecked; thinking models may need a bigger `maxOutputTokens` or a `thinkingConfig`. Fix only that one file if the request shape is off.
-2. Run `npm run cli -- questions generate`, review the drafts, approve until there are 22 good questions. Then retire the placeholder seed questions (`questions reject <id>`).
+1. DONE on 2-3 Nov 2026: the live Gemini trial ran and `llm/gemini.ts` needed no change. The code default `gemini-3.8-flash` is valid but the free tier allows only 20 requests a day on it, so use `LLM_MODEL=gemini-3.5-flash-lite` (set in `.env` locally and in `fly.toml` on Fly).
+2. DONE: 22 approved questions; the placeholder seed questions are retired (locally, and on Fly on 5 Nov 2026).
 3. Play with the key set and listen to the sound (never heard by a person). Then `answers review`.
 4. Decide whether the model's rarity needs web evidence behind it (`docs/PROJECT_CONTEXT.md` sections 7-8).
-5. First deploy with `docs/DEPLOY.md`: build the image, fix what breaks, put the approved questions on the volume (that `fly ssh` route is untested), play a Daily on the real site, look at the bill after a week.
+5. DONE on 5 Nov 2026: first deploy (app `minitude-lwb`, 22 approved questions imported over `fly ssh`, Daily sets planned; see the "Learned on the first deploy" notes in `docs/DEPLOY.md`). Still to do: a Daily played by real visitors on the live site, and look at the Fly bill after a week (Fly has no spending limit or billing alerts).
 6. Unlimited Solo and private lobbies (section 12 of the planning notes). `npm audit` flags `vitest` 2.x (dev only). Upgrade vitest to the current major and re-run the tests.
 7. Mobile portrait layout and touch typing, a "reduce flashes" setting, screen-reader text, a licence file, a privacy note, a retention rule for the `attempts` table, Postgres if you ever need more than one server.
 

@@ -2,7 +2,7 @@
 #
 # Fly app names are shared by everybody. If "minitude" is taken, `fly launch --no-deploy --copy-config` asks for another
 # name and rewrites the next line.
-app = "minitude"
+app = "minitude-lwb"
 primary_region = "sin"
 
 [build]
@@ -17,6 +17,9 @@ primary_region = "sin"
   BACKUP_DIR = "/data/backups"
   # Fly's front door puts the visitor's address in this header (the server needs it to limit daily runs per network)
   CLIENT_IP_HEADER = "fly-client-ip"
+  # the answer checker's model. Your local packages/server/.env sets this, but Fly never sees that file; without this line the server would
+  # use the code default (gemini-3.8-flash), which the free tier limits to 20 requests a day. The live trial found this one fast (about 1.2 s).
+  LLM_MODEL = "gemini-3.5-flash-lite"
   # secrets are NOT written here: use `fly secrets set GEMINI_API_KEY=...`
 
 [[mounts]]
