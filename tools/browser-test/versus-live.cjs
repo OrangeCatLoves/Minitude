@@ -67,7 +67,13 @@ async function lobby(p) {
   await clickItem(bob, 'menu-join')
   await bob.page.keyboard.type(code)
   await bob.page.keyboard.press('Enter')
-  await waitFor('both connected', async () => { const d = await dbg(alice); return d.room.players.length === 2 && d.room.players.every((p) => p.connected) }, 15000)
+  try {
+    await waitFor('both connected', async () => { const d = await dbg(alice); return d.room.players.length === 2 && d.room.players.every((p) => p.connected) }, 15000)
+  } catch (e) {
+    // show what each browser saw, so a failure here can be told apart: Bob never joined, or joined and never connected
+    for (const p of [alice, bob]) { const d = await dbg(p); delete d.items; console.log('   ' + p.name + ' sees:', JSON.stringify(d)) }
+    throw e
+  }
   ok((await (await fetch(BASE + '/api/versus/rooms')).json()).rooms.every((r) => r.code !== code), 'a private room is not in the public list')
 
   const t0 = Date.now()
@@ -80,11 +86,23 @@ async function lobby(p) {
   // both answer; the next question must wait until both screens have finished their reveal
   const id = (await st(alice)).q.id
   const answers = bank.get(id).answers.slice().sort((a, b) => a.tier - b.tier)
-  await sleep(800)
+  // an answer typed before the question accepts typing is ignored (the game clock can run slower than real time in a headless browser)
+  await waitFor('Alice can type', async () => (await st(alice)).canType, 30000)
   await alice.page.evaluate((t) => window.__mtv.game.debugAnswer(t), answers[answers.length - 1].name)
   await sleep(1500)
+  await waitFor('Bob can type', async () => (await st(bob)).canType, 30000)
   await bob.page.evaluate((t) => window.__mtv.game.debugAnswer(t), answers[0].name)
-  await waitFor('the round ended', async () => !!(await dbg(alice)).round?.items, 20000)
+  try {
+    await waitFor('the round ended', async () => !!(await dbg(alice)).round?.items, 20000)
+  } catch (e) {
+    // show what each browser saw, so a failure here can be told apart (an answer not accepted, a roll that never finished, ...)
+    for (const p of [alice, bob]) {
+      const s = await st(p), d = await dbg(p)
+      console.log('   ' + p.name + ' game:', JSON.stringify({ T: s.T, phase: s.phase, pending: s.pending, canType: s.canType, confirm: s.confirm, message: s.message, rec: s.rec && { i: s.rec.i, known: s.rec.known, miss: s.rec.miss, start: s.rec.start, rev: s.rec.rev, next: s.rec.next } }))
+      console.log('   ' + p.name + ' room view:', JSON.stringify({ own: d.own, conn: d.conn, round: d.round }))
+    }
+    throw e
+  }
   const tEnd = Date.now()
   await shot(bob, 'live-2-after-round')
   await waitFor('question two on both screens', async () => { const a = await st(alice), b = await st(bob); return a.q && b.q && a.q.id !== id && b.q.id !== id }, 120000)

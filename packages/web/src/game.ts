@@ -381,7 +381,7 @@ export class Game {
   private lobbyBack(): void {
     const s = this.versus.screen
     if (s === 'name' || s === 'menu') this.toTitle()
-    else if (s !== 'room') this.versus.go('menu')
+    else if (s !== 'room') { this.versus.go('menu'); this.syncLobbyInput() }
   }
   private lobbyPointer(p: { x: number; y: number }): void {
     const it = itemAt(lobbyItems(this.versus), p)
@@ -409,6 +409,10 @@ export class Game {
       case 'room-copy': this.copyCode(); break
       case 'room-leave': void v.leave(); break
     }
+    // The hidden text box must match the new screen AT ONCE, not on the next drawn frame: a player (or a fast typist on a slow phone)
+    // who taps a button and types straight away would otherwise get the old text (their name) in front of what they type. Doing it here
+    // also happens inside the tap, which is what lets a phone open its on-screen keyboard.
+    if (this.phase === 'lobby') this.syncLobbyInput()
   }
   private copyCode(): void {
     const code = this.versus.room?.code
