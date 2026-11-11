@@ -147,10 +147,16 @@ async function qid(p) { return (await st(p)).q?.id ?? null }
   await alice.page.evaluate((t) => window.__mtv.game.debugAnswer(t), rare.name)
   await until(all, async () => (await st(alice)).rec?.known, 'Alice\'s answer was judged')
   const aRec = (await st(alice)).rec
-  ok(aRec.ti === rare.tier, 'Alice\'s answer was judged with its stored rarity', `(${rare.name}: tier ${rare.tier}, got ${aRec.ti})`)
-  await until(all, async () => (await dbg(bob)).round.answered.some((a) => a.seat === aliceSeat), 'Bob sees Alice\'s rarity')
+  ok(aRec.ti === rare.tier, "Alice's answer was judged with its stored rarity", '(' + rare.name + ': tier ' + rare.tier + ', got ' + aRec.ti + ')')
+  // the roll animation is still playing on Alice's screen, so her rarity must show nowhere yet: not in her own panel, not in the others'
+  ok((await dbg(alice)).own === null, "Alice's own panel does not show her rarity while her roll is still playing")
+  ok(!(await dbg(bob)).round.answered.some((a) => a.seat === aliceSeat) && !(await dbg(cara)).round.answered.some((a) => a.seat === aliceSeat), "Bob's and Cara's panels do not show Alice's rarity while her roll is still playing")
+  // her roll finishes: now her own panel can show it, and the server tells the others
+  await until(all, async () => (await dbg(alice)).own !== null, "Alice's roll animation ended")
+  ok((await dbg(alice)).own.tier === rare.tier, "Alice's own panel shows her rarity once her roll is over")
+  await until(all, async () => (await dbg(bob)).round.answered.some((a) => a.seat === aliceSeat), "Bob sees Alice's rarity")
   const seenByBob = (await dbg(bob)).round.answered.find((a) => a.seat === aliceSeat)
-  ok(seenByBob.tier === rare.tier && !seenByBob.miss && seenByBob.points > 0, 'Bob sees Alice\'s rarity and points at once', JSON.stringify(seenByBob))
+  ok(seenByBob.tier === rare.tier && !seenByBob.miss && seenByBob.points > 0, "Bob sees Alice's rarity and points when her roll is over", JSON.stringify(seenByBob))
   ok(!JSON.stringify((await dbg(bob)).round.answered).includes(rare.name) && (await dbg(bob)).round.items === null, 'but not what Alice answered (the text stays hidden until the round ends)')
   await shot(bob, '4-bob-sees-alice-answer')
   await step(bob, 1)
@@ -209,8 +215,12 @@ async function qid(p) { return (await st(p)).q?.id ?? null }
   }
 
   // ---------------------------------------------------------------- the end
-  for (const p of active(who)) await step(p, 40)
+  // the first player to finish watching the last reveal must NOT get the result page while another is still watching theirs
+  await step(alice, 60); await sleep(700); await step(alice, 1)
+  ok((await st(alice)).phase === 'run' && (await dbg(alice)).end === null, 'a player who has finished the last question waits (no result page) while another player is still watching their last reveal')
+  await step(bob, 60)
   await until(active(who), async () => (await Promise.all(active(who).map(async (p) => (await st(p)).phase))).every((x) => x === 'report'), 'the result screen', 15000)
+  ok(true, 'once the last player had finished, the result page opened for both')
   const end = (await dbg(alice)).end
   ok(end && end.length === 3, 'the match ended with the standings of all three players (Cara included, with her zeros)', JSON.stringify(end))
   ok(end[0].rank === 1 && end.every((s) => s.total >= 0), 'standings are ranked, best first')
@@ -225,9 +235,42 @@ async function qid(p) { return (await st(p)).q?.id ?? null }
   await clickItem(alice, 'room-rematch')
   await until(active(who), async () => (await dbg(bob)).room.status === 'waiting', 'the room is open again for both')
   ok((await dbg(alice)).room.players.map((p) => p.name).join() === 'Alice,Bob', 'the player who left is not in the room for the rematch')
-  await clickItem(bob, 'room-leave')
+  // ---------------------------------------------------------------- a second match: nothing of the first one may show in it
+  const two = [alice, bob]
+  await clickItem(alice, 'room-start')
+  await until(two, async () => (await Promise.all(two.map(qid))).every((x) => x), 'the first question of match two', 20000)
+  ok((await dbg(bob)).end === null && (await dbg(bob)).totals.length === 0 && (await dbg(alice)).totals.length === 0, 'the second match starts with no totals and no standings left over from the first')
+  for (let r = 0; r <= 6; r++) {
+    await until(two, async () => (await Promise.all(two.map(async (p) => (await st(p)).rec?.i))).every((i) => i === r) && (await Promise.all(two.map(qid))).every((x) => x), 'match two: question ' + (r + 1), 20000)
+    const id = await qid(alice)
+    for (const p of two) await step(p, 1)
+    if (r < 6) {
+      await alice.page.evaluate((t) => window.__mtv.game.debugAnswer(t), pick(id, 'rare').name)
+      await bob.page.evaluate((t) => window.__mtv.game.debugAnswer(t), pick(id, 'common').name)
+      await until(two, async () => !!(await dbg(alice)).round.items && (await dbg(alice)).round.index === r, 'match two: round ' + (r + 1) + ' ended')
+      for (const p of two) await step(p, 40)
+    } else {
+      // the last question: Alice answers and watches everything; Bob has not answered yet
+      await alice.page.evaluate((t) => window.__mtv.game.debugAnswer(t), pick(id, 'rare').name)
+      await until(two, async () => (await st(alice)).rec?.known, 'Alice answered the last question')
+      await step(alice, 60); await sleep(700); await step(alice, 1)
+      ok((await st(alice)).phase === 'run' && (await dbg(alice)).end === null, 'match two: Alice, finished with the last question, is not taken to the result page while Bob is still answering')
+      await bob.page.evaluate((t) => window.__mtv.game.debugAnswer(t), pick(id, 'common').name)
+      await until(two, async () => !!(await dbg(alice)).round.items && (await dbg(alice)).round.index === 6, 'match two: the last round ended')
+      await step(alice, 5); await sleep(300); await step(alice, 1)
+      ok((await st(alice)).phase === 'run', 'match two: and still not while Bob is watching his last reveal')
+      await step(bob, 60)
+      await until(two, async () => (await Promise.all(two.map(async (p) => (await st(p)).phase))).every((x) => x === 'report'), 'match two: the result page for both', 15000)
+    }
+  }
+  const end2 = (await dbg(alice)).end
+  ok(end2 && end2.length === 2 && end2.every((s) => s.name !== 'Cara') && end2[0].rounds === 7, "the second match ended with its own standings (two players, not the first match's three)", JSON.stringify(end2))
+  await step(alice, 5); await step(bob, 5)
+  await clickCanvas(bob, 561, 675)        // HOME: leaves the room
   await until([alice], async () => (await dbg(alice)).room.players.length === 1, 'Alice sees Bob leave')
-  await clickItem(alice, 'room-leave')
+  await clickCanvas(alice, 561, 675)
+  await until([alice], async () => (await st(alice)).phase === 'title', 'Alice is back on the title screen')
+  await sleep(300)
   const list = await (await fetch(BASE + '/api/versus/rooms')).json()
   ok(list.rooms.length === 0, 'after everybody left no room is listed', JSON.stringify(list.rooms))
 

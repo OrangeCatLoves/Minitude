@@ -7,7 +7,7 @@ import {
   type Visibility, type VAnswered, type VEvent, type VMatchEnd, type VPublicRoom, type VRoom, type VRoundEnd, type VRoundItem, type VRoundStart, type VSync,
 } from '@minitude/core'
 import {
-  ApiError, openRoomStream, vAnswer, vCreate, vJoin, vLeave, vLeaveBeacon, vMiss, vReady, vRematch, vRooms, vStart, vVisibility,
+  ApiError, openRoomStream, vAnswer, vCreate, vJoin, vLeave, vLeaveBeacon, vMiss, vReady, vRematch, vRevealed, vRooms, vStart, vVisibility,
   type StreamState,
 } from './api'
 
@@ -183,6 +183,7 @@ export class VersusClient {
     return vAnswer(this.room.code, round, text, confirm)
   }
   miss(round: number): Promise<unknown> { return this.room ? vMiss(this.room.code, round) : Promise.resolve() }
+  revealed(round: number): Promise<unknown> { return this.room ? vRevealed(this.room.code, round) : Promise.resolve() }
   ready(round: number): Promise<unknown> { return this.room ? vReady(this.room.code, round) : Promise.resolve() }
 
   /** my seat in the room, or -1 */
@@ -211,6 +212,8 @@ export class VersusClient {
 
   private setRoom(room: VRoom): void {
     const prev = this.room?.status ?? null
+    // a new match starts from nothing: the totals, rounds and standings of the match before must not be seen in it
+    if (room.status === 'playing' && prev !== 'playing') this.reset()
     this.room = room
     if (room.status !== prev) this.hooks.status(room.status, prev)
   }

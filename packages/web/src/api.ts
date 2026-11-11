@@ -88,6 +88,8 @@ export const vStart = (code: string): Promise<{ room: VRoom }> => call(vpath(cod
 export const vRematch = (code: string): Promise<{ room: VRoom }> => call(vpath(code, 'rematch'), {}, 8000, guestHeader())
 export const vReady = (code: string, round: number): Promise<unknown> => call(vpath(code, 'ready'), { round }, 8000, guestHeader())
 export const vMiss = (code: string, round: number): Promise<unknown> => call(vpath(code, 'miss'), { round }, 8000, guestHeader())
+/** "my roll animation is over": only now does the server show my rarity to the other players */
+export const vRevealed = (code: string, round: number): Promise<unknown> => call(vpath(code, 'revealed'), { round }, 8000, guestHeader())
 export const vAnswer = (code: string, round: number, text: string, confirm?: 'yes' | 'no'): Promise<AnswerResponse> =>
   call(vpath(code, 'answer'), confirm ? { round, text, confirm } : { round, text }, 35000, guestHeader())
 

@@ -52,7 +52,11 @@ export interface VPublicRoom {
   max: number
 }
 
-/** A player's result for one round as the OTHER players see it while the round is on: the rarity and points, never the answer. */
+/**
+ * A player's result for one round as the OTHER players see it while the round is on: the rarity and points, never the answer.
+ * It is sent when the player's own roll animation has finished (not when the answer was judged), so nobody sees a rarity before the
+ * player who earned it does. A miss is sent at once.
+ */
 export interface VAnswered {
   round: number
   seat: number

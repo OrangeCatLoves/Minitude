@@ -233,7 +233,13 @@ function chip(c: Ctx, x: number, y: number, tier: number, points: number, alpha:
   c.restore()
 }
 
-export function drawVersusPanel(c: Ctx, v: VersusClient, T: number): void {
+/**
+ * What this player's own row may show. Everybody else's result arrives from the server when THEIR roll animation is over; this
+ * player's own comes from their own screen (the same moment), so a rarity never shows before its roll has finished.
+ */
+export interface OwnReveal { miss: boolean; tier: number; points: number }
+
+export function drawVersusPanel(c: Ctx, v: VersusClient, T: number, own: OwnReveal | null = null): void {
   const room = v.room
   if (!room) return
   const round = v.round
@@ -241,7 +247,7 @@ export function drawVersusPanel(c: Ctx, v: VersusClient, T: number): void {
   let y = 142
   for (const p of room.players) {
     const me = p.seat === room.you
-    const res = round?.answered.get(p.seat)
+    const res = me ? (own ? { miss: own.miss, tier: own.miss ? null : own.tier, points: own.points } : undefined) : round?.answered.get(p.seat)
     const item = round?.items?.get(p.seat)
     const dead = p.gone
     rect(c, x0, y - 26, 2, round?.phase === 'between' ? 78 : 52, me ? CYAN : [64, 78, 120])

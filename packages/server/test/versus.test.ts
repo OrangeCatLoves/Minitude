@@ -43,6 +43,14 @@ function setup(players = 2, opts: Partial<ConstructorParameters<typeof VersusHub
   return { hub, clock, judge, guests, code, inbox, unsub, of, start }
 }
 
+type Ctx = ReturnType<typeof setup>
+function clock_advance(t: Ctx): void { t.clock.t += 3000; t.hub.tick() }
+/** the players answer (texts in seat order, null = does not answer) and then each answerer's roll animation ends */
+async function roundOf(t: Ctx, round: number, texts: (string | null)[]): Promise<void> {
+  for (const [i, tx] of texts.entries()) if (tx) await t.hub.answer(t.guests[i], t.code, round, tx)
+  texts.forEach((tx, i) => { if (tx) t.hub.revealed(t.guests[i], t.code, round) })
+}
+
 describe('names', () => {
   it('accepts plain names and tidies spaces', () => {
     expect(checkName('  Alice   B ')).toEqual({ ok: true, name: 'Alice B' })
@@ -127,23 +135,52 @@ describe('a match', () => {
     }
   })
 
-  it("shows a player's rarity and points to the others at once, but the answer text only when the round is over", async () => {
+  it("shows a player's rarity and points to the others only when that player's own roll is over, and the answer text only when the round is over", async () => {
     const { hub, code, guests, of, start } = setup(2)
     start()
     const res = await hub.answer(guests[0], code, 0, 'rare')
     expect(res).toMatchObject({ status: 'valid', tier: 3, points: 60, answer: 'RARE' })
+    // judged, but Alice's roll animation is still playing: nobody else may see the rarity yet
+    expect(of(1, 'answered')).toHaveLength(0)
+    hub.revealed(guests[0], code, 0)
     const seen = of(1, 'answered')
     expect(seen).toHaveLength(1)
     expect(seen[0].answered).toEqual({ round: 0, seat: 0, miss: false, tier: 3, points: 60 })
     expect(JSON.stringify(seen[0])).not.toMatch(/RARE|About/)   // no answer text in the live update
     expect(of(1, 'roundEnd')).toHaveLength(0)
     await hub.answer(guests[1], code, 0, 'common')
+    // everybody has an answer, but Bob's roll is still playing: announcing the round now would show his rarity early
+    expect(of(1, 'roundEnd')).toHaveLength(0)
+    expect(of(0, 'answered')).toHaveLength(1)
+    hub.revealed(guests[1], code, 0)
     const end = of(1, 'roundEnd')[0].end
     expect(end.items).toEqual([
       { seat: 0, miss: false, tier: 3, points: 60, answer: 'RARE' },
       { seat: 1, miss: false, tier: 0, points: 10, answer: 'COMMON' },
     ])
     expect(end.totals).toEqual([{ seat: 0, total: 60 }, { seat: 1, total: 10 }])
+  })
+
+  it("shows a result anyway after a while when the player's screen never says the roll is over", async () => {
+    const { hub, clock, code, guests, of, start } = setup(2)
+    start()
+    await hub.answer(guests[0], code, 0, 'rare')
+    clock.t += 7_999; hub.tick()
+    expect(of(1, 'answered')).toHaveLength(0)
+    clock.t += 1; hub.tick()
+    expect(of(1, 'answered')[0].answered).toMatchObject({ seat: 0, tier: 3 })
+    // a reveal that comes late changes nothing
+    hub.revealed(guests[0], code, 0)
+    expect(of(1, 'answered')).toHaveLength(1)
+  })
+
+  it('shows a result at once for a player who leaves with their roll still playing', async () => {
+    const { hub, code, guests, of, start } = setup(3)
+    start()
+    await hub.answer(guests[0], code, 0, 'rare')
+    expect(of(1, 'answered')).toHaveLength(0)
+    hub.leave(guests[0], code)
+    expect(of(1, 'answered').map((a) => a.answered.seat)).toEqual([0])
   })
 
   it('does not score a wrong answer, lets the player try again, and only asks for a confirmation on a typo', async () => {
@@ -156,10 +193,10 @@ describe('a match', () => {
   })
 
   it('waits for every connected player to finish their reveal before the next question, but not forever', async () => {
-    const { hub, clock, code, guests, of, start } = setup(2)
+    const t = setup(2)
+    const { hub, clock, code, guests, of, start } = t
     start()
-    await hub.answer(guests[0], code, 0, 'rare')
-    await hub.answer(guests[1], code, 0, 'rare')
+    await roundOf(t, 0, ['rare', 'rare'])
     expect(of(0, 'roundStart')).toHaveLength(1)
     clock.t += 10_000; hub.tick()
     expect(of(0, 'roundStart')).toHaveLength(1)
@@ -169,7 +206,7 @@ describe('a match', () => {
     expect(of(0, 'roundStart')).toHaveLength(2)
     expect(of(1, 'roundStart')[1].start.round).toBe(1)
     // and a slow player cannot hold the others for more than the longest wait
-    await hub.answer(guests[0], code, 1, 'rare'); await hub.answer(guests[1], code, 1, 'rare')
+    await roundOf(t, 1, ['rare', 'rare'])
     hub.ready(guests[0], code, 1)
     clock.t += 39_999; hub.tick()
     expect(of(0, 'roundStart')).toHaveLength(2)
@@ -178,9 +215,10 @@ describe('a match', () => {
   })
 
   it('closes a question when the time runs out, with the same allowance as solo', async () => {
-    const { hub, clock, code, guests, of, start } = setup(2)
+    const t = setup(2)
+    const { hub, clock, code, guests, of, start } = t
     start()
-    await hub.answer(guests[0], code, 0, 'rare')
+    await roundOf(t, 0, ['rare', null])
     const allowed = QUESTION_SECONDS * 1000 + START_DELAY_MS + GRACE_MS
     clock.t += allowed - 10; hub.tick()
     expect(of(0, 'roundEnd')).toHaveLength(0)
@@ -210,7 +248,45 @@ describe('a match', () => {
     expect(of(1, 'answered').filter((a) => a.answered.seat === 0)).toHaveLength(0)
     judge.gate!.resolve()
     expect(await pending).toMatchObject({ status: 'valid', tier: 5 })
+    hub.revealed(guests[0], code, 0)
     expect(of(1, 'answered').find((a) => a.answered.seat === 0)!.answered).toMatchObject({ tier: 5, points: 100 })
+  })
+
+  it('announces nothing about the answers of a round until every roll animation is over, and the match ends for everybody together', async () => {
+    const t = setup(3)
+    const { hub, clock, code, guests, of, start } = t
+    start()
+    for (let r = 0; r < 6; r++) {
+      await roundOf(t, r, ['mythic', 'common', 'common'])
+      guests.forEach((g) => hub.ready(g, code, r))
+    }
+    // the last question: Alice and Bob answer and watch their rolls, Cara has not answered yet
+    await hub.answer(guests[0], code, 6, 'mythic'); hub.revealed(guests[0], code, 6)
+    await hub.answer(guests[1], code, 6, 'common'); hub.revealed(guests[1], code, 6)
+    hub.ready(guests[0], code, 6); hub.ready(guests[1], code, 6)
+    expect(of(0, 'matchEnd')).toHaveLength(0)       // nobody may go to the result page while Cara is still answering
+    await hub.answer(guests[2], code, 6, 'common')
+    expect(of(0, 'roundEnd')).toHaveLength(6)       // Cara's roll is still playing: round 7 is not announced yet
+    hub.revealed(guests[2], code, 6)
+    expect(of(0, 'roundEnd')).toHaveLength(7)
+    expect(of(0, 'matchEnd')).toHaveLength(0)       // ... and still not over: Cara has not finished watching her last reveal
+    hub.ready(guests[2], code, 6)
+    for (let i = 0; i < 3; i++) expect(of(i, 'matchEnd'), 'player ' + i).toHaveLength(1)   // now all three get it at the same moment
+    expect(of(0, 'room').pop()!.room.status).toBe('finished')
+    void clock
+  })
+
+  it('ends the match anyway when a player never finishes their last reveal', async () => {
+    const t = setup(2)
+    const { hub, clock, code, guests, of, start } = t
+    start()
+    for (let r = 0; r < 6; r++) { await roundOf(t, r, ['rare', 'rare']); guests.forEach((g) => hub.ready(g, code, r)) }
+    await roundOf(t, 6, ['rare', 'rare'])
+    hub.ready(guests[0], code, 6)
+    clock.t += 39_999; hub.tick()
+    expect(of(0, 'matchEnd')).toHaveLength(0)
+    clock.t += 1; hub.tick()
+    expect(of(0, 'matchEnd')).toHaveLength(1)
   })
 
   it('refuses answers for the wrong round, from strangers, and too many tries', async () => {
@@ -224,13 +300,12 @@ describe('a match', () => {
   })
 
   it('plays seven rounds, ranks the players (equal totals share a rank) and ends the match', async () => {
-    const { hub, code, guests, of, start } = setup(3)
+    const t = setup(3)
+    const { hub, code, guests, of, start } = t
     start()
     for (let r = 0; r < 7; r++) {
-      await hub.answer(guests[0], code, r, 'mythic')
-      await hub.answer(guests[1], code, r, 'common')
-      await hub.answer(guests[2], code, r, 'common')
-      if (r < 6) guests.forEach((g) => hub.ready(g, code, r))
+      await roundOf(t, r, ['mythic', 'common', 'common'])
+      guests.forEach((g) => hub.ready(g, code, r))
     }
     const end = of(2, 'matchEnd')[0].end
     expect(end.standings.map((s) => [s.name, s.total, s.rank])).toEqual([['Alice', 700, 1], ['Bob', 70, 2], ['Cara', 70, 2]])
@@ -241,12 +316,13 @@ describe('a match', () => {
   })
 
   it('takes everybody back to the room for a rematch, host only, and drops players who left', async () => {
-    const { hub, code, guests, of, start } = setup(3)
+    const t = setup(3)
+    const { hub, code, guests, of, start } = t
     start()
     hub.leave(guests[2], code)
     for (let r = 0; r < 7; r++) {
-      await hub.answer(guests[0], code, r, 'rare'); await hub.answer(guests[1], code, r, 'rare')
-      if (r < 6) { hub.ready(guests[0], code, r); hub.ready(guests[1], code, r) }
+      await roundOf(t, r, ['rare', 'rare', null])
+      hub.ready(guests[0], code, r); hub.ready(guests[1], code, r)
     }
     expect(of(0, 'matchEnd')).toHaveLength(1)
     expect(() => hub.rematch(guests[1], code)).toThrow(/host/)
@@ -254,17 +330,22 @@ describe('a match', () => {
     expect(room.status).toBe('waiting')
     expect(room.players.map((p) => p.name)).toEqual(['Alice', 'Bob'])
     hub.start(guests[0], code)   // and it can start again
+    // the second match starts from nothing: the first round of it is not announced early by the first match's state
+    clock_advance(t)
+    expect(of(0, 'roundStart')).toHaveLength(8)
+    expect(of(0, 'answered').filter((a) => a.answered.round === 0 && a.answered.seat !== 2).length).toBe(2)   // from match one only
   })
 })
 
 describe('players who leave or vanish', () => {
   it('scores 0 for the rest of the match for a player who leaves, and the match carries on', async () => {
-    const { hub, code, guests, of, start } = setup(3)
+    const t = setup(3)
+    const { hub, code, guests, of, start } = t
     start()
-    await hub.answer(guests[0], code, 0, 'rare')
+    await roundOf(t, 0, ['rare', null, null])
     hub.leave(guests[2], code)
     expect(of(0, 'room').pop()!.room.players[2]).toMatchObject({ name: 'Cara', gone: true })
-    await hub.answer(guests[1], code, 0, 'rare')
+    await roundOf(t, 0, [null, 'rare', null])
     const end = of(0, 'roundEnd')[0].end
     expect(end.items[2]).toMatchObject({ seat: 2, miss: true })
     guests.slice(0, 2).forEach((g) => hub.ready(g, code, 0))
@@ -379,6 +460,10 @@ describe('the HTTP side', () => {
     expect(kinds).toContain('roundStart')
     const answered = await post(app, `/api/versus/${code}/answer`, guestA, { round: 0, text: 'rare' })
     expect(await answered.json()).toMatchObject({ status: 'valid', tier: 3 })
+    await b.until(kinds.length + 1)   // waits a moment: nothing may arrive, because Alice's roll animation is still playing
+    expect(b.got.some((g) => g.event === 'answered')).toBe(false)
+    expect((await post(app, `/api/versus/${code}/revealed`, guestA, { round: 'x' })).status).toBe(400)
+    expect((await post(app, `/api/versus/${code}/revealed`, guestA, { round: 0 })).status).toBe(200)
     await b.until(kinds.length + 1)
     const seen = b.got.find((g) => g.event === 'answered')!
     expect(JSON.stringify(seen.data)).not.toContain('RARE')

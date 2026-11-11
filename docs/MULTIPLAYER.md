@@ -7,18 +7,19 @@ Built on 6 November 2026. Rooms and matches live **in the server's memory**: not
 - A player picks MULTIPLAYER on the title screen, types a nickname (kept in the browser), then creates a room (private or public) or joins one: with a 5-letter code, or from the list of public rooms.
 - The host starts the match once 2 to 4 players are in the room. Nobody can join after the start.
 - Everybody gets the **same seven questions, one at a time, at the same moment**. A round ends when every player has a valid answer or has run out of the 30 seconds.
-- Each player sees their own screen exactly like a solo run (their own shrinking, reveals and dives) plus a panel on the left with the other players: name, running total, and as soon as someone answers correctly their **rarity and points** ("RARE +40"). The answer **text** appears only when the round is over.
-- After the seventh round: the personal report plus a ranking (equal totals share a rank). BACK TO ROOM goes to the room, where the host can press PLAY AGAIN; HOME leaves.
+- Each player sees their own screen exactly like a solo run (their own shrinking, reveals and dives) plus a panel on the left with the other players: name, running total, and, when someone's own roll animation has finished, their **rarity and points** ("RARE +40"). Nobody's rarity shows anywhere (not on their own panel, not on the others') before their roll is over. The answer **text** appears only when the round is over.
+- After the seventh round, when every player has finished watching their last reveal, **everybody gets the result page at the same moment**: the personal report plus a ranking (equal totals share a rank). Nobody gets it earlier. BACK TO ROOM goes to the room, where the host can press PLAY AGAIN; HOME leaves.
 - A player who leaves or loses their connection for more than 20 seconds scores 0 for the rest of the match; the others carry on.
 
 ## How a round runs
 
 1. The host's START MATCH: the room becomes "playing"; the first question begins 3 seconds later.
 2. The server sends `roundStart` (the prompt goes out only now) to everybody. Each browser shows it as soon as it has finished the last reveal.
-3. A player answers with an ordinary request. The same checker as solo judges it (stored rulings first, then the model). The time the checker takes is given back, as in solo. A valid answer is announced to the others at once (tier and points only).
-4. The round is over when every player has a result. The server sends `roundEnd` with everybody's answers and the running totals.
-5. Each browser plays its own reveal and dive, then tells the server it is **ready**. The next question starts when every connected player is ready, or after at most 40 seconds. So a round lasts as long as its slowest reveal: a Mythic answer with a new world card keeps the others waiting (they can tap a world card to skip it).
-6. After round 7 the server sends `matchEnd` with the standings.
+3. A player answers with an ordinary request. The same checker as solo judges it (stored rulings first, then the model). The time the checker takes is given back, as in solo. The server keeps the result to itself for now.
+4. The player's screen plays the "how rare is this answer?" roll. When the roll is over it tells the server (`revealed`), and only then is the rarity and points shown to the others (`answered`; no text). The player's own panel shows it at the same moment. If a screen never reports (a dropped connection) the server shows the result after 8 seconds anyway. A time-out ("no answer") is shown at once.
+5. The round is over for answering when every player has a result. It is announced (`roundEnd`: everybody's answers and the running totals) once every result has been revealed, so the announcement never shows a rarity whose roll is still playing.
+6. Each browser plays the rest of its reveal and dive, then tells the server it is **ready**. The next question starts when every connected player is ready, or after at most 40 seconds. So a round lasts as long as its slowest reveal: a Mythic answer with a new world card keeps the others waiting (they can tap a world card to skip it).
+7. After round 7 the same wait applies: when every connected player has finished their last reveal (or after 40 seconds) the server sends `matchEnd` with the standings, and every browser opens the result page at that moment.
 
 The clock is the solo clock (`server/src/clock.ts`): 30 s from 0.55 s after the question appears, 3 s of grace for the network, 12 tries per question, a miss when the time runs out.
 
@@ -44,7 +45,7 @@ The server starts the hub's clock in `index.ts` (`versus.tick()` twice a second)
 | `POST create` `{name, visibility}` / `POST join` `{code, name}` | make or join a room |
 | `POST :code/start`, `rematch`, `visibility`, `leave` | host actions and leaving |
 | `POST :code/answer` `{round, text, confirm?}` | an answer (same reply as solo) |
-| `POST :code/miss`, `ready` `{round}` | "my time ran out", "my reveal is over" |
+| `POST :code/miss`, `revealed`, `ready` `{round}` | "my time ran out", "my roll animation is over" (the others may now see my rarity), "I have finished watching my result" |
 | `GET :code/events` | the live stream (Server-Sent Events): `sync` (everything), `room`, `roundStart`, `answered`, `roundEnd`, `matchEnd`, `closed` |
 
 The browser reads the stream with `fetch`, not `EventSource`, because the player's id travels in a header. If the connection drops it opens again and the server sends `sync` again, so a short break loses nothing. A keep-alive goes out every 15 seconds so proxies do not close a quiet connection.
@@ -60,8 +61,8 @@ The browser reads the stream with `fetch`, not `EventSource`, because the player
 
 ## Testing
 
-- `packages/server/test/versus.test.ts` (25 tests, fake clock and fake checker): names, creating and joining (full, started, taken name, blocked name), public list, host rules, the first question, what others see (rarity yes, text no until the round ends), wrong answers and typo questions, the wait for slow reveals and its limit, time-outs, the checker's time given back, leaving and vanishing, ranking with ties, rematch, limits, and the HTTP routes with a real event stream.
-- `tools/browser-test/versus.cjs`: three real browsers play a whole match through the real screens (name, create a public room, join by code and from the list, a blocked name, answers right and wrong, a time-out, a player leaving, results, rematch). Their game clocks are stepped (`?manual=1`), so reveals take no real time.
+- `packages/server/test/versus.test.ts` (29 tests, fake clock and fake checker): names, creating and joining (full, started, taken name, blocked name), public list, host rules, the first question, what others see (a rarity only after its owner's roll is over, text only after the round), the fallback for a screen that never reports, wrong answers and typo questions, the wait for slow reveals and its limit, the match ending for everybody together (and after 40 seconds at most), time-outs, the checker's time given back, leaving and vanishing, ranking with ties, rematch, limits, and the HTTP routes with a real event stream.
+- `tools/browser-test/versus.cjs`: three real browsers play a whole match through the real screens (name, create a public room, join by code and from the list, a blocked name, answers right and wrong, a rarity hidden until its owner's roll is over, a time-out, a player leaving, the result page opening for everybody together, rematch, and a whole second match that must start with nothing left over from the first). Their game clocks are stepped (`?manual=1`), so reveals take no real time.
 - `tools/browser-test/versus-live.cjs`: two browsers on the real clock for the first two questions (proves the live loop and the wait for reveals).
 
 Both browser scripts need a server in **mock mode on a copy of the database** (never the live one) serving the built game, and a bank file exported from that copy:

@@ -106,6 +106,8 @@ export class Game {
   /** the next question the server has started, waiting until this player's screen has finished showing the last one */
   private vNext: { start: VRoundStart; left: number } | null = null
   private readySent = new Set<number>()
+  /** the rounds whose roll animation this screen has already told the server about */
+  private revealSent = new Set<number>()
   private lobbyAt = 0
   private lobbyScreenSeen = ''
   private mouse: { x: number; y: number } | null = null
@@ -434,6 +436,7 @@ export class Game {
     this.startedIdx = -1
     this.vNext = null
     this.readySent = new Set()
+    this.revealSent = new Set()
     this.reportDaily = null
     this.reportData = null
     this.reportAt = Infinity
@@ -459,7 +462,13 @@ export class Game {
     const T = this.T
     const r = this.tl.last()
     const nx = this.vNext
-    if (r && r.known && T >= r.next && r.i < RUN_LENGTH - 1 && !this.readySent.has(r.i)) {
+    // this player's roll animation is over: only now may the other players see the rarity (a miss has no roll: the server shows it at once)
+    if (r && r.known && !r.miss && T >= r.rev && !this.revealSent.has(r.i)) {
+      this.revealSent.add(r.i)
+      void this.versus.revealed(r.i).catch(() => { /* the server shows the result by itself after a few seconds */ })
+    }
+    // this player has finished watching their own result: ready for the next question, or (after the last) for the result page
+    if (r && r.known && T >= r.next && !this.readySent.has(r.i)) {
       this.readySent.add(r.i)
       void this.versus.ready(r.i).catch(() => { /* the server also moves on by itself after a while */ })
     }
@@ -474,7 +483,15 @@ export class Game {
         this.startVersusQuestion(nx, r.next)
       }
     }
-    if (r && r.known && T >= r.next && r.i === RUN_LENGTH - 1 && this.versus.end) this.enterReport(r.next)
+    // the server sends the standings only when EVERY player has finished their last reveal, so everybody reaches this page together
+    if (r && r.known && T >= r.next && r.i === RUN_LENGTH - 1 && this.versus.end) this.enterReport(Math.max(r.next, T))
+  }
+  /** this player's own row of the players panel: their result only once their own roll animation is over */
+  private ownReveal(): { miss: boolean; tier: number; points: number } | null {
+    const r = this.tl.last()
+    if (!this.inVersus || !r || !r.known || r.i !== this.versus.round?.index) return null
+    if (r.miss) return { miss: true, tier: -1, points: 0 }
+    return this.T >= r.rev ? { miss: false, tier: r.ti, points: r.pts } : null
   }
   private startVersusQuestion(nx: { start: VRoundStart; left: number }, start: number): void {
     this.vNext = null
@@ -499,6 +516,7 @@ export class Game {
     this.startedIdx = -1
     this.vNext = null
     this.readySent = new Set()
+    this.revealSent = new Set()
     this.reportAt = Infinity
     this.reportData = null
     this.reportDaily = null
@@ -963,7 +981,7 @@ export class Game {
       const S: HudState = { nsq: rep ? 7 : nsq, curOpen: rep || nsq >= 7 ? -1 : nsq, sizeTxt: fmtSize(sizeOfU(cam.u)), dots }
       this.groups.draw(f, uiA * dim, (c) => (rep ? hudDotsOnly(c, dots) : hud(c, S, cam)))
       this.groups.draw(f, uiA * dim, (c) => rail(c, tl, T, cam, r ?? this.dummy, rep))
-      if (this.inVersus && !rep) this.groups.draw(f, uiA * dim, (c) => drawVersusPanel(c, this.versus, T))
+      if (this.inVersus && !rep) this.groups.draw(f, uiA * dim, (c) => drawVersusPanel(c, this.versus, T, this.ownReveal()))
     }
 
     // ---- scale bar
@@ -1128,10 +1146,10 @@ export class Game {
   versusDebug(): Record<string, unknown> {
     const v = this.versus
     return {
-      inMatch: this.inVersus, screen: v.screen, field: v.field, error: v.error, notice: v.notice, name: v.name, conn: v.conn,
+      own: this.ownReveal(), inMatch: this.inVersus, screen: v.screen, field: v.field, error: v.error, notice: v.notice, name: v.name, conn: v.conn,
       room: v.room ? { code: v.room.code, status: v.room.status, visibility: v.room.visibility, you: v.room.you, players: v.room.players.map((p) => ({ seat: p.seat, name: p.name, host: p.host, connected: p.connected, gone: p.gone })) } : null,
       round: v.round ? { index: v.round.index, phase: v.round.phase, answered: [...v.round.answered.values()], items: v.round.items ? [...v.round.items.values()] : null } : null,
-      totals: [...v.totals], end: v.end ? v.end.standings.map((s) => ({ name: s.name, total: s.total, rank: s.rank })) : null,
+      totals: [...v.totals], end: v.end ? v.end.standings.map((s) => ({ name: s.name, total: s.total, rank: s.rank, rounds: s.items.length })) : null,
       items: this.phase === 'lobby' ? lobbyItems(v).map((i) => ({ action: i.action, arg: i.arg ?? null, label: i.label, enabled: i.enabled, box: i.box })) : [],
     }
   }

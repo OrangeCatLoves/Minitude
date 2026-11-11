@@ -5,9 +5,12 @@
  *
  * How a match goes (docs/MULTIPLAYER.md has the full picture):
  *   waiting -> start (host, 2 to 4 players) -> round 0 begins a few seconds later -> everybody gets the same question at the same moment
- *   -> a round ends when every player has a valid answer or has run out of time -> the players' own reveal animations play ->
- *   when every connected player says "ready" (or the longest allowed wait has passed) the next question begins -> after the 7th the
- *   match is over and the room is open for a rematch.
+ *   -> a round ends when every player has a valid answer or has run out of time -> each player's own reveal animation plays ->
+ *   when every connected player says "ready" (or the longest allowed wait has passed) the next question begins -> after the 7th, when
+ *   every player's last reveal is over, the match ends for everybody at the same moment and the room is open for a rematch.
+ * A result is shown to the OTHER players only when its owner's own roll animation has finished ("revealed"), so nobody sees a rarity
+ * before the player who earned it does. A player's screen says so with revealed(); if it never does (a dropped connection) the
+ * server shows the result anyway after revealMaxMs.
  * The question clock is the same as solo: 30 s from 0.55 s after the question appears, a 3 s grace for the network, and the time the
  * answer checker takes is given back. Other players see a player's rarity and points at once, the answer text only after the round.
  */
@@ -42,6 +45,8 @@ export interface HubDeps {
   leadMs?: number
   /** the longest the next question waits for slow reveal animations */
   barrierMaxMs?: number
+  /** a result whose owner never reported the end of their roll is shown to the others after this long */
+  revealMaxMs?: number
   /** how long a player may be disconnected before leaving the room (waiting) or the match (playing: the rest scores 0) */
   disconnectMs?: number
   /** a room nobody is connected to is deleted after this */
@@ -62,7 +67,15 @@ interface Seat {
   /** left the match: every remaining question scores 0 */
   gone: boolean
 }
-interface PerPlayer { busyMs: number; inFlight: number | null; attempts: number; result: Result | null }
+interface PerPlayer {
+  busyMs: number
+  inFlight: number | null
+  attempts: number
+  result: Result | null
+  /** the player's own roll animation is over: now the others may see the result (a miss has nothing to watch: revealed at once) */
+  revealed: boolean
+  judgedAt: number
+}
 interface Round {
   index: number
   phase: 'answering' | 'between'
@@ -70,6 +83,9 @@ interface Round {
   endedAt: number
   per: Map<number, PerPlayer>
   ready: Set<number>
+  /** every result is revealed and roundEnd has been sent */
+  announced: boolean
+  announcedAt: number
 }
 interface Room {
   code: string
@@ -97,7 +113,7 @@ export class VersusHub {
   private readonly d: Required<Omit<HubDeps, 'judge' | 'heads' | 'pick' | 'now' | 'rand' | 'seconds' | 'makeCode'>> & Pick<HubDeps, 'judge' | 'heads' | 'pick' | 'now' | 'rand' | 'seconds' | 'makeCode'>
 
   constructor(deps: HubDeps) {
-    this.d = { maxRooms: 100, leadMs: 3000, barrierMaxMs: 40_000, disconnectMs: 20_000, idleRoomMs: 120_000, ...deps }
+    this.d = { maxRooms: 100, leadMs: 3000, barrierMaxMs: 40_000, revealMaxMs: 8000, disconnectMs: 20_000, idleRoomMs: 120_000, ...deps }
   }
 
   // ------------------------------------------------------------------ small helpers
@@ -231,8 +247,9 @@ export class VersusHub {
       const per = r.per.get(seat.seat)
       if (per && !per.result) this.setResult(room, seat.seat, { miss: true })
     }
+    if (r) this.reveal(room, seat.seat)   // a player who left has no roll to wait for
     this.emitRoom(room)
-    this.maybeEnd(room)
+    this.settle(room)
     if ([...room.seats.values()].every((s) => s.gone)) this.rooms.delete(room.code)
   }
 
@@ -285,7 +302,7 @@ export class VersusHub {
     if (r) {
       const per = r.per.get(seatNo)
       const answered: VAnswered[] = []
-      for (const [seat, p] of r.per) if (p.result) answered.push(this.answeredOf(r.index, seat, p.result))
+      for (const [seat, p] of r.per) if (p.result && p.revealed) answered.push(this.answeredOf(r.index, seat, p.result))
       const q = room.questions[r.index]
       const open = r.phase === 'answering' && !!per && !per.result
       round = {
@@ -353,13 +370,13 @@ export class VersusHub {
   private startRound(room: Room, index: number): void {
     const q = room.questions[index]
     const t = this.now()
-    const r: Round = { index, phase: 'answering', startedAt: t, endedAt: 0, per: new Map(), ready: new Set() }
-    for (const s of room.seats.values()) r.per.set(s.seat, { busyMs: 0, inFlight: null, attempts: 0, result: null })
+    const r: Round = { index, phase: 'answering', startedAt: t, endedAt: 0, per: new Map(), ready: new Set(), announced: false, announcedAt: 0 }
+    for (const s of room.seats.values()) r.per.set(s.seat, { busyMs: 0, inFlight: null, attempts: 0, result: null, revealed: false, judgedAt: 0 })
     room.round = r
     this.touch(room)
     this.emitAll(room, { type: 'roundStart', start: { round: index, count: room.questions.length, seconds: this.d.seconds, question: { id: q.id, category: q.category, prompt: q.prompt } } })
     for (const s of room.seats.values()) if (s.gone) this.setResult(room, s.seat, { miss: true })
-    this.maybeEnd(room)
+    this.settle(room)
   }
 
   private setResult(room: Room, seat: number, res: Result): void {
@@ -367,20 +384,46 @@ export class VersusHub {
     const per = r?.per.get(seat)
     if (!r || !per || per.result || r.phase !== 'answering') return
     per.result = res
-    this.emitAll(room, { type: 'answered', answered: this.answeredOf(r.index, seat, res) })
+    per.judgedAt = this.now()
+    // a right answer is shown to the others when its owner's roll animation is over (see revealed()); a miss has nothing to watch
+    if (res.miss) this.reveal(room, seat)
   }
 
-  /** the round is over when every player has a result */
-  private maybeEnd(room: Room): void {
+  /** the player's result may now be seen by the others */
+  private reveal(room: Room, seat: number): void {
     const r = room.round
-    if (!r || r.phase !== 'answering') return
-    for (const p of r.per.values()) if (!p.result) return
-    this.endRound(room, r)
+    const per = r?.per.get(seat)
+    if (!r || !per || !per.result || per.revealed) return
+    per.revealed = true
+    this.emitAll(room, { type: 'answered', answered: this.answeredOf(r.index, seat, per.result) })
+    this.settle(room)
   }
 
-  private endRound(room: Room, r: Round): void {
-    r.phase = 'between'
-    r.endedAt = this.now()
+  /** a player's screen has finished the roll animation of their answer */
+  revealed(guest: string, codeRaw: string, round: number): void {
+    const { room, seat } = this.seatOf(guest, codeRaw)
+    const r = room.round
+    if (room.status !== 'playing' || !r || r.index !== round) return
+    this.reveal(room, seat.seat)
+  }
+
+  /**
+   * After anything that gives a player a result or a reveal: the round is over when every player has a result (no more answers), and
+   * it is announced (answers shown, totals updated) once every result has been revealed.
+   */
+  private settle(room: Room): void {
+    const r = room.round
+    if (!r) return
+    if (r.phase === 'answering' && [...r.per.values()].every((p) => p.result)) { r.phase = 'between'; r.endedAt = this.now() }
+    if (r.phase === 'between' && !r.announced && [...r.per.values()].every((p) => p.revealed)) {
+      this.announceRound(room, r)
+      this.advance(room)
+    }
+  }
+
+  private announceRound(room: Room, r: Round): void {
+    r.announced = true
+    r.announcedAt = this.now()
     const items: VRoundItem[] = []
     for (const s of this.sorted(room)) {
       const res: Result = r.per.get(s.seat)?.result ?? { miss: true }
@@ -392,7 +435,6 @@ export class VersusHub {
     const end: VRoundEnd = { round: r.index, items, totals: [...room.totals].map(([seat, total]) => ({ seat, total })), last }
     room.history.push(end)
     this.emitAll(room, { type: 'roundEnd', end })
-    if (last) this.finishMatch(room)
   }
 
   private finishMatch(room: Room): void {
@@ -411,12 +453,17 @@ export class VersusHub {
     this.emitRoom(room)
   }
 
-  /** after a round: when everybody who is still here has finished watching their results (or the longest wait is over), the next question begins */
+  /**
+   * After a round has been announced: when everybody who is still here has finished watching their own result (or the longest wait is
+   * over), the next question begins; after the last round, the match ends for everybody at that same moment.
+   */
   private advance(room: Room): void {
     const r = room.round
-    if (!r || r.phase !== 'between' || r.index >= room.questions.length - 1) return
+    if (!r || r.phase !== 'between' || !r.announced || room.status !== 'playing') return
     const waiting = this.sorted(room).filter((s) => !s.gone && this.connected(s) && !r.ready.has(s.seat))
-    if (waiting.length === 0 || this.now() - r.endedAt >= this.d.barrierMaxMs) this.startRound(room, r.index + 1)
+    if (waiting.length > 0 && this.now() - r.announcedAt < this.d.barrierMaxMs) return
+    if (r.index >= room.questions.length - 1) this.finishMatch(room)
+    else this.startRound(room, r.index + 1)
   }
 
   /** a player's screen has finished showing the round's result and is ready for the next question */
@@ -434,7 +481,7 @@ export class VersusHub {
     const r = room.round
     if (room.status !== 'playing' || !r || r.index !== round || r.phase !== 'answering') return
     this.setResult(room, seat.seat, { miss: true })
-    this.maybeEnd(room)
+    this.settle(room)
   }
 
   async answer(guest: string, codeRaw: string, round: number, text: string, confirm?: 'yes' | 'no'): Promise<AnswerResponse> {
@@ -448,7 +495,7 @@ export class VersusHub {
     const t0 = this.now()
     if (t0 > this.deadline(r, per, t0)) {
       this.setResult(room, seat.seat, { miss: true })
-      this.maybeEnd(room)
+      this.settle(room)
       throw new VersusError('Time is up for this question.', 409, 'late')
     }
     if (per.attempts >= MAX_ATTEMPTS_PER_QUESTION) throw new VersusError('Too many tries on this question.', 429, 'too_many')
@@ -468,7 +515,7 @@ export class VersusHub {
     if (room.round !== r || r.phase !== 'answering' || per.result) throw new VersusError('Time is up for this question.', 409, 'late')
     if (res.status === 'valid' && typeof res.tier === 'number' && res.tier >= 0 && res.tier < TIERS.length) {
       this.setResult(room, seat.seat, { miss: false, answer: res.answer ?? text, desc: res.description ?? '', tier: res.tier, points: res.points ?? TIERS[res.tier].points })
-      this.maybeEnd(room)
+      this.settle(room)
     }
     return res
   }
@@ -489,10 +536,14 @@ export class VersusHub {
       if (room.status === 'playing') {
         if (!room.round && t >= room.firstAt) this.startRound(room, 0)
         const r = room.round
-        if (r?.phase === 'answering') {
+        if (r) {
+          // a player whose screen never said their roll was over (a dropped connection) is shown to the others after a while
+          for (const [seat, per] of r.per) if (per.result && !per.revealed && t - per.judgedAt >= this.d.revealMaxMs) this.reveal(room, seat)
+        }
+        if (room.round === r && r?.phase === 'answering') {
           for (const [seat, per] of r.per) if (!per.result && t > this.deadline(r, per, t)) this.setResult(room, seat, { miss: true })
-          this.maybeEnd(room)
-        } else if (r?.phase === 'between') this.advance(room)
+          this.settle(room)
+        } else if (room.round === r && r?.phase === 'between') this.advance(room)
       }
       // rooms nobody is in any more
       if (!this.sorted(room).some((s) => this.connected(s)) && t - room.lastActive > this.d.idleRoomMs) {

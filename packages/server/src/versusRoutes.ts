@@ -63,6 +63,7 @@ export function mountVersus(app: Hono, d: VersusRouteDeps): void {
   app.post('/api/versus/:code/rematch', (c) => act(c, (g) => ({ room: d.hub.rematch(g, c.req.param('code')) }), false))
   app.post('/api/versus/:code/ready', (c) => act(c, (g, b) => { d.hub.ready(g, c.req.param('code'), round(b)) }))
   app.post('/api/versus/:code/miss', (c) => act(c, (g, b) => { d.hub.miss(g, c.req.param('code'), round(b)) }))
+  app.post('/api/versus/:code/revealed', (c) => act(c, (g, b) => { d.hub.revealed(g, c.req.param('code'), round(b)) }))
   app.post('/api/versus/:code/answer', (c) => act(c, async (g, b) => {
     const text = typeof b.text === 'string' ? b.text.trim() : ''
     if (!text || text.length > 80) throw new VersusError('Answer must be 1 to 80 characters.', 400, 'text')
