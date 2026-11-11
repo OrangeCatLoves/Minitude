@@ -3,7 +3,7 @@
 ## Unit tests
 
 ```bash
-npm test               # core (36 tests) and server (128 tests)
+npm test               # core (36 tests), web (24) and server (194)
 npm run typecheck      # all packages
 ```
 
@@ -14,6 +14,7 @@ npm run typecheck      # all packages
 - `generate.test.ts`: the question generator (drafts only, duplicates skipped, automatic rejection, audit drops/flags, budget stop).
 - `cli.test.ts`: every command-line command, including approval rules, backup and the `daily` commands.
 - `bank.test.ts`: the seed bank is well formed.
+- `versus.test.ts` (25): multiplayer rooms: names, joining, the shared clock, what other players see, leaving, rematch, and the live event stream (see `docs/MULTIPLAYER.md`).
 - `daily.test.ts` (38): choosing the day's seven (no randomness, every question comes round), the stored set, the daily API (one attempt, prompts one at a time, standings with shared ranks, streak, midnight UTC rollover, leaving a run, stale runs), the per-network limit (and that the address is never stored), daily backups, and upgrading a schema-1 database.
 
 `packages/core/test/daily.test.ts` (13) covers the UTC day, countdown, streak, standings wording and the daily share text.
@@ -58,6 +59,11 @@ With `?manual=1` the page exposes `window.__mt`:
 | `answer(text)` | type and submit an answer (waits for `state().pending === false`) |
 | `skip()` | tap the world title card |
 | `audio(tiers)` | render the sound of a scripted run offline; returns peak, RMS and per-second levels |
+
+### Multiplayer and phones
+
+- `tools/browser-test/versus.cjs`: three browsers play a whole multiplayer match through the real screens; `versus-live.cjs`: two browsers on the real clock. Both need a mock-mode server on a copy of the database: the recipe is at the end of `docs/MULTIPLAYER.md`.
+- `tools/browser-test/phone-layout.cjs`: the game picture fits fully on screen at ten phone, tablet and desktop sizes (`MINITUDE_URL=... node phone-layout.cjs`). It cannot show a real phone's sliding address bar.
 
 ## Comparing with the v5 video
 

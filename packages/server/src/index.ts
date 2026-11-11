@@ -7,7 +7,8 @@ import { Hono } from 'hono'
 import { compress } from 'hono/compress'
 import { secureHeaders } from 'hono/secure-headers'
 import { addDays, utcDay } from '@minitude/core'
-import { createApp } from './app'
+import { createApp, pickRun, QUESTION_SECONDS } from './app'
+import { VersusHub } from './versus'
 import { backupIfDue } from './backup'
 import { makeClientIp } from './clientip'
 import { ensureDailySet } from './daily'
@@ -29,7 +30,8 @@ const judge = new PipelineJudge(repo, llm)
 
 const clientIpHeader = process.env.CLIENT_IP_HEADER || undefined
 const dailyPerIp = process.env.DAILY_PER_IP !== undefined && process.env.DAILY_PER_IP !== '' ? Number(process.env.DAILY_PER_IP) : undefined
-const api = createApp({ repo, judge, clientIp: makeClientIp(clientIpHeader), dailyPerIp: Number.isFinite(dailyPerIp) ? dailyPerIp : undefined })
+const versus = new VersusHub({ judge, heads: () => repo.approvedHeads(), pick: pickRun, now: Date.now, rand: Math.random, seconds: QUESTION_SECONDS })
+const api = createApp({ repo, judge, versus, clientIp: makeClientIp(clientIpHeader), dailyPerIp: Number.isFinite(dailyPerIp) ? dailyPerIp : undefined })
 const root = new Hono()
 root.use('*', secureHeaders())
 root.use('*', compress())
@@ -79,6 +81,8 @@ const server = serve({ fetch: root.fetch, port }, (info) => {
 })
 void housekeeping()
 setInterval(() => void housekeeping(), 3_600_000).unref()
+// multiplayer: deadlines, slow reveals, vanished players (twice a second)
+setInterval(() => { try { versus.tick() } catch (e) { console.error('versus tick:', e instanceof Error ? e.message : e) } }, 500).unref()
 
 // Close the database cleanly when the host stops the machine (Fly sends SIGINT, Docker sends SIGTERM).
 function stop(): void {

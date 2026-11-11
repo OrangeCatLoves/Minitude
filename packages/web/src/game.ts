@@ -1,13 +1,15 @@
 /** The game: state machine (title -> run -> report), input, the server calls, and the frame renderer (port of the design tool's render()). */
 import {
   buildReport, fmtSize, formatCountdown, isPerfect, nextRecord, pickPostFirst, postLines, shareText, sizeOfU, standingsLines, TIERS, voidHintLine, RUN_LENGTH,
-  type DailyState, type Question, type ReportData, type RunMode, type RunRecord, type StartRunResponse,
+  type DailyState, type Question, type ReportData, type RunMode, type RunRecord, type StartRunResponse, type VRoundStart,
 } from '@minitude/core'
 import { ApiError, getDaily, sendAbandon, sendAnswer, sendMiss, sendStart, startDaily, startRun } from './api'
+import { drawLobby, drawStandings, drawVersusPanel, itemAt, lobbyItems, type LobbyItem } from './lobbyui'
+import { VersusClient } from './versus'
 import type { Assets } from './assets'
-import { H, INK, INTRO, INTRO_EXIT, PRESS_AT, W, FAINT } from './config'
+import { H, INK, INTRO, INTRO_EXIT, PRESS_AT, W, FAINT, SOFT } from './config'
 import { addCard, addCharge, addFall, addLand, addReveal, bgCharge, bgReveal, frontIntro, frontReveal, frontStamp, gates, makeGems, pose, titleCard, type Gems } from './celebrate'
-import { ctxOf, mkCanvas, shade, vignette, vscrim, type Ctx } from './draw'
+import { ctxOf, mkCanvas, shade, SILF, stext, vignette, vscrim, type Ctx } from './draw'
 import { addFinale, bloomPre, dimPre, finRec, finaleCard, poseExtra, uiDim } from './finale'
 import { AddLayer } from './fx'
 import { WorldGL } from './gl'
@@ -45,7 +47,7 @@ export const NULL_SOUND: SoundHook = {
   unlock() {}, press() {}, question() {}, key() {}, invalid() {}, lock() {}, scheduled() {}, miss() {}, skip() {}, report() {}, frame() {}, reset() {},
 }
 
-type Phase = 'title' | 'run' | 'report'
+type Phase = 'title' | 'lobby' | 'run' | 'report'
 const MISS_DOT: RGB = [60, 70, 100]
 const HINT_RGB: RGB = [170, 150, 255]
 const POST_RGB: RGB = [255, 190, 230]
@@ -97,6 +99,17 @@ export class Game {
   private reportDaily: DailyState | null = null
   private abandonSent = false
 
+  // multiplayer (the room and what the server says about it: versus.ts; the screens: lobbyui.ts)
+  readonly versus = new VersusClient()
+  /** a multiplayer match is being played (the run below is then driven by the server's questions) */
+  private inVersus = false
+  /** the next question the server has started, waiting until this player's screen has finished showing the last one */
+  private vNext: { start: VRoundStart; left: number } | null = null
+  private readySent = new Set<number>()
+  private lobbyAt = 0
+  private lobbyScreenSeen = ''
+  private mouse: { x: number; y: number } | null = null
+
   // title / transitions
   private titleOn = true
   private pressedAt: number | null = null
@@ -117,6 +130,7 @@ export class Game {
     this.out.imageSmoothingEnabled = false
     this.bindInput()
     this.bindLeaving()
+    this.bindVersus()
     void this.loadDaily()
   }
 
@@ -127,6 +141,7 @@ export class Game {
         this.abandonSent = true
         sendAbandon(this.run.runId)
       }
+      if (this.versus.room) { this.abandonSent = true; this.versus.leaveNow() }
     })
     window.addEventListener('pageshow', (e) => {
       if (e.persisted && this.abandonSent) location.reload()
@@ -136,6 +151,7 @@ export class Game {
   // ------------------------------------------------------------------ input
   private bindInput(): void {
     this.input.addEventListener('input', () => {
+      if (this.phase === 'lobby') { this.versus.typeInto(this.input.value); this.input.value = this.versus.field; this.sound.key(); return }
       if (!this.canType()) { this.input.value = this.typed; return }
       this.typed = this.input.value.slice(0, 80)
       this.lastKeyAt = this.T
@@ -144,6 +160,7 @@ export class Game {
     })
     window.addEventListener('keydown', (e) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return
+      if (this.phase === 'lobby') { this.lobbyKey(e); return }
       if (this.confirm) {
         // "did you mean ...?": Enter or Y is yes, Esc or N is no. Nothing else is typed meanwhile.
         const k = e.key.toLowerCase()
@@ -182,9 +199,11 @@ export class Game {
     this.canvas.addEventListener('pointerdown', (e) => {
       const p = this.toCanvas(e)
       this.sound.unlock()
+      if (this.phase === 'lobby') { this.lobbyPointer(p); return }
       if (this.phase === 'title') {
         if (near(TITLE_BOXES.primary, p, 40, 30)) void this.pressPrimary()
         else if (this.titleView().secondary && near(TITLE_BOXES.secondary, p, 30, 14)) void this.press('solo')
+        else if (this.pressedAt === null && near(TITLE_BOXES.multi, p, 30, 14)) this.openLobby()
         return
       }
       if (this.phase === 'report') {
@@ -267,7 +286,8 @@ export class Game {
   private msToReset(): number {
     return this.daily ? this.daily.resetsInMs - (performance.now() - this.dailyAt) : 0
   }
-  titleView(): TitleView {
+  titleView(): TitleView { return { ...this.titleViewBase(), multi: true } }
+  private titleViewBase(): Omit<TitleView, 'multi'> {
     const d = this.daily
     if (!d) {
       return this.dailyFailed
@@ -297,6 +317,224 @@ export class Game {
     else await this.loadDaily()
   }
 
+  // ------------------------------------------------------------------ multiplayer: the lobby
+  private bindVersus(): void {
+    this.versus.hooks = {
+      roundStart: (s, left) => this.onVersusRound(s, left),
+      matchEnd: () => { /* the report waits for this player's own last reveal (see versusStep) */ },
+      status: (next) => this.onVersusStatus(next),
+      closed: (reason) => this.onVersusClosed(reason),
+    }
+    this.canvas.addEventListener('pointermove', (e) => { this.mouse = this.toCanvas(e) })
+    this.canvas.addEventListener('pointerleave', () => { this.mouse = null })
+  }
+
+  /** the MULTIPLAYER button: from the title into the lobby */
+  openLobby(): void {
+    if (this.phase !== 'title') return
+    this.sound.unlock()
+    this.phase = 'lobby'
+    this.titleOn = false
+    this.uiT0 = null
+    this.fadeFrom = this.T
+    this.lobbyAt = this.T
+    this.lobbyScreenSeen = ''
+    this.versus.open()
+  }
+  private toTitle(): void {
+    this.sound.reset()
+    this.phase = 'title'
+    this.titleOn = true
+    this.pressedAt = null
+    this.uiT0 = null
+    this.titleError = ''
+    this.fadeFrom = this.T
+    this.input.blur()
+    this.input.value = ''
+    void this.loadDaily()
+  }
+  private lobbyHasField(): boolean { return this.versus.screen === 'name' || this.versus.screen === 'join' }
+  /** keeps the hidden text box in step with the screen: a name or a code is typed into it, and the keyboard appears on phones */
+  private syncLobbyInput(): void {
+    const key = this.versus.screen
+    if (key !== this.lobbyScreenSeen) {
+      this.lobbyScreenSeen = key
+      this.input.value = this.versus.field
+      if (this.lobbyHasField()) this.input.focus({ preventScroll: true })
+      else this.input.blur()
+    } else if (this.lobbyHasField() && this.input.value !== this.versus.field) this.input.value = this.versus.field
+    if (key === 'browse') void this.versus.refreshRooms()
+  }
+  private lobbyKey(e: KeyboardEvent): void {
+    if (e.key === 'Enter') { e.preventDefault(); this.lobbyEnter(); return }
+    if (e.key === 'Escape') { e.preventDefault(); this.lobbyBack(); return }
+    if (this.lobbyHasField() && document.activeElement !== this.input && (e.key.length === 1 || e.key === 'Backspace')) this.input.focus({ preventScroll: true })
+  }
+  private lobbyEnter(): void {
+    const s = this.versus.screen
+    if (s === 'menu' || s === 'browse') return
+    const it = lobbyItems(this.versus).find((i) => i.kind === 'primary' && i.enabled)
+    if (it) this.lobbyAction(it)
+  }
+  private lobbyBack(): void {
+    const s = this.versus.screen
+    if (s === 'name' || s === 'menu') this.toTitle()
+    else if (s !== 'room') this.versus.go('menu')
+  }
+  private lobbyPointer(p: { x: number; y: number }): void {
+    const it = itemAt(lobbyItems(this.versus), p)
+    if (it) { this.sound.key(); this.lobbyAction(it); return }
+    if (this.lobbyHasField()) this.input.focus({ preventScroll: true })
+  }
+  lobbyAction(it: LobbyItem): void {
+    const v = this.versus
+    switch (it.action) {
+      case 'title': this.toTitle(); break
+      case 'name-ok': v.submitName(); break
+      case 'menu-create': v.go('create'); break
+      case 'menu-join': v.go('join'); break
+      case 'menu-browse': v.go('browse'); break
+      case 'menu-name': v.go('name'); break
+      case 'create-private': v.createVisibility = 'private'; break
+      case 'create-public': v.createVisibility = 'public'; break
+      case 'create-go': void v.create(); break
+      case 'join-go': void v.join(v.field); break
+      case 'back-menu': v.go('menu'); break
+      case 'browse-join': if (it.arg) void v.join(it.arg); break
+      case 'room-start': void v.startMatch(); break
+      case 'room-rematch': void v.rematch(); break
+      case 'room-visibility': void v.setVisibility(v.room?.visibility === 'public' ? 'private' : 'public'); break
+      case 'room-copy': this.copyCode(); break
+      case 'room-leave': void v.leave(); break
+    }
+  }
+  private copyCode(): void {
+    const code = this.versus.room?.code
+    if (!code) return
+    const done = () => { this.versus.notice = 'CODE COPIED' }
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(code).then(done, () => window.prompt('Copy the room code', code))
+    else window.prompt('Copy the room code', code)
+  }
+
+  // ------------------------------------------------------------------ multiplayer: the match
+  /** what the room says: a match has started (everybody's screen goes from the room to the first question) */
+  private onVersusStatus(next: 'waiting' | 'playing' | 'finished'): void {
+    if (next === 'playing' && !(this.phase === 'run' && this.inVersus)) this.beginVersusMatch()
+  }
+  private beginVersusMatch(): void {
+    if (!this.versus.room) return
+    this.sound.unlock()
+    this.sound.reset()
+    this.inVersus = true
+    this.mode = 'solo'
+    this.run = { runId: this.versus.room.code, count: RUN_LENGTH, seconds: 30, mode: 'solo' }
+    this.records = []
+    this.tl.recs = []
+    this.questions = []
+    this.startedIdx = -1
+    this.vNext = null
+    this.readySent = new Set()
+    this.reportDaily = null
+    this.reportData = null
+    this.reportAt = Infinity
+    this.lastPostVariant = null
+    this.typed = ''
+    this.input.value = ''
+    this.message = ''
+    this.pending = false
+    this.confirm = null
+    this.titleOn = false
+    this.phase = 'run'
+    this.fadeFrom = this.T
+    this.uiT0 = this.T
+  }
+  /** the server started a question (for everybody at once): show it as soon as this screen has finished the last one */
+  private onVersusRound(s: VRoundStart, left: number): void {
+    if (!this.inVersus) this.beginVersusMatch()
+    if (!this.inVersus || this.phase !== 'run' || this.tl.recs.length > s.round) return
+    this.vNext = { start: s, left }
+  }
+  /** every frame of a match: say "ready" when the last reveal has finished, start the next question when the server has, end with the results */
+  private versusStep(): void {
+    const T = this.T
+    const r = this.tl.last()
+    const nx = this.vNext
+    if (r && r.known && T >= r.next && r.i < RUN_LENGTH - 1 && !this.readySent.has(r.i)) {
+      this.readySent.add(r.i)
+      void this.versus.ready(r.i).catch(() => { /* the server also moves on by itself after a while */ })
+    }
+    if (nx) {
+      const round = nx.start.round
+      if (r && !r.known && round > r.i) this.miss(r)   // the server has moved on without us
+      if (!r) {
+        while (this.tl.recs.length < round) this.fillMiss()
+        if (this.tl.recs.length === round) this.startVersusQuestion(nx, this.T + 0.8)
+      } else if (r.known && T >= r.next && r.i < round) {
+        while (this.tl.recs.length < round) this.fillMiss()
+        this.startVersusQuestion(nx, r.next)
+      }
+    }
+    if (r && r.known && T >= r.next && r.i === RUN_LENGTH - 1 && this.versus.end) this.enterReport(r.next)
+  }
+  private startVersusQuestion(nx: { start: VRoundStart; left: number }, start: number): void {
+    this.vNext = null
+    this.newQuestion(Math.max(start, this.T), nx)
+  }
+  /** a round this player did not take part in (they were away): a quiet miss in the past, so the numbers line up */
+  private fillMiss(): void {
+    const i = this.tl.recs.length
+    const prev = this.records[i - 1]
+    const r = newRec(i, this.T - 1000, prev ? prev.c1 : 0, prev ? prev.u1 : 0, prev ? prev.z1 : 0)
+    const core = nextRecord(this.records, null)
+    this.records.push(core)
+    this.tl.recs.push(r)
+    makeMiss(r, r.start + 1, core)
+  }
+  private clearRun(): void {
+    this.sound.reset()
+    this.run = null
+    this.tl.recs = []
+    this.records = []
+    this.questions = []
+    this.startedIdx = -1
+    this.vNext = null
+    this.readySent = new Set()
+    this.reportAt = Infinity
+    this.reportData = null
+    this.reportDaily = null
+    this.confirm = null
+    this.pending = false
+    this.typed = ''
+    this.input.value = ''
+    this.message = ''
+  }
+  /** after a match: back to the room (the host can start another match from there) */
+  private backToRoom(): void {
+    this.inVersus = false
+    this.clearRun()
+    this.phase = 'lobby'
+    this.titleOn = false
+    this.uiT0 = null
+    this.fadeFrom = this.T
+    this.lobbyAt = this.T
+    this.lobbyScreenSeen = ''
+    this.versus.open()
+  }
+  /** the server ended this player's place in the room (it was closed, or the player was removed) */
+  private onVersusClosed(reason: string): void {
+    if (this.inVersus) {
+      this.inVersus = false
+      this.clearRun()
+      this.phase = 'lobby'
+      this.titleOn = false
+      this.uiT0 = null
+      this.fadeFrom = this.T
+      this.lobbyAt = this.T
+      this.lobbyScreenSeen = ''
+    }
+    if (reason) this.versus.error = reason
+  }
+
   // ------------------------------------------------------------------ flow
   async press(mode: RunMode = 'solo'): Promise<void> {
     if (this.pressedAt !== null || this.phase !== 'title') return
@@ -322,6 +560,7 @@ export class Game {
    */
   home(): void {
     if (this.phase !== 'report') return
+    if (this.inVersus) { this.inVersus = false; void this.versus.leave() }
     this.sound.unlock()
     this.sound.reset()
     this.run = null
@@ -350,6 +589,7 @@ export class Game {
   /** after the report: straight into a new solo run, no title screen */
   async again(): Promise<void> {
     if (this.phase !== 'report') return
+    if (this.inVersus) { this.backToRoom(); return }
     this.titleOn = false
     this.tl.recs = []
     this.records = []
@@ -385,7 +625,7 @@ export class Game {
     this.lastPostVariant = null
     this.newQuestion(Math.max(minStart, this.T))
   }
-  private newQuestion(start: number): void {
+  private newQuestion(start: number, vq?: { start: VRoundStart; left: number }): void {
     const i = this.tl.recs.length
     const prev = this.records[i - 1]
     this.tl.recs.push(newRec(i, start, prev ? prev.c1 : 0, prev ? prev.u1 : 0, prev ? prev.z1 : 0))
@@ -399,7 +639,12 @@ export class Game {
     this.input.value = ''
     this.input.focus({ preventScroll: true })
     this.sound.question(this.tl.recs[i])
-    if (this.run) this.fetchQuestion(this.run, i, 0)
+    if (vq) {
+      // a match question: the server has already started its clock and sent the prompt with it
+      this.questions[i] = vq.start.question
+      this.startedIdx = i
+      this.deadline = Math.max(this.T, start + 0.55) + vq.left
+    } else if (this.run) this.fetchQuestion(this.run, i, 0)
   }
   /** Asks the server for question i: this starts its clock there and is the first time the prompt exists in this browser. */
   private fetchQuestion(run: StartRunResponse, i: number, tries: number): void {
@@ -451,9 +696,9 @@ export class Game {
     this.message = ''
     this.sound.lock(r)
     const runId = this.run.runId
-    const go = () => sendAnswer(runId, r.i, text, confirm)
-    // the server must know the question has started; if the first message was lost, send it again first
-    const ready = this.startedIdx === r.i ? go() : sendStart(runId, r.i).then(() => { this.startedIdx = r.i }).then(go)
+    const go = () => (this.inVersus ? this.versus.answer(r.i, text, confirm) : sendAnswer(runId, r.i, text, confirm))
+    // the server must know the question has started; if the first message was lost, send it again first (a match question starts for everybody at once)
+    const ready = this.inVersus || this.startedIdx === r.i ? go() : sendStart(runId, r.i).then(() => { this.startedIdx = r.i }).then(go)
     ready.then(
       (resp) => this.onAnswer(r, resp, text),
       (err: unknown) => this.onAnswerFailed(r, err),
@@ -526,7 +771,7 @@ export class Game {
     this.typed = ''
     this.input.value = ''
     makeMiss(r, this.T, core)
-    if (this.run) sendMiss(this.run.runId, r.i).catch(() => { /* the server also closes the question when the run ends */ })
+    if (this.run) (this.inVersus ? this.versus.miss(r.i) : sendMiss(this.run.runId, r.i)).catch(() => { /* the server also closes the question when the run ends */ })
     this.sound.miss(r, this.T)
   }
 
@@ -544,16 +789,18 @@ export class Game {
     this.T += dt
     const T = this.T
     if (this.phase === 'title' && this.daily && this.msToReset() <= 0 && performance.now() - this.lastDailyTry > 3000) void this.loadDaily()
+    if (this.phase === 'lobby') this.syncLobbyInput()
     if (this.phase === 'run') {
       const r = this.tl.last()
       if (r) {
         if (this.pending) this.deadline += dt              // the checker's time is not the player's
         else if (!r.known && T >= this.deadline) this.miss(r)
-        if (r.known && T >= r.next) {
+        if (!this.inVersus && r.known && T >= r.next) {
           if (r.i < RUN_LENGTH - 1) this.newQuestion(r.next)
           else this.enterReport(r.next)
         }
       }
+      if (this.inVersus) this.versusStep()
     }
   }
   private enterReport(at: number): void {
@@ -670,7 +917,7 @@ export class Game {
       const aIn = smooth(0.3, 0.9, T), outK = smooth(INTRO_EXIT, INTRO_EXIT + 0.6, exitT)
       shade(f, 0, 0, W, H, [4, 7, 18], 0.56 * aIn * (1 - outK), 0.56 * aIn * (1 - outK))
     }
-    this.putExplorer(f, p)
+    if (this.phase !== 'lobby') this.putExplorer(f, p)
 
     if (!intro && !rep && r) {
       const ad = this.add
@@ -716,6 +963,7 @@ export class Game {
       const S: HudState = { nsq: rep ? 7 : nsq, curOpen: rep || nsq >= 7 ? -1 : nsq, sizeTxt: fmtSize(sizeOfU(cam.u)), dots }
       this.groups.draw(f, uiA * dim, (c) => (rep ? hudDotsOnly(c, dots) : hud(c, S, cam)))
       this.groups.draw(f, uiA * dim, (c) => rail(c, tl, T, cam, r ?? this.dummy, rep))
+      if (this.inVersus && !rep) this.groups.draw(f, uiA * dim, (c) => drawVersusPanel(c, this.versus, T))
     }
 
     // ---- scale bar
@@ -726,7 +974,7 @@ export class Game {
         for (const rr of tl.recs) if (rr.cardOn && rr.card - 0.05 <= T && T < rr.card + rr.clen - 0.2) hide = true
         if (fr && fr.fs + 1.0 <= T && T < fr.card + fr.clen) hide = true
       }
-      if (!hide && (!showTitle || T > 1.0)) {
+      if (!hide && this.phase !== 'lobby' && (!showTitle || T > 1.0)) {
         const [L, B, flash] = tl.barState(T)
         const a = showTitle ? easeOut((T - 1.0) / 0.5) : 1
         const lab = fmtSize(B)
@@ -736,6 +984,14 @@ export class Game {
 
     // ---- bottom block
     if (bp !== null && r) this.bottomBlock(f, r, bp)
+    // a match: this player has seen their result and is waiting for the others
+    if (this.inVersus && !rep && r && r.known && T >= r.next - 0.2 && T > r.start + 3) this.waitLine(f)
+
+    // ---- the multiplayer lobby
+    if (this.phase === 'lobby') {
+      shade(f, 0, 0, W, H, [4, 7, 18], 0.86 * easeOut((T - this.lobbyAt) / 0.4))
+      this.groups.draw(f, easeOut((T - this.lobbyAt) / 0.4), (c) => drawLobby(c, this.versus, T, this.mouse))
+    }
 
     // ---- title button, report
     if (showTitle) {
@@ -749,6 +1005,7 @@ export class Game {
       const recs = tl.recs
       const extras = this.reportExtras()
       this.groups.draw(f, 1, (c) => report(c, tr, recs, this.reportData!, toast, extras))
+      if (this.inVersus && this.versus.end) this.groups.draw(f, 1, (c) => drawStandings(c, tr, this.versus.end!, this.versus.me))
     }
 
     // ---- to the screen: shake, flash, fades
@@ -763,11 +1020,12 @@ export class Game {
     if (fl) { o.fillStyle = `rgba(${fl[0][0]},${fl[0][1]},${fl[0][2]},${fl[1]})`; o.fillRect(0, 0, W, H) }
     const fk = easeOut((T - this.fadeFrom) / 0.5)
     if (fk < 1) { o.fillStyle = `rgba(${INK[0]},${INK[1]},${INK[2]},${1 - fk})`; o.fillRect(0, 0, W, H) }
-    this.sound.frame(T, cam, tl, this.phase)
+    this.sound.frame(T, cam, tl, this.phase === 'lobby' ? 'title' : this.phase)
   }
 
   /** what the report shows besides the run: the second button's name and, for a daily, its standing and the countdown */
   private reportExtras(): ReportExtras {
+    if (this.inVersus) return { againLabel: 'BACK TO ROOM', daily: null }
     if (this.mode !== 'daily') return { againLabel: 'PLAY AGAIN', daily: null }
     const d = this.reportDaily
     const ms = this.daily ? this.msToReset() : Infinity
@@ -781,6 +1039,21 @@ export class Game {
         newReady: !!this.daily && ms <= 0,
       },
     }
+  }
+
+  /** during a match, once this player's reveal is over: who the next question is waiting for */
+  private waitLine(f: Ctx): void {
+    const round = this.versus.round
+    const last = this.tl.last()?.i === RUN_LENGTH - 1
+    const waiting = round?.phase === 'answering'
+      ? (this.versus.room?.players.filter((p) => !p.gone && !round.answered.has(p.seat)).map((p) => p.name) ?? [])
+      : []
+    let msg = last ? 'WAITING FOR THE OTHER PLAYERS TO FINISH' : 'WAITING FOR THE OTHER PLAYERS'
+    if (waiting.length === 1) msg = 'WAITING FOR ' + waiting[0].toUpperCase()
+    f.save()
+    f.globalAlpha = 0.6 + 0.4 * Math.sin(this.T * 3)
+    stext(f, msg.slice(0, 60), 640, 704, SILF(12, false), SOFT, 3, 'c')
+    f.restore()
   }
 
   private errorLine(c: Ctx, msg: string): void {
@@ -848,6 +1121,18 @@ export class Game {
       title: this.phase === 'title' ? this.titleView() : null,
       reportDaily: this.reportDaily ? { number: this.reportDaily.number, standings: this.reportDaily.standings ?? null } : null,
       message: this.message, titleError: this.titleError, reportAt: this.reportAt,
+      versus: this.versusDebug(),
+    }
+  }
+  /** what the multiplayer state looks like, for tests */
+  versusDebug(): Record<string, unknown> {
+    const v = this.versus
+    return {
+      inMatch: this.inVersus, screen: v.screen, field: v.field, error: v.error, notice: v.notice, name: v.name, conn: v.conn,
+      room: v.room ? { code: v.room.code, status: v.room.status, visibility: v.room.visibility, you: v.room.you, players: v.room.players.map((p) => ({ seat: p.seat, name: p.name, host: p.host, connected: p.connected, gone: p.gone })) } : null,
+      round: v.round ? { index: v.round.index, phase: v.round.phase, answered: [...v.round.answered.values()], items: v.round.items ? [...v.round.items.values()] : null } : null,
+      totals: [...v.totals], end: v.end ? v.end.standings.map((s) => ({ name: s.name, total: s.total, rank: s.rank })) : null,
+      items: this.phase === 'lobby' ? lobbyItems(v).map((i) => ({ action: i.action, arg: i.arg ?? null, label: i.label, enabled: i.enabled, box: i.box })) : [],
     }
   }
   /** type text and submit as if typed */

@@ -265,10 +265,13 @@ export interface TitleView {
   line: string | null
   /** one quieter line (the rule of the daily) */
   note: string | null
+  /** show the MULTIPLAYER button */
+  multi: boolean
 }
-export const TITLE_BOXES: { primary: PlayBox; secondary: PlayBox } = {
+export const TITLE_BOXES: { primary: PlayBox; secondary: PlayBox; multi: PlayBox } = {
   primary: { x: 490, y: 422, w: 300, h: 56 },
   secondary: { x: 540, y: 526, w: 200, h: 40 },
+  multi: { x: 540, y: 576, w: 200, h: 40 },
 }
 export function introButtons(c: Ctx, t: number, exitT: number, pressedAt: number | null, now: number, wobble: number, v: TitleView): void {
   const out = smooth(5.15, 5.75, exitT)
@@ -293,8 +296,14 @@ export function introButtons(c: Ctx, t: number, exitT: number, pressedAt: number
     rect(c, s.x, s.y, s.w, 2, sc); rect(c, s.x, s.y + s.h - 2, s.w, 2, sc); rect(c, s.x, s.y, 2, s.h, sc); rect(c, s.x + s.w - 2, s.y, 2, s.h, sc)
     drawText(c, v.secondary, 640, s.y + 26, SILF(14), sc, 3, 'c')
   }
-  if (pressedAt === null && v.line) drawText(c, v.line, 640, 604, SILF(12, false), lerpc(dark, SOFT, a), 3, 'c')
-  if (pressedAt === null && v.note) drawText(c, v.note, 640, 632, SILF(11, false), lerpc(dark, [112, 126, 172], a), 2, 'c')
+  if (v.multi) {
+    const m = TITLE_BOXES.multi
+    const mc = lerpc(dark, SOFT, a * (pressedAt === null ? 1 : 0.5))
+    rect(c, m.x, m.y, m.w, 2, mc); rect(c, m.x, m.y + m.h - 2, m.w, 2, mc); rect(c, m.x, m.y, 2, m.h, mc); rect(c, m.x + m.w - 2, m.y, 2, m.h, mc)
+    drawText(c, 'MULTIPLAYER', 640, m.y + 26, SILF(14), mc, 3, 'c')
+  }
+  if (pressedAt === null && v.line) drawText(c, v.line, 640, 648, SILF(12, false), lerpc(dark, SOFT, a), 3, 'c')
+  if (pressedAt === null && v.note) drawText(c, v.note, 640, 676, SILF(11, false), lerpc(dark, [112, 126, 172], a), 2, 'c')
 }
 
 // ------------------------------------------------------------------ report
@@ -353,7 +362,9 @@ export function report(c: Ctx, tr: number, recs: Rec[], data: ReportData, toast:
     const col = lerpc(dark, OFF, ba)
     for (const [b, label] of [[REPORT_BUTTONS.share, toast > 0 ? 'COPIED' : 'SHARE'], [REPORT_BUTTONS.again, extras.againLabel], [REPORT_BUTTONS.home, 'HOME']] as [PlayBox, string][]) {
       rect(c, b.x, b.y, b.w, 2, col); rect(c, b.x, b.y + b.h - 2, b.w, 2, col); rect(c, b.x, b.y, 2, b.h, col); rect(c, b.x + b.w - 2, b.y, 2, b.h, col)
-      drawText(c, label, b.x + b.w / 2, b.y + 31, SILF(label.length > 9 ? 14 : 16), col, 4, 'c')
+      let lf = label.length > 9 ? 14 : 16
+      while (lf > 10 && textWidth(SILF(lf), label, 4) > b.w - 14) lf--
+      drawText(c, label, b.x + b.w / 2, b.y + 31, SILF(lf), col, 4, 'c')
     }
   }
   if (extras.daily) dailyPanel(c, tr, extras.daily)

@@ -91,6 +91,24 @@ The binding decisions (21 worlds, 440 points, Unexplored 400-439, edging hints, 
 | 58 | **You asked for it: an automatic fallback model.** When Google overloads the main model (it happened: `gemini-3.5-flash-lite` hung while others answered), live answer checks switch to `LLM_FALLBACK_MODEL` (default `gemini-3.5-flash`) instead of telling the player "not available". The main model gets 3 s, the whole check 8 s (was 7 s; the fallback model is slower and needs the room). After a failure the main model is skipped for 60 s. Only live answer checks use it, never the question generator. I picked the default fallback because it answered when the flash-lite models did not; change it, or turn it off with `none`. | `llm/gemini.ts`, `llm/factory.ts`, `judge/pipeline.ts` |
 | 59 | **You decided: players are never told how answers are checked.** No reply to the browser names a model, says whether there is one, or hints that a switch to the fallback model happened; the game's code names none of it. A successful switch is invisible (the check is just slower); if both models fail the player sees only the generic "answer checker is not available right now". `/api/health` and the run-start reply no longer carry `checker`. The server's own terminal and logs, the call log and the stored answers still record which model answered, for you. Guarded by tests in `api.test.ts` and `web/test/private.test.ts`. | `app.ts`, `core/types.ts` |
 
+## Phase 5 choices (multiplayer, 2026-11-06; 60 to 64 are yours, the rest are not yet confirmed by you)
+
+| # | Choice | Where |
+| --- | --- | --- |
+| 60 | **You decided: 2 to 4 players per room.** The host creates the room and sets it private (join with a code) or public (listed for anyone). | `versus.ts`, `docs/MULTIPLAYER.md` |
+| 61 | **You decided: everybody answers the same question at the same time.** A round ends when every player has a valid answer or has run out of the 30 seconds. | `versus.ts` |
+| 62 | **You decided what the others see:** each player's own screen is like a solo run; the other players' names, and as soon as they answer correctly their rarity tier and points (never the answer text during the round). The answer text is shown when the round is over. | `lobbyui.ts`, `versus.ts` |
+| 63 | **You decided: guests type a nickname with a basic bad-word filter** (English only; it blocks listed words, also in disguise such as 5h1t, and short risky words only when they stand alone). | `names.ts` |
+| 64 | **You decided: the host starts the match (at least 2 players); nobody joins after the start; if the host leaves the next player is host; a player who disconnects scores 0 for the rest and the others carry on; a multiplayer match counts nowhere else** (no Daily, no stats, nothing stored). | `versus.ts` |
+| 65 | Rooms and matches live in the server's memory. A deploy or restart ends every open room. (One server, one machine, as everything else.) | `versus.ts` |
+| 66 | After a round each player's own reveal and dive plays; the next question starts when every connected player says they are ready, or after 40 seconds at most. A round therefore lasts as long as its slowest reveal. | `versus.ts` (`barrierMaxMs`), `game.ts` (`versusStep`) |
+| 67 | A player whose connection is gone for 20 seconds leaves: removed from a waiting room, or (in a match) scores 0 for the rest. A shorter break keeps the seat and the whole state is sent when the connection returns. | `versus.ts` (`disconnectMs`) |
+| 68 | The clock is the solo clock: 30 s from 0.55 s after the question appears, 3 s of grace, the checker's time given back, 12 tries per question. | `clock.ts` |
+| 69 | After a match everybody can go back to the room; the host presses PLAY AGAIN for a rematch; players who left the match are dropped from the room. Equal totals share a rank. | `versus.ts` |
+| 70 | The seven questions are chosen like a solo run's (different categories when possible) and are the same for everybody in the match. | `versus.ts`, `app.ts` (`pickRun`) |
+| 71 | Matches use the same answer checker, so rulings it learns are shared with solo, but no run or attempt is stored. | `versus.ts` |
+| 72 | Limits: 100 rooms at once, 300 multiplayer requests a minute per network address, 5-character room codes without look-alike letters, an empty room deleted after 2 minutes. | `versus.ts`, `versusRoutes.ts` |
+
 ## Still open (from the planning notes)
 
 Public domain, multiplayer rules, model choice after the free trial, how long to keep `attempts`, who audits disputed answers, whether the Daily should also be playable signed-in later (history across devices). Nothing in Phases 1 to 3 depends on them.

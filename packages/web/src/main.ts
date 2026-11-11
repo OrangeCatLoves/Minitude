@@ -28,6 +28,8 @@ async function main(): Promise<void> {
   setupMute(sfx, game)
 
   const params = new URLSearchParams(location.search)
+  // ?debug=1 lets a test script look inside the running game (the clock keeps running, unlike ?manual=1)
+  if (params.has('debug')) (window as unknown as { __mtv: unknown }).__mtv = { game }
   if (params.has('manual')) {
     // test mode: the clock only moves when asked (used by the browser tests)
     ;(window as unknown as { __mt: unknown }).__mt = {

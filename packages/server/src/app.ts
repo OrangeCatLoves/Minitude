@@ -9,14 +9,11 @@ import type { Judge, JudgeMode } from './judge/types'
 import { ipFingerprint, isLoopback } from './clientip'
 import { ensureDailySet, epochDay } from './daily'
 import { POLICY_VERSION, runTotal, type DailyPlayRow, type Repo, type RunQuestionRow } from './db/repo'
+import { VersusHub } from './versus'
+import { mountVersus } from './versusRoutes'
 
-export const QUESTION_SECONDS = 30
-/** the browser starts each question's clock this long after the question appears on screen */
-export const START_DELAY_MS = 550
-/** allowance for network delay: an answer may arrive this late and still count */
-export const GRACE_MS = 3000
-/** most answers one question accepts (every unknown answer can cost a model call) */
-export const MAX_ATTEMPTS_PER_QUESTION = 12
+import { GRACE_MS, MAX_ATTEMPTS_PER_QUESTION, QUESTION_SECONDS, START_DELAY_MS } from './clock'
+export { GRACE_MS, MAX_ATTEMPTS_PER_QUESTION, QUESTION_SECONDS, START_DELAY_MS }
 /** a daily run with nothing happening for this long is treated as abandoned and closed (unanswered questions score 0) */
 export const STALE_RUN_MS = 120_000
 /** most daily runs one network may start per day (0 = no limit). Shared networks (schools, offices) need room. */
@@ -39,6 +36,8 @@ export interface AppDeps {
   clientIp?: (c: Context) => string
   dailyPerIp?: number
   staleRunMs?: number
+  /** the multiplayer rooms. The server passes its own so it can move their clock along (`tick`); without one the app makes a private hub. */
+  versus?: VersusHub
 }
 
 function shuffle<T>(a: T[], rand: () => number): T[] {
@@ -288,6 +287,10 @@ export function createApp(deps: AppDeps) {
     if (!run) return fail(c, 404, 'Unknown run.')
     return c.json({ total: runTotal(run), answered: run.questions.filter((q) => q.result).length })
   })
+
+  // ------------------------------------------------------------------ multiplayer rooms (see versus.ts)
+  const hub = deps.versus ?? new VersusHub({ judge, heads: () => repo.approvedHeads(), pick: pickRun, now, rand, seconds })
+  mountVersus(app, { hub, guestOf, clientIp, now })
 
   return app
 }

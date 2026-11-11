@@ -162,6 +162,10 @@ npm run cli -- db stats
 
 On a server, set `BACKUP_DIR` and the server makes its own daily copy (see above and `docs/DEPLOY.md`).
 
+## Multiplayer
+
+Rooms of 2 to 4 players are in `versus.ts` (rules and clock), `versusRoutes.ts` (HTTP and the live event stream) and `names.ts`. Everything is in memory and nothing is stored. The full description, the API and the limits are in `docs/MULTIPLAYER.md`.
+
 ## Not done
 
 - The model has never been called for real (see above). Run `npm run trial -w @minitude/server`.
