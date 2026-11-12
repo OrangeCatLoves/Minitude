@@ -1,0 +1,282 @@
+<title>Minitude Question Bank</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: a reference desk. A search bar that stays at the top, the list of questions on the left, the open question with its answers on the right. One column on a phone.
+   Colour: cool paper greys with one ink-blue accent; the six rarity tiers are a ramp from green (Common) to crimson (Mythic), status has its own green/amber/grey. */
+:root {
+  --bg: #f3f5f8; --panel: #ffffff; --line: #d8dee6; --fg: #17212c; --muted: #5a6978;
+  --accent: #2354c4; --accent-fg: #ffffff; --soft: #e7edfa;
+  --live: #17653a; --live-bg: #dcf2e4; --draft: #7d5200; --draft-bg: #fbeecb; --rej: #56636f; --rej-bg: #e6eaee;
+  --t0: #2f8a5f; --t1: #26829a; --t2: #3a63c0; --t3: #6d4fbd; --t4: #a0409f; --t5: #c13a5e;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-head: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e151e; --panel: #16202b; --line: #293645; --fg: #e5ecf3; --muted: #92a2b3;
+    --accent: #7fa6ff; --accent-fg: #0e151e; --soft: #1b2a43;
+    --live: #78d6a1; --live-bg: #16372a; --draft: #f0c765; --draft-bg: #392e12; --rej: #93a3b4; --rej-bg: #212c38;
+    --t0: #66c79c; --t1: #5cc2d6; --t2: #8eaaf3; --t3: #b09df2; --t4: #d98cd8; --t5: #f28ea9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e151e; --panel: #16202b; --line: #293645; --fg: #e5ecf3; --muted: #92a2b3;
+  --accent: #7fa6ff; --accent-fg: #0e151e; --soft: #1b2a43;
+  --live: #78d6a1; --live-bg: #16372a; --draft: #f0c765; --draft-bg: #392e12; --rej: #93a3b4; --rej-bg: #212c38;
+  --t0: #66c79c; --t1: #5cc2d6; --t2: #8eaaf3; --t3: #b09df2; --t4: #d98cd8; --t5: #f28ea9;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5; padding-block: 0 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1240px; margin: 0 auto; }
+
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); padding-block: 14px 10px; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 24px; }
+.brand { flex: 1 1 280px; min-width: 0; }
+h1 { font: 600 22px/1.15 var(--font-head); margin: 0; letter-spacing: -0.01em; }
+.asof { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.search { flex: 2 1 340px; min-width: 0; }
+.search input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.totals { margin-top: 8px; color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.totals b { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.layout { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 28px; margin: 20px auto 0; align-items: start; }
+.side { min-width: 0; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.chip { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+.chip[aria-pressed="true"] { background: var(--soft); border-color: var(--accent); color: var(--fg); font-weight: 500; }
+.side select { width: 100%; margin-bottom: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.qlist { list-style: none; margin: 0; padding: 0; max-height: calc(100vh - 230px); min-height: 240px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.qlist li + li { border-top: 1px solid var(--line); }
+.qi { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; width: 100%; text-align: left; background: none; border: 0; padding: 10px 12px; }
+.qi:hover { background: var(--soft); }
+.qi[aria-current="true"] { background: var(--soft); box-shadow: inset 3px 0 0 var(--accent); }
+.qp { font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.qm { grid-column: 1; color: var(--muted); font-size: 12.5px; min-width: 0; }
+.qi .st { grid-row: 1; grid-column: 2; align-self: start; }
+.empty { color: var(--muted); padding: 14px 12px; }
+
+.main { min-width: 0; }
+.qhead { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.tag, .st { display: inline-block; font-size: 12px; line-height: 1; padding: 5px 8px; border-radius: 6px; background: var(--rej-bg); color: var(--rej); white-space: nowrap; }
+.st-live { background: var(--live-bg); color: var(--live); font-weight: 600; }
+.st-draft { background: var(--draft-bg); color: var(--draft); font-weight: 600; }
+.st-rejected { background: var(--rej-bg); color: var(--rej); font-weight: 600; }
+.qid { font: 12px var(--font-mono); color: var(--muted); overflow-wrap: anywhere; }
+h2 { font: 600 24px/1.2 var(--font-head); margin: 12px 0 10px; letter-spacing: -0.01em; text-wrap: balance; }
+.facts { margin: 0; display: grid; gap: 2px 14px; grid-template-columns: max-content minmax(0, 1fr); font-size: 14px; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0 0 8px; max-width: 75ch; }
+
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 18px 0 6px; }
+.tierbar { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 420px; }
+.tier { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 5px 10px; font-size: 13px; }
+.tier b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.tier[aria-pressed="true"] { border-color: var(--accent); background: var(--soft); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--tc, var(--muted)); }
+.flt { flex: 1 1 220px; min-width: 0; }
+.flt input { width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.count { margin: 8px 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.alist, .rlist { list-style: none; margin: 0; padding: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.alist li, .rlist li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 8px 14px; border-top: 1px solid var(--line); }
+.alist li:first-child, .rlist li:first-child { border-top: 0; }
+.nm { font-weight: 500; overflow-wrap: anywhere; }
+.al { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; min-width: 0; flex: 1 1 200px; }
+.tg { margin-left: auto; font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tg .dot { background: var(--tc); }
+.rq { flex-basis: 100%; font-size: 12.5px; color: var(--muted); }
+.rlist button { display: contents; background: none; border: 0; text-align: left; }
+.rlist li { cursor: pointer; }
+.rlist li:hover { background: var(--soft); }
+.more { margin: 14px 0 0; }
+.btn { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg); border-radius: 8px; padding: 8px 16px; font-weight: 500; }
+.btn.ghost { background: none; color: var(--accent); }
+mark { background: var(--draft-bg); color: inherit; border-radius: 3px; padding: 0 1px; }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .qlist { max-height: 300px; min-height: 0; }
+  .facts { grid-template-columns: minmax(0, 1fr); }
+  .facts dd { margin-bottom: 10px; }
+}
+@media (prefers-reduced-motion: no-preference) { .qi, .chip, .tier { transition: background-color 0.12s; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><h1>Minitude question bank</h1><p class="asof" id="asof"></p></div>
+    <label class="search"><span class="sr">Search every answer and spelling</span><input id="term" type="search" placeholder="Search every answer and spelling: Zeus, soccer, LHR…" autocomplete="off"></label>
+  </div>
+  <div class="wrap totals" id="totals"></div>
+</header>
+
+<main class="wrap layout">
+  <aside class="side">
+    <div class="filters" id="statusbar" role="group" aria-label="Which questions to list"></div>
+    <label><span class="sr">Category</span><select id="cat"></select></label>
+    <ul class="qlist" id="qlist"></ul>
+  </aside>
+  <section class="main" id="main" aria-live="polite"></section>
+</main>
+
+<script>
+(function () {
+  var DATA = /*DATA*/null;
+  var mainEl = document.getElementById('main');
+  if (!DATA) { mainEl.innerHTML = '<p class="empty">This page is made by the bank sheet generator (docs/BANK_SHEET.md); open the published copy.</p>'; return; }
+
+  var TIERS = [['Common', 10], ['Uncommon', 20], ['Rare', 40], ['Exotic', 60], ['Legendary', 80], ['Mythic', 100]];
+  var STATUS = { live: 'Live', draft: 'Draft', rejected: 'Rejected' };
+  var STATUS_HINT = { live: 'played in the game', draft: 'not played yet', rejected: 'turned down, never played' };
+  var PAGE = 200, MAX_HITS = 300;
+  var Q = DATA.questions;
+  var st = { show: { live: true, draft: true, rejected: false }, cat: '', id: '', tier: -1, filter: '', limit: PAGE, term: '' };
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function num(n) { return Number(n).toLocaleString('en-US'); }
+  function byId(id) { for (var i = 0; i < Q.length; i++) if (Q[i].id === id) return Q[i]; return null; }
+  function vis(q) { return st.show[q.status] && (!st.cat || q.category === st.cat); }
+  function tag(q) { return '<span class="st st-' + q.status + '" title="' + STATUS_HINT[q.status] + '">' + STATUS[q.status] + '</span>'; }
+  function tierTag(t) { return '<span class="tg" style="--tc:var(--t' + t + ')"><i class="dot"></i>' + TIERS[t][0] + '</span>'; }
+  /** shows where the typed text sits inside a name */
+  function hi(text, term) {
+    if (!term) return esc(text);
+    var i = text.toLowerCase().indexOf(term);
+    return i < 0 ? esc(text) : esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + term.length)) + '</mark>' + esc(text.slice(i + term.length));
+  }
+
+  Q.forEach(function (q) { q.n = q.t.map(function (t) { return t.length; }); q.total = q.n.reduce(function (a, b) { return a + b; }, 0); });
+
+  /* ---------- the header ---------- */
+  function renderHeader() {
+    $('asof').textContent = 'The live game as of ' + DATA.asOf + ', plus drafts that are not played yet. Every answer is listed with its rarity; other accepted spellings are in grey.';
+    var out = [];
+    ['live', 'draft', 'rejected'].forEach(function (s) {
+      var qs = Q.filter(function (q) { return q.status === s; });
+      if (!qs.length) return;
+      out.push('<span><b>' + qs.length + '</b> ' + STATUS[s].toLowerCase() + ' question' + (qs.length === 1 ? '' : 's') + ', <b>' + num(qs.reduce(function (n, q) { return n + q.total; }, 0)) + '</b> answers</span>');
+    });
+    $('totals').innerHTML = out.join('');
+  }
+
+  /* ---------- the left column ---------- */
+  function renderFilters() {
+    $('statusbar').innerHTML = ['live', 'draft', 'rejected'].map(function (s) {
+      var n = Q.filter(function (q) { return q.status === s; }).length;
+      return n ? '<button type="button" class="chip" data-status="' + s + '" aria-pressed="' + st.show[s] + '">' + STATUS[s] + ' ' + n + '</button>' : '';
+    }).join('');
+    var cats = {}; Q.forEach(function (q) { cats[q.category] = 1; });
+    $('cat').innerHTML = '<option value="">All categories</option>' + Object.keys(cats).sort().map(function (c) { return '<option value="' + esc(c) + '"' + (c === st.cat ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('');
+  }
+  function renderList() {
+    var rows = Q.filter(vis);
+    $('qlist').innerHTML = rows.length ? rows.map(function (q) {
+      return '<li><button type="button" class="qi" data-q="' + esc(q.id) + '"' + (q.id === st.id ? ' aria-current="true"' : '') + '><span class="qp">' + esc(q.prompt) + '</span>' + tag(q) +
+        '<span class="qm">' + esc(q.category) + ' · ' + num(q.total) + ' answers' + (q.origin !== 'Live game' ? ' · ' + esc(q.origin) : '') + '</span></button></li>';
+    }).join('') : '<li class="empty">No questions match these filters.</li>';
+  }
+
+  /* ---------- one question ---------- */
+  function renderDetail() {
+    var q = byId(st.id);
+    if (!q) { mainEl.innerHTML = '<p class="empty">Pick a question on the left, or search for an answer above.</p>'; return; }
+    mainEl.innerHTML =
+      '<div class="qhead"><div class="chips">' + tag(q) + '<span class="tag">' + esc(q.origin) + '</span><span class="tag">' + esc(q.category) + '</span><code class="qid">' + esc(q.id) + '</code></div>' +
+      '<h2>' + esc(q.prompt) + '</h2><dl class="facts"><dt>What counts</dt><dd>' + esc(q.rules) + '</dd>' + (q.source ? '<dt>Where the answers come from</dt><dd>' + esc(q.source) + '</dd>' : '') + '</dl></div>' +
+      '<div class="controls"><div class="tierbar" id="chips" role="group" aria-label="Rarity"></div><label class="flt"><span class="sr">Filter this list</span><input id="flt" type="search" placeholder="Filter this list" autocomplete="off" value="' + esc(st.filter) + '"></label></div>' +
+      '<p class="count" id="acount"></p><ol class="alist" id="alist"></ol><div class="more" id="more"></div>';
+    renderChips(q); renderAnswers(q);
+  }
+  function renderChips(q) {
+    var h = '<button type="button" class="tier" data-tier="-1" aria-pressed="' + (st.tier === -1) + '">All <b>' + num(q.total) + '</b></button>';
+    for (var t = 0; t < 6; t++) h += '<button type="button" class="tier" data-tier="' + t + '" aria-pressed="' + (st.tier === t) + '" title="' + TIERS[t][1] + ' points" style="--tc:var(--t' + t + ')"><i class="dot"></i>' + TIERS[t][0] + ' <b>' + num(q.n[t]) + '</b></button>';
+    $('chips').innerHTML = h;
+  }
+  function renderAnswers(q) {
+    var f = st.filter.toLowerCase(), rows = [];
+    for (var t = 0; t < 6; t++) {
+      if (st.tier !== -1 && st.tier !== t) continue;
+      for (var i = 0; i < q.t[t].length; i++) {
+        var e = q.t[t][i];
+        if (!f || e.join('\u0001').toLowerCase().indexOf(f) >= 0) rows.push([t, e]);
+      }
+    }
+    var shown = rows.slice(0, st.limit);
+    $('acount').textContent = rows.length ? 'Showing ' + num(shown.length) + ' of ' + num(rows.length) + (st.tier === -1 ? ', most common first' : '') : 'Nothing here matches.';
+    $('alist').innerHTML = shown.map(function (r) {
+      var e = r[1];
+      return '<li><span class="nm">' + hi(e[0], f) + '</span>' + (e.length > 1 ? '<span class="al">also: ' + e.slice(1).map(function (a) { return hi(a, f); }).join(', ') + '</span>' : '') + (st.tier === -1 ? tierTag(r[0]) : '') + '</li>';
+    }).join('');
+    $('more').innerHTML = rows.length > shown.length ? '<button type="button" class="btn ghost" id="morebtn">Show ' + Math.min(PAGE, rows.length - shown.length) + ' more</button>' : '';
+  }
+
+  /* ---------- search across everything ---------- */
+  function renderSearch() {
+    var term = st.term.toLowerCase(), hits = [], total = 0;
+    Q.forEach(function (q) {
+      if (!vis(q)) return;
+      if (!q.low) q.low = q.t.map(function (tier) { return tier.map(function (e) { return e.join('\u0001').toLowerCase(); }); });
+      for (var t = 0; t < 6; t++) {
+        var arr = q.low[t];
+        for (var i = 0; i < arr.length; i++) {
+          if (arr[i].indexOf(term) < 0) continue;
+          total++;
+          if (hits.length < 4000) {
+            var name = q.t[t][i][0].toLowerCase();
+            hits.push({ q: q, t: t, e: q.t[t][i], s: name === term ? 0 : name.indexOf(term) === 0 ? 1 : name.indexOf(term) > 0 ? 2 : 3 });
+          }
+        }
+      }
+    });
+    hits.sort(function (a, b) { return a.s - b.s || a.t - b.t; });
+    var shown = hits.slice(0, MAX_HITS);
+    var head = '<div class="controls"><p class="count" style="margin:0">' + (total ? num(total) + ' match' + (total === 1 ? '' : 'es') + ' for “' + esc(st.term) + '”' + (total > shown.length ? ', best ' + shown.length + ' shown' : '') : 'Nothing contains “' + esc(st.term) + '” in the questions listed on the left') + '</p><button type="button" class="btn ghost" id="clear">Clear search</button></div>';
+    if (!total) { mainEl.innerHTML = head + '<p class="empty">Rejected questions are hidden unless you switch them on at the left. The search looks at answer names and other spellings.</p>'; return; }
+    mainEl.innerHTML = head + '<ul class="rlist">' + shown.map(function (h) {
+      var alias = '';
+      if (h.s === 3) for (var k = 1; k < h.e.length; k++) if (h.e[k].toLowerCase().indexOf(term) >= 0) { alias = h.e[k]; break; }
+      return '<li data-q="' + esc(h.q.id) + '" data-name="' + esc(st.term) + '"><button type="button" class="nm">' + hi(h.e[0], term) + '</button>' + (alias ? '<span class="al">also written: ' + hi(alias, term) + '</span>' : '') + tierTag(h.t) +
+        '<span class="rq">' + esc(h.q.prompt) + ' · ' + STATUS[h.q.status] + '</span></li>';
+    }).join('') + '</ul>';
+  }
+
+  /* ---------- wiring ---------- */
+  function renderMain() { if (st.term.length >= 2) renderSearch(); else renderDetail(); }
+  function select(id, filter) {
+    st.id = id; st.tier = -1; st.filter = filter || ''; st.limit = PAGE;
+    if (filter) { st.term = ''; $('term').value = ''; }
+    renderList(); renderMain();
+    try { if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id); } catch (e) { /* a preview may not allow it */ }
+  }
+  document.addEventListener('click', function (ev) {
+    var t = ev.target; if (!t.closest) return;
+    var b;
+    if ((b = t.closest('[data-status]'))) { st.show[b.getAttribute('data-status')] = !st.show[b.getAttribute('data-status')]; renderFilters(); renderList(); if (st.term.length >= 2) renderSearch(); }
+    else if ((b = t.closest('[data-tier]'))) { var q = byId(st.id); st.tier = Number(b.getAttribute('data-tier')); st.limit = PAGE; renderChips(q); renderAnswers(q); }
+    else if ((b = t.closest('[data-q]'))) { select(b.getAttribute('data-q'), b.getAttribute('data-name') || ''); }
+    else if (t.closest('#morebtn')) { st.limit += PAGE; renderAnswers(byId(st.id)); }
+    else if (t.closest('#clear')) { st.term = ''; $('term').value = ''; renderMain(); }
+  });
+  $('cat').addEventListener('change', function (e) { st.cat = e.target.value; renderList(); if (st.term.length >= 2) renderSearch(); });
+  var timer = 0;
+  $('term').addEventListener('input', function (e) { clearTimeout(timer); timer = setTimeout(function () { st.term = e.target.value.trim(); renderMain(); }, 140); });
+  $('term').addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.target.value = ''; st.term = ''; renderMain(); } });
+  document.addEventListener('input', function (e) { if (e.target.id === 'flt') { st.filter = e.target.value.trim(); st.limit = PAGE; renderAnswers(byId(st.id)); } });
+  window.addEventListener('hashchange', function () { var id = location.hash.slice(1); if (id && id !== st.id && byId(id)) select(id); });
+
+  renderHeader(); renderFilters();
+  var first = byId(location.hash.slice(1)) || Q.filter(function (q) { return q.status === 'live'; })[0] || Q[0];
+  if (first) { if (first.status === 'rejected') st.show.rejected = true; renderFilters(); select(first.id); } else { renderList(); renderMain(); }
+})();
+</script>

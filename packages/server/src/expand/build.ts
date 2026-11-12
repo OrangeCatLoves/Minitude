@@ -17,7 +17,7 @@ import { defaultDbFile } from '../db/open'
 import { looseKey, normalize } from '../normalize'
 import { qid as idOf, sparql, type Row } from './wikidata'
 
-export interface Candidate { id: string; name: string; aliases: string[]; signal: number }
+export interface Candidate { id: string; name: string; aliases: string[]; signal: number; /** Wikidata's one-line description (for the person vetting) */ desc?: string; /** in how many of the 10 biggest Wikipedias it has an article (new questions only) */ big?: number; /** has an English Wikipedia article */ en?: boolean; /** a hand-set push up the ranking (new questions only; never stored) */ boost?: number }
 export interface ExpansionFile {
   question: string
   prompt: string
@@ -59,21 +59,60 @@ const DETAIL_CHUNK = 250
  *   1. which items belong (just their numbers),
  *   2. name, other names and "how many languages know it" for them, a few hundred at a time.
  */
-async function fetchPattern(pattern: string, commonNames: boolean): Promise<Candidate[]> {
-  const ids = (await sparql(`SELECT DISTINCT ?item WHERE { ${pattern} }`)).map((r) => idOf(r.item))
-  return detailsOf(ids, commonNames)
+export async function fetchPattern(pattern: string, commonNames: boolean, minSignal = 0, codeProp?: string, fame = false): Promise<Candidate[]> {
+  // the fame cut-off goes INTO the first query: otherwise a class with hundreds of thousands of members (movies, islands) times out
+  if (fame) return detailsOf(await idsInBands(pattern, minSignal), commonNames, '', codeProp, fame)
+  const cut = minSignal > 0 ? ` ?item wikibase:sitelinks ?slcut . FILTER(?slcut >= ${minSignal})` : ''
+  const ids = (await sparql(`SELECT DISTINCT ?item WHERE { ${pattern}${cut} }`)).map((r) => idOf(r.item))
+  return detailsOf(ids, commonNames, '', codeProp, fame)
 }
-async function detailsOf(ids: string[], commonNames: boolean, extra = ''): Promise<Candidate[]> {
+
+/**
+ * The ids of a big class, fetched in bands of "number of languages". One query for a whole big class (8,000+ films) comes back
+ * silently incomplete from Wikidata (9,034 films in bands, 8,152 in one query, the famous ones among the missing), so each band is
+ * a smaller query, and a band that fails or comes back big is split in two and tried again.
+ */
+export async function idsInBands(pattern: string, minSignal: number): Promise<string[]> {
+  const SPLIT_AT = 2500
+  const ids = new Set<string>()
+  const band = async (lo: number, hi: number): Promise<void> => {
+    let rows: string[] | null = null
+    try {
+      rows = (await sparql(`SELECT DISTINCT ?item WHERE { ${pattern} ?item wikibase:sitelinks ?slcut . FILTER(?slcut >= ${lo} && ?slcut < ${hi}) }`, 3)).map((r) => idOf(r.item))
+    } catch (e) {
+      if (hi - lo <= 1) throw e
+    }
+    if (rows && (rows.length < SPLIT_AT || hi - lo <= 1)) { for (const r of rows) ids.add(r); return }
+    const mid = hi >= 100000 ? Math.max(lo + 1, 60) : Math.floor((lo + hi) / 2)
+    if (mid <= lo || mid >= hi) { for (const r of rows ?? []) ids.add(r); return }
+    await band(lo, mid)
+    await band(mid, hi)
+  }
+  const edges = [0, 3, 6, 10, 15, 20, 25, 35, 50, 80, 100000].filter((e) => e > minSignal)
+  const bounds = [Math.max(0, minSignal), ...edges]
+  for (let i = 0; i + 1 < bounds.length; i++) await band(bounds[i], bounds[i + 1])
+  return [...ids]
+}
+const BIG_WIKIS = ['en', 'de', 'fr', 'es', 'ru', 'it', 'ja', 'zh', 'pt', 'ar'].map((l) => `<https://${l}.wikipedia.org/>`).join(', ')
+export async function detailsOf(ids: string[], commonNames: boolean, extra = '', codeProp?: string, fame = false): Promise<Candidate[]> {
   const out: Candidate[] = []
   for (let i = 0; i < ids.length; i += DETAIL_CHUNK) {
     const chunk = ids.slice(i, i + DETAIL_CHUNK)
     const rows: Row[] = await sparql(`
-SELECT ?item ?label (GROUP_CONCAT(DISTINCT ?alt; separator="|") AS ?alts) (GROUP_CONCAT(DISTINCT ?cn; separator="|") AS ?cns) (MAX(?sl) AS ?links) WHERE {
+SELECT ?item ?label (GROUP_CONCAT(DISTINCT ?alt; separator="|") AS ?alts) (GROUP_CONCAT(DISTINCT ?cn; separator="|") AS ?cns) (GROUP_CONCAT(DISTINCT ?code; separator="|") AS ?codes) (SAMPLE(?d) AS ?desc) ${fame ? '(COUNT(DISTINCT ?site) AS ?big) (COUNT(DISTINCT ?ens) AS ?en)' : ''} (MAX(?sl) AS ?links) WHERE {
   VALUES ?item { ${chunk.map((x) => 'wd:' + x).join(' ')} }
   ${extra}
-  ?item rdfs:label ?label FILTER(lang(?label) = "en")
+  # an English label, else the shared "mul" one: Wikidata keeps a name that is the same in most languages (The Godfather, Tetris,
+  # Tyrannosaurus) ONLY under "mul", so asking for English alone silently skips the best-known items
+  OPTIONAL { ?item rdfs:label ?labEn FILTER(lang(?labEn) = "en") }
+  OPTIONAL { ?item rdfs:label ?labMul FILTER(lang(?labMul) = "mul") }
+  BIND(COALESCE(?labEn, ?labMul) AS ?label)
+  FILTER(BOUND(?label))
   OPTIONAL { ?item skos:altLabel ?alt FILTER(lang(?alt) = "en") }
   ${commonNames ? 'OPTIONAL { ?item wdt:P1843 ?cn FILTER(lang(?cn) = "en") }' : ''}
+  ${codeProp ? `OPTIONAL { ?item wdt:${codeProp} ?code }` : ''}
+  OPTIONAL { ?item schema:description ?d FILTER(lang(?d) = "en") }
+  ${fame ? `OPTIONAL { ?sit schema:about ?item ; schema:isPartOf ?site . FILTER(?site IN (${BIG_WIKIS})) } OPTIONAL { ?ens schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> }` : ''}
   ?item wikibase:sitelinks ?sl .
 } GROUP BY ?item ?label`)
     out.push(...rows.map((r) => toCandidate(r, commonNames)))
@@ -85,31 +124,33 @@ function toCandidate(r: Row, commonNames: boolean): Candidate {
   const cns = commonNames ? (r.cns ?? '').split('|').filter(Boolean) : []
   // animals and plants: the name people type is the common name; the scientific name stays as an alias
   const name = cns.length ? cns.sort((a, b) => a.length - b.length)[0] : r.label
-  const aliases = [...new Set([...(cns.length ? [r.label] : []), ...cns, ...alts].filter((a) => a !== name))]
-  return { id: idOf(r.item), name, aliases, signal: Number(r.links) || 0 }
+  const codes = (r.codes ?? '').split('|').filter(Boolean)
+  const aliases = [...new Set([...(cns.length ? [r.label] : []), ...cns, ...alts, ...codes].filter((a) => a !== name))]
+  return { id: idOf(r.item), name, aliases, signal: Number(r.links) || 0, ...(r.desc ? { desc: r.desc } : {}), ...(r.big !== undefined ? { big: Number(r.big) || 0, en: Number(r.en) > 0 } : {}) }
 }
 
 /** all taxa below some parents (genus and species lists are walked one level at a time; a single path query times out) */
-async function speciesBelow(roots: string[], extra = ''): Promise<Candidate[]> {
+export interface TaxaOptions { /** levels to walk down (default 6) */ depth?: number; /** include fossil taxa (dinosaurs are all fossil taxa) */ fossil?: boolean; /** taxa not to walk into (for example Aves, which descends from the dinosaurs) */ exclude?: string[]; /** use English common names as the answer (default true) */ commonNames?: boolean; fame?: boolean }
+export async function speciesBelow(roots: string[], extra = '', rankId = 'Q7432', opts: TaxaOptions = {}): Promise<Candidate[]> {
   let frontier = roots
-  const seen = new Set<string>()
+  const seen = new Set<string>(opts.exclude ?? [])
   const species: string[] = []
-  for (let depth = 0; depth < 6 && frontier.length; depth++) {
+  for (let depth = 0; depth < (opts.depth ?? 6) && frontier.length; depth++) {
     const next: string[] = []
     for (let i = 0; i < frontier.length; i += 150) {
       const chunk = frontier.slice(i, i + 150)
-      const rows = await sparql(`SELECT ?c ?rank WHERE { VALUES ?p { ${chunk.map((x) => 'wd:' + x).join(' ')} } ?c wdt:P171 ?p . OPTIONAL { ?c wdt:P105 ?rank } FILTER NOT EXISTS { ?c wdt:P31 wd:Q23038290 } }`)
+      const rows = await sparql(`SELECT ?c ?rank WHERE { VALUES ?p { ${chunk.map((x) => 'wd:' + x).join(' ')} } ?c wdt:P171 ?p . OPTIONAL { ?c wdt:P105 ?rank } ${opts.fossil ? '' : 'FILTER NOT EXISTS { ?c wdt:P31 wd:Q23038290 }'} }`)
       for (const r of rows) {
         const id = idOf(r.c)
         if (seen.has(id)) continue
         seen.add(id)
-        if (r.rank && idOf(r.rank) === 'Q7432') species.push(id) // species
+        if (r.rank && idOf(r.rank) === rankId) species.push(id) // the rank we are after (species by default; Q34740 = genus)
         else next.push(id)
       }
     }
     frontier = next
   }
-  return detailsOf(species, true, extra)
+  return detailsOf(species, opts.commonNames ?? true, extra, undefined, opts.fame)
 }
 
 /** rivers that end in the Atlantic, the Caribbean or the Gulf of Mexico, directly or through other rivers (walked one level at a time) */

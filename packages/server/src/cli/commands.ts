@@ -175,7 +175,7 @@ export async function runCli(argv: string[], ctx: CliContext): Promise<number> {
         let bank: QuestionBank
         try { bank = JSON.parse(readFileSync(args[0], 'utf8')) as QuestionBank } catch (e) { return bad(`cannot read ${args[0]}: ${(e as Error).message}`) }
         if (!Array.isArray(bank.questions)) return bad('that file has no "questions" list')
-        const n = importBank(repo, bank, { status: a.flags.approve ? 'approved' : 'draft', source: 'import', answerSource: a.flags.approve ? 'seed' : 'draft', at: ctx.now() })
+        const n = importBank(repo, bank, { status: a.flags.approve ? 'approved' : 'draft', source: 'import', answerSource: bank.answerSource ?? (a.flags.approve ? 'seed' : 'draft'), at: ctx.now() })
         out(`Added ${n} question(s) (${bank.questions.length - n} were already there).${a.flags.approve ? '' : ' They are drafts: approve them to play them.'}`)
         return 0
       }

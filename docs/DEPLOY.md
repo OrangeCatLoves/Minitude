@@ -86,6 +86,8 @@ Add the records at your domain registrar. Keep the records **DNS-only** (no prox
 
 **Cloudflare in front?** It would cache the 2.2 MB game files and cut Fly's outbound data bill, but then Fly sees Cloudflare's address instead of the visitor's, and the "10 daily runs per network" limit would count everyone behind one Cloudflare address together. If you do it, set `CLIENT_IP_HEADER = "cf-connecting-ip"` in `fly.toml`. The catch: anyone who calls `<app>.fly.dev` directly can then fake that header. Do not do this until traffic makes the data bill matter.
 
+**The live domain: `minitude.io` (set up 12 Nov 2026).** The domain's DNS is at Cloudflare; the app's address stays `minitude-lwb.fly.dev` and keeps working. Done with `fly certs add minitude.io --app minitude-lwb`; Fly's certificate was issued about 10 minutes after the records went in. Records at Cloudflare, both **DNS only (grey cloud, not proxied)**: `A @ 66.241.124.2` and `AAAA @ 2a09:8280:1::1e9:168e:0` (the app's shared IPv4 and its IPv6; `fly ips list` shows them). While the records were proxied (orange cloud) `fly certs check` said "DNS records do not match", because the lookup returned Cloudflare's addresses. `www.minitude.io` is not set up (`fly certs add www.minitude.io` plus a CNAME `www` to `minitude-lwb.fly.dev`).
+
 ## Backups
 
 - **Daily file copy:** the server writes `/data/backups/minitude-YYYY-MM-DD.db` once a day and keeps the newest 7. They are on the same disk, so they protect against a bad change or a deleted question, **not** against losing the disk.

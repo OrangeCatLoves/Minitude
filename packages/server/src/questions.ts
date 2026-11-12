@@ -42,6 +42,10 @@ export interface QuestionBank {
   version: string
   note: string
   categories: string[]
+  /** where the answers came from ("wikidata", "curated" ...): stored as answers.source. Without it: "draft", or "seed" when approved on import. */
+  answerSource?: string
+  /** question id -> a plain sentence on where its answers came from (written by the new-question builder; the bank sheet shows it) */
+  sources?: Record<string, string>
   questions: QuestionRecord[]
 }
 
