@@ -138,3 +138,6 @@ Non-secret settings live in `[env]` in `fly.toml`; change them and run `fly depl
 ## Leaving Fly later
 
 Nothing here is Fly-only. The `Dockerfile` runs on any host that runs Docker; the whole database is one file. To move: take the newest `minitude-*.db` from `/data/backups`, put it on the new host's disk, run the container with `DATABASE_FILE` pointing at it, set the same secrets, point your domain at the new host. Set `CLIENT_IP_HEADER` to whatever header the new host's front door uses for the visitor's address (or leave it empty if the server sees visitors directly). If you ever need more than one server, that is the moment to move from SQLite to Postgres (a new `Repo`; see `docs/SERVER.md`).
+
+## Updating the answer lists
+See `docs/ANSWER_LISTS.md` ("Putting the lists on the live site"): deploy, then import the lists straight away.

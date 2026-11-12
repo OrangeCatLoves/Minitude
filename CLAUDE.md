@@ -56,7 +56,7 @@ See `docs/DECISIONS.md`. The main ones: wrong or unknown answers can be retried 
 
 ## Known gaps, in the order I would do them
 
-1. DONE on 12 Nov 2026: the live game no longer uses a language model (committed; deploying it and then importing the answer lists is what switches the live site, see `docs/ANSWER_LISTS.md`). Next: vet the lists (weakest first: rivers, apples, programming languages, warship types), then more questions with their lists. The Gemini key on Fly does nothing now and can be unset. A local-model trial on 11 Nov 2026 (its code was kept out of the repo on purpose) found small local models too slow and too inaccurate.
+1. DONE and DEPLOYED on 12 Nov 2026: the live game no longer uses a language model (commit 656eab3; the 17.5k Wikidata and hand-written answers were imported on Fly the same day, steps in `docs/ANSWER_LISTS.md`). Next: vet the lists (weakest first: rivers, apples, programming languages, warship types), then more questions with their lists. The Gemini key on Fly does nothing now and can be unset. A local-model trial on 11 Nov 2026 (its code was kept out of the repo on purpose) found small local models too slow and too inaccurate.
 2. DONE: 22 approved questions; the placeholder seed questions are retired (locally, and on Fly on 5 Nov 2026).
 3. Play with the key set and listen to the sound (never heard by a person). Then `answers review`.
 4. Rarity for NEW answers comes from how many Wikipedia languages know the thing (Wikidata sitelinks), calibrated against the answers already in that question (`expand/build.ts`, `tierFromPairs`); a person should still look at them (`answers list <question> --source wikidata`).

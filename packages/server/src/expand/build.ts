@@ -187,7 +187,7 @@ export const RECIPES: Recipe[] = [
   { question: 'science-programming-language-that', note: 'programming languages that are not esoteric, known in at least 3 languages', pattern: '?item wdt:P31/wdt:P279* wd:Q9143 . FILTER NOT EXISTS { ?item wdt:P31/wdt:P279* wd:Q610140 }', minSignal: 3 },
   { question: 'sports-national-football-team', note: 'national men\'s teams that played at a FIFA World Cup (signal = number of tournaments)', fetch: worldCupTeams },
   { question: 'sports-position-played-in', note: 'association football positions (not roles such as captain)', pattern: '?item wdt:P31 wd:Q4611891', skip: (c) => /captain|manager|coach|referee/i.test(c.name) },
-  { question: 'transport-class-of-naval', note: 'types of warship (subclasses of warship that are ship types), known in at least 4 languages', minSignal: 4, pattern: '?item wdt:P279* wd:Q2031121 . ?item wdt:P31 wd:Q2235308' },
+  { question: 'transport-class-of-naval', note: 'types of warship (subclasses of warship that are ship types), known in at least 4 languages; the root "warship" is the subject word of the question and is left out', minSignal: 4, skip: (c) => /^warships?$|warships$/i.test(c.name), pattern: '?item wdt:P279* wd:Q2031121 . ?item wdt:P31 wd:Q2235308' },
   { question: 'transport-international-commercial-airline', note: 'airlines with an IATA code that have not ceased', pattern: '?item wdt:P31 wd:Q46970 . ?item wdt:P229 ?iata . FILTER NOT EXISTS { ?item wdt:P576 ?end }' },
 ]
 

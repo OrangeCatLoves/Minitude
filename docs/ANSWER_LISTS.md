@@ -27,9 +27,13 @@ The live game accepts an answer only if it is on the question's list (see `docs/
 - Known weak spots: rivers (10,247 new, mostly small streams, and 62,000 close pairs), apples (2,016, most known in one language only), programming languages (many dialects and implementations at one tier), warship types, instruments, genres and civilizations (Wikidata's classes are broader than the question's rules). Look at these first. To import fewer: raise a recipe's `minSignal` in `expand/build.ts` (rivers known in at least 2 languages: 6,745 of 10,247).
 - The Smash recipe adds NO new answers (Wikidata mixes in bosses and assist trophies); the roster is hand-written. The Hitchcock recipe only adds films known in 20+ languages.
 
-## Putting the lists on the live site (untested steps)
-The live database is on the Fly volume, so the files have to go there. After deploying the new code:
-1. Upload the folder, e.g. `fly ssh sftp shell` then `put` each file into `/data/expansion/`.
-2. Look first: `fly ssh console -C "sh -c 'cd /app/packages/server && npx tsx src/cli.ts answers import-expansion /data/expansion --dry-run'"`.
-3. Then without `--dry-run`, then `... answers import-groups`. A backup is made daily on the volume; take a manual one first: `... db backup`.
-4. The Daily sets for today and tomorrow are saved at start-up and are not affected by new answers.
+## Putting the lists on the live site (done on 12 Nov 2026; these steps worked)
+Deploy the new code first, then import the lists straight away: the code alone is stricter than the old model-based site, because an answer that is not on the list is rejected. Use `C:Usersweibi.flyinlyctl.exe` and see the quoting gotchas in the notes (no double quotes inside the `-C` command; `free` and `ps` do not exist in the image, read `/proc`).
+1. Back up: `... ssh console --app minitude-lwb -C $cmd` with `$cmd` = `sh -c 'cd /app/packages/server && DATABASE_FILE=/data/minitude.db node --import tsx src/cli.ts db backup /data/backups'` (a single-quoted PowerShell here-string).
+2. Deploy: `flyctl deploy --ha=false --app minitude-lwb` from the repo root.
+3. Pack the review files (the folder's `*.json`, about 370 KB zipped): `tar czf expansion.tgz *.json`, upload with `flyctl ssh sftp put expansion.tgz /data/expansion.tgz --app minitude-lwb`, unpack on the machine: `sh -c 'mkdir -p /data/expansion && tar xzf /data/expansion.tgz -C /data/expansion'`.
+4. Look first: `... cli.ts answers import-expansion /data/expansion --dry-run`; then without `--dry-run`; then `... cli.ts answers import-groups`. Running them again adds nothing.
+5. Check: `db stats`, the site's `/api/health`, and play a solo run through the real API (an unknown text must give "We don't have that one...", an imported answer must count).
+- Memory: the import is a second node process (peak about 90 MB) next to the server (about 100 MB at its busiest) on the 256 MB machine, which has about 210 MB usable. It fitted; if it ever does not, `flyctl scale memory 512` for the import and back after (a small cost).
+- Result of the first import: 1,964 answers became 19,429 and 1,439 spellings became 22,135. After it the server used 76 MB (peak 99 MB) and a lookup of unknown text took 30 to 60 ms (300 ms on the rivers list).
+- A mistake the live check caught: the naval recipe also imported the root class "warship", which is the question's own subject word. It was removed on the live site with `answers remove transport-class-of-naval warship` and the recipe now skips it. After any import, look for a question's own subject word among the new answers.
