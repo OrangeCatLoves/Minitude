@@ -38,9 +38,10 @@ describe('matching a seed question', () => {
     expect((lookup(cheese, 'gruyere') as any).name).toBe('Gruyère')
     expect((lookup(cheese, '  CHEDDAR!! ') as any).name).toBe('Cheddar')
   })
-  it('forgives one typo in a longer word, none in a short one', () => {
+  it('forgives slips: a swapped pair even in a short word, none in a very short one', () => {
     expect((lookup(cheese, 'chedar') as any).name).toBe('Cheddar')
-    expect(lookup(cheese, 'brei')).toBeNull()
+    expect((lookup(cheese, 'brei') as any).name).toBe('Brie')
+    expect(lookup(cheese, 'bi')).toBeNull()
   })
   it('does not guess when it is unlisted', () => {
     expect(lookup(cheese, 'zorblax')).toBeNull()

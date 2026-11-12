@@ -1,5 +1,6 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { RUN_LENGTH, TIERS, addDays, dayNumber, utcDay } from '@minitude/core'
 import { exportBank, importBank } from '../bankio'
 import { ensureDailySet, epochDay } from '../daily'
@@ -7,6 +8,7 @@ import type { AnswerRow, QStatus, QuestionRow, Repo } from '../db/repo'
 import { generateQuestions, MIN_PER_TIER } from '../generate/generate'
 import { CATEGORIES } from '../generate/categories'
 import type { LlmClient } from '../llm/types'
+import { nearForms } from '../expand/lint'
 import { normalize } from '../normalize'
 import type { QuestionBank } from '../questions'
 import { parseArgs } from './args'
@@ -32,7 +34,13 @@ const HELP = `Minitude command line
   questions import <file.json> [--approve]             (adds questions that are not there yet; drafts unless --approve)
 
   answers review                                       (answers a person should look at, most-played first)
-  answers list <question-id> [--live]                  (--live = only answers the model added during play)
+  answers list <question-id> [--live] [--source wikidata]   (--live = only answers a model added during play; --source = where they came from)
+  answers lint [<question-id>] [--limit 15]            (different answers that are one slip apart: where odd corrections could come from)
+  answers unknown [--days 30] [--min 1] [--limit 100]  (what players typed that was NOT on the list, most often first: what to add next)
+  answers add <question-id> "<name>" <0-5> [--alias "..."] ...   (add an answer by hand)
+  answers alias <question-id> <answer> "<other way to write it>"
+  answers import-groups [file.json]                    (group names that count as Common, from data/group-terms.json; safe to run again)
+  answers import-expansion <file.json or folder> [--dry-run]   (add the answers and aliases from list-builder files; look first, a dry run only counts)
   answers set-tier <question-id> <answer> <0-5> [--reason "..."]
   answers ok <question-id> <answer>                    (clear the review flag)
   answers remove <question-id> <answer> [--message "..."]
@@ -185,9 +193,136 @@ export async function runCli(argv: string[], ctx: CliContext): Promise<number> {
       }
       case 'list': {
         if (!args[0] || !repo.getQuestion(args[0])) return bad('give a question id')
-        const rows = repo.answersOf(args[0]).filter((r) => !a.flags.live || r.source === 'live')
+        const only = flag('source')
+        const rows = repo.answersOf(args[0]).filter((r) => (!a.flags.live || r.source === 'live') && (!only || r.source === only))
         for (const r of rows) out(`tier ${r.tier}  ${r.name.padEnd(34)} played ${String(r.timesGiven).padStart(3)}x  ${r.source}${r.review ? '  CHECK' : ''}`)
         out(`${rows.length} answers.`)
+        return 0
+      }
+      case 'lint': {
+        // pairs of different answers (or their aliases) that are one slip apart: where odd corrections can come from
+        const ids = args[0] ? [args[0]] : repo.approvedHeads().map((h) => h.id)
+        const limit = flag('limit') ? Number(flag('limit')) : 15
+        let total = 0
+        for (const id of ids) {
+          if (!repo.getQuestion(id)) return bad('no such question: ' + id)
+          const pairs = nearForms(repo.formsOf(id), 100_000)
+          total += pairs.length
+          if (!pairs.length) continue
+          out(`${id}: ${pairs.length} close pair${pairs.length === 1 ? '' : 's'}`)
+          for (const p of pairs.slice(0, limit)) out(`   ${p.distance} slip  "${p.a}" (${p.canonA})  ~  "${p.b}" (${p.canonB})`)
+        }
+        out(`${total} close pair${total === 1 ? '' : 's'} in all. A pair is only a warning: the player is asked before a slip counts.`)
+        return 0
+      }
+      case 'unknown': {
+        // what players typed that was not on the list, most often first: the best guide to which answers to add next
+        const days = flag('days') ? Number(flag('days')) : 30
+        const min = flag('min') ? Number(flag('min')) : 1
+        const limit = flag('limit') ? Number(flag('limit')) : 100
+        if (![days, min, limit].every((n) => Number.isFinite(n) && n > 0)) return bad('--days, --min and --limit must be positive numbers')
+        const rows = repo.unknownAttempts(ctx.now() - days * 86_400_000, min, limit)
+        for (const r of rows) out(`${String(r.n).padStart(4)}x  ${r.questionId.padEnd(40)} ${r.text}`)
+        out(`${rows.length} unknown answer${rows.length === 1 ? '' : 's'} (last ${days} days). If one is valid: answers add <question-id> "<name>" <0-5> [--alias "..."]`)
+        return 0
+      }
+      case 'add': {
+        const [qid, name, tierText] = args
+        const tier = Number(tierText)
+        if (!qid || !name || !repo.getQuestion(qid) || !Number.isInteger(tier) || tier < 0 || tier > 5) return bad('usage: answers add <question-id> "<name>" <0-5> [--alias "..."] [--alias "..."]')
+        const norm = normalize(name)
+        if (!norm) return bad('that name is empty')
+        if (repo.getAnswer(qid, norm) || repo.findStoredSpellingTarget(qid, norm)) return bad('that answer (or an alias of it) is already there')
+        const at = ctx.now()
+        repo.tx(() => {
+          repo.insertAnswer({ questionId: qid, norm, name, tier, source: 'admin', review: false, note: 'added by hand', at })
+          for (const al of a.repeated.alias ?? []) { const n = normalize(al); if (n && n !== norm) repo.insertSpelling({ questionId: qid, norm: n, verdict: 'valid', canonNorm: norm, source: 'alias', at }) }
+          repo.logChange(qid, norm, 'answer added', null, `${name} (tier ${tier})`, 'cli', at)
+        })
+        out(`${name}: added to ${qid} at tier ${tier}${(a.repeated.alias ?? []).length ? ` with ${(a.repeated.alias ?? []).length} alias(es)` : ''}.`)
+        return 0
+      }
+      case 'alias': {
+        const [qid, text, alias] = args
+        const row = qid && text ? findAnswer(repo, qid, text) : null
+        if (!row || !alias) return bad('usage: answers alias <question-id> <answer> "<another way to write it>"')
+        const n = normalize(alias)
+        if (!n || repo.getAnswer(qid, n) || repo.findStoredSpellingTarget(qid, n)) return bad('that alias is empty or already points somewhere')
+        repo.insertSpelling({ questionId: qid, norm: n, verdict: 'valid', canonNorm: row.norm, source: 'alias', at: ctx.now() })
+        out(`"${alias}" now means ${row.name}`)
+        return 0
+      }
+      case 'import-groups': {
+        // group names that count as Common (the owner's rule), from data/group-terms.json: safe to run again, adds only what is missing
+        const file = args[0] ?? join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'data', 'group-terms.json')
+        let data: Record<string, { name: string; aliases?: string[] }[] | string>
+        try { data = JSON.parse(readFileSync(file, 'utf8')) } catch (e) { return bad('cannot read ' + file + ': ' + (e instanceof Error ? e.message : String(e))) }
+        let added = 0, aliases = 0, skipped = 0
+        const at = ctx.now()
+        repo.tx(() => {
+          for (const [qid, list] of Object.entries(data)) {
+            if (!Array.isArray(list) || !repo.getQuestion(qid)) continue
+            for (const g of list) {
+              const norm = normalize(g.name)
+              const existing = repo.getAnswer(qid, norm) ?? repo.findStoredSpellingTarget(qid, norm)
+              let target = existing
+              if (!existing) {
+                if (repo.findStored(qid, norm)?.kind === 'invalid') { skipped++; continue } // a person ruled this out: leave it
+                target = repo.insertAnswer({ questionId: qid, norm, name: g.name, tier: 0, source: 'admin', review: false, note: 'group name (owner rule: every member would be valid)', at }).row
+                added++
+              }
+              for (const al of g.aliases ?? []) {
+                const an = normalize(al)
+                if (!an || an === norm || repo.getAnswer(qid, an) || repo.findStoredSpellingTarget(qid, an)) continue
+                if (repo.insertSpelling({ questionId: qid, norm: an, verdict: 'valid', canonNorm: target!.norm, source: 'alias', at })) aliases++
+              }
+            }
+          }
+        })
+        out(`Group names: added ${added} answer${added === 1 ? '' : 's'} and ${aliases} alias${aliases === 1 ? '' : 'es'} (${skipped} skipped because a person ruled them out).`)
+        return 0
+      }
+      case 'import-expansion': {
+        // a file made by src/expand/build.ts (answer lists built from Wikidata). Always look at the file first; --dry-run only counts.
+        if (!args[0]) return bad('usage: answers import-expansion <file.json or folder> [--dry-run]')
+        // a folder: every .json file in it (not sub-folders), one after the other
+        let isFolder = false
+        try { isFolder = statSync(args[0]).isDirectory() } catch { /* the file error below says what is wrong */ }
+        if (isFolder) {
+          let code = 0
+          for (const f of readdirSync(args[0]).filter((x) => x.endsWith('.json')).sort()) code = Math.max(code, await runCli(['answers', 'import-expansion', join(args[0], f), ...(a.flags['dry-run'] ? ['--dry-run'] : [])], ctx))
+          return code
+        }
+        let file: { question: string; source?: string; newAnswers: { name: string; tier: number; aliases: string[]; signal: number; qid: string }[]; newAliases: { answer: string; alias: string }[] }
+        try { file = JSON.parse(readFileSync(args[0], 'utf8')) } catch (e) { return bad('cannot read that file: ' + (e instanceof Error ? e.message : String(e))) }
+        if (!file.question || !repo.getQuestion(file.question)) return bad('that file is for a question this database does not have: ' + file.question)
+        const dry = !!a.flags['dry-run']
+        const at = ctx.now()
+        let added = 0, aliases = 0, skipped = 0
+        const run = () => {
+          for (const n of file.newAnswers) {
+            const norm = normalize(n.name)
+            if (!norm || !Number.isInteger(n.tier) || n.tier < 0 || n.tier > 5 || repo.getAnswer(file.question, norm) || repo.findStoredSpellingTarget(file.question, norm)) { skipped++; continue }
+            added++
+            if (!dry) repo.insertAnswer({ questionId: file.question, norm, name: n.name, tier: n.tier, source: file.source === 'curated' ? 'curated' : 'wikidata', review: false, note: file.source === 'curated' ? 'hand-written list; review the tier' : `Wikidata ${n.qid}; known in ${n.signal} ${n.qid.startsWith('wc:') ? 'tournaments' : 'languages'}`, at })
+            for (const al of n.aliases) {
+              const an = normalize(al)
+              if (!an || an === norm || repo.getAnswer(file.question, an) || repo.findStoredSpellingTarget(file.question, an)) continue
+              aliases++
+              if (!dry) repo.insertSpelling({ questionId: file.question, norm: an, verdict: 'valid', canonNorm: norm, source: 'alias', at })
+            }
+          }
+          for (const x of file.newAliases) {
+            const row = findAnswer(repo, file.question, x.answer)
+            const an = normalize(x.alias)
+            if (!row || !an || repo.getAnswer(file.question, an) || repo.findStoredSpellingTarget(file.question, an)) { skipped++; continue }
+            aliases++
+            if (!dry) repo.insertSpelling({ questionId: file.question, norm: an, verdict: 'valid', canonNorm: row.norm, source: 'alias', at })
+          }
+          if (!dry) repo.logChange(file.question, null, 'expansion imported', null, `${added} answers, ${aliases} aliases`, args[0], at)
+        }
+        if (dry) run(); else repo.tx(run)
+        out(`${dry ? 'Would add' : 'Added'} ${added} answer${added === 1 ? '' : 's'} and ${aliases} alias${aliases === 1 ? '' : 'es'} to ${file.question} (${skipped} skipped: already there or not usable).`)
         return 0
       }
       case 'set-tier': {

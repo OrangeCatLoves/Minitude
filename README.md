@@ -18,7 +18,7 @@ npm run dev
 Open <http://localhost:5173>. The game runs on port 5173 and its API on 8787 (Vite proxies `/api`).
 Press PLAY DAILY (or Enter) for today's shared run, or SOLO RUN (or S) for an ordinary one. Type an answer, press Enter.
 
-The first start creates the database (`packages/server/data/minitude.db`) and fills it with the 11 placeholder seed questions. With no API key the game runs in **mock mode**: only answers already in the database count, anything else comes back as "The demo checker doesn't know this answer. Try another." With a Gemini key (below) unknown answers are judged by the model, and its decision is stored so the same answer always scores the same.
+The first start creates the database (`packages/server/data/minitude.db`) and fills it with the 11 placeholder seed questions. The game checks typed answers against **answer lists built ahead of time** (the stored answers, their aliases, other ways of writing them, and slips that the player is asked about with "Did you mean ...?"); there is no language model in the live game and no API key is needed. An answer that is not on the list comes back as "We don't have that one. Check the spelling or try another." and is kept so that `npm run cli -- answers unknown` can show what to add. Lists are grown with `npx tsx packages/server/src/expand/build.ts` (from Wikidata) and `npm run cli -- answers add / alias / import-expansion`.
 
 ### Production build
 

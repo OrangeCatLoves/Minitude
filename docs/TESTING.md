@@ -68,3 +68,5 @@ With `?manual=1` the page exposes `window.__mt`:
 ## Comparing with the v5 video
 
 `tools/art-source/reference-stills` has a few frames from the video. The browser frames are not pixel-identical (different resampling and text rasteriser) but layout, colours, timing and effects should match. When something looks off, the Python function it came from is named in `docs/ENGINE.md`.
+- `nomodel.test.ts`: the live game never reaches a language model (the start-up code and routes are checked), edit distance (a swapped pair is one slip), the typo budget, and `looseKey` (spacing, British spelling, numerals).
+- `expand.test.ts`: the answer-list builder's merge (new answers, aliases, what a person ruled out), tiers from how well known something is, and the `answers add / alias / unknown / import-expansion` commands.

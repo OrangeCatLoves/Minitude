@@ -1,0 +1,30 @@
+{
+  "_about": "Group names that count as Common (tier 0), by the owner's rule: an umbrella term where EVERY member would be a valid answer. Not the question's own subject word, and not a term that also covers invalid things. Load with: npm run cli -- answers import-groups. Add more with: answers add <question-id> \"<name>\" 0.",
+  "animals-living-species-of": [
+    { "name": "Rattlesnake", "aliases": ["rattlesnakes", "rattler"] },
+    { "name": "Viper", "aliases": ["vipers"] },
+    { "name": "Pit viper", "aliases": ["pit vipers", "pitviper"] },
+    { "name": "Cobra", "aliases": ["cobras"] },
+    { "name": "Krait", "aliases": ["kraits"] },
+    { "name": "Adder", "aliases": ["adders"] },
+    { "name": "Coral snake", "aliases": ["coral snakes"] },
+    { "name": "Sea snake", "aliases": ["sea snakes"] },
+    { "name": "Mamba", "aliases": ["mambas"] },
+    { "name": "Taipan", "aliases": ["taipans"] },
+    { "name": "Lancehead", "aliases": ["lanceheads"] },
+    { "name": "Elapid", "aliases": ["elapids"] }
+  ],
+  "animals-living-species-of-4": [
+    { "name": "Bear", "aliases": ["bears"] },
+    { "name": "Fox", "aliases": ["foxes"] },
+    { "name": "Seal", "aliases": ["seals"] },
+    { "name": "Sea lion", "aliases": ["sea lions"] },
+    { "name": "Otter", "aliases": ["otters"] },
+    { "name": "Mongoose", "aliases": ["mongooses", "mongeese"] },
+    { "name": "Big cat", "aliases": ["big cats"] },
+    { "name": "Canid", "aliases": ["canids"] },
+    { "name": "Felid", "aliases": ["felids"] },
+    { "name": "Mustelid", "aliases": ["mustelids"] },
+    { "name": "Pinniped", "aliases": ["pinnipeds"] }
+  ]
+}

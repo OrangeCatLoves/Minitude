@@ -1,8 +1,8 @@
 import type { AnswerResponse } from '@minitude/core'
 import type { QuestionHead } from '../questions'
 
-/** how the result was reached: from a stored decision, a local typo match, the language model, or not at all */
-export type Via = 'stored' | 'typo' | 'llm' | 'none'
+/** how the result was reached: a stored decision, the same answer written another way, a local slip match, the language model, or not at all */
+export type Via = 'stored' | 'loose' | 'typo' | 'llm' | 'none'
 
 export interface JudgeOutcome {
   res: AnswerResponse
@@ -18,7 +18,7 @@ export interface JudgeOutcome {
 export type JudgeMode = 'ask' | 'confirmed' | 'literal'
 
 export interface Judge {
-  /** 'mock' = no language model: only answers already in the database count; 'llm' = unknown answers go to the model */
-  readonly kind: 'mock' | 'llm'
+  /** 'list' = no language model: only the answer lists count (this is how the live game runs); 'llm' = unknown answers go to a model */
+  readonly kind: 'list' | 'llm'
   judge(question: QuestionHead, text: string, mode?: JudgeMode): Promise<JudgeOutcome>
 }

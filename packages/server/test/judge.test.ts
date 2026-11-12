@@ -176,13 +176,64 @@ describe('what the model is shown', () => {
   })
 })
 
-describe('without a language model (mock mode)', () => {
-  it('only stored answers count; an unknown answer is unresolved with the demo message', async () => {
+describe('without a language model (how the live game runs)', () => {
+  it('only the answer lists count; an unknown answer is "unresolved" with a plain message', async () => {
     const repo = testRepo()
     const judge = new PipelineJudge(repo, null)
-    expect(judge.kind).toBe('mock')
-    expect((await judge.judge(head(repo, CHEESE), 'zorblax')).res).toEqual({ status: 'unresolved', message: MSG.demoUnknown })
+    expect(judge.kind).toBe('list')
+    expect((await judge.judge(head(repo, CHEESE), 'zorblax')).res).toEqual({ status: 'unresolved', message: MSG.notFound })
     expect((await judge.judge(head(repo, CHEESE), 'cheddar')).res.status).toBe('valid')
+    // the message says nothing about how answers are checked
+    expect(MSG.notFound).not.toMatch(/demo|mock|model|list|database|ai\b/i)
+  })
+  it('an unknown answer is logged with the attempt, so the most-typed ones can be reviewed and added', async () => {
+    const repo = testRepo()
+    const judge = new PipelineJudge(repo, null)
+    const out = await judge.judge(head(repo, CHEESE), 'zorblax')
+    expect(out.via).toBe('none')
+    expect(out.res.status).toBe('unresolved')
+  })
+  it('a slip in an alias is matched too, not only a slip in the answer\'s own name', async () => {
+    const repo = testRepo()
+    importQuestion(repo, { id: 'al', category: 'Test', prompt: 'p', rules: 'r', answers: [{ name: 'Threebanded Sheephead', tier: 4, aliases: ['sea donkey'] }, { name: 'Cod', tier: 0 }] }, { status: 'approved', source: 'import', answerSource: 'seed', at: 1 })
+    const judge = new PipelineJudge(repo, null)
+    expect((await judge.judge(head(repo, 'al'), 'sea monkey')).res).toEqual({ status: 'confirm', answer: 'Threebanded Sheephead', message: 'Did you mean Threebanded Sheephead?' })
+  })
+  it('generous: a swapped pair of letters is one slip, short words get one, long names get two or three', async () => {
+    const repo = testRepo()
+    importQuestion(repo, { id: 'gen', category: 'Test', prompt: 'p', rules: 'r', answers: [{ name: 'Brie', tier: 0 }, { name: 'Gorgonzola', tier: 1 }, { name: 'Wensleydale cheese', tier: 2 }, { name: 'Ox', tier: 3 }] }, { status: 'approved', source: 'import', answerSource: 'seed', at: 1 })
+    const judge = new PipelineJudge(repo, null)
+    const ask = async (t: string) => (await judge.judge(head(repo, 'gen'), t)).res
+    expect(await ask('brei')).toMatchObject({ status: 'confirm', answer: 'Brie' })          // swap in a 4-letter word
+    expect(await ask('gorgonzoal')).toMatchObject({ status: 'confirm', answer: 'Gorgonzola' }) // a swapped pair: one slip
+    expect(await ask('gorgonsola')).toMatchObject({ status: 'confirm', answer: 'Gorgonzola' }) // 1 slip
+    expect(await ask('gorgunsola')).toMatchObject({ status: 'confirm', answer: 'Gorgonzola' }) // 2 slips in 10 letters
+    expect((await ask('gorgunsolo')).status).toBe('unresolved')                                // 3 slips in 10 letters: too many
+    expect(await ask('wensleydal chese')).toMatchObject({ status: 'confirm', answer: 'Wensleydale cheese' }) // 2 slips in 16 letters
+    expect(await ask('wensleydal chezze')).toMatchObject({ status: 'confirm', answer: 'Wensleydale cheese' }) // 3 slips in 16 letters
+    expect((await ask('ax')).status).toBe('unresolved')                                        // 2 letters: no slips forgiven
+  })
+  it('the same answer written another way is accepted at once, with no question: spacing, British spelling, numerals, Mt', async () => {
+    const repo = testRepo()
+    importQuestion(repo, { id: 'var', category: 'Test', prompt: 'p', rules: 'r', answers: [
+      { name: 'Wing-back', tier: 1 }, { name: 'Coastal defense ship', tier: 3 }, { name: 'Pepi II', tier: 4 }, { name: 'Mount Etna', tier: 0 }, { name: 'I Confess', tier: 5 },
+    ] }, { status: 'approved', source: 'import', answerSource: 'seed', at: 1 })
+    const judge = new PipelineJudge(repo, null)
+    const ask = async (t: string) => judge.judge(head(repo, 'var'), t)
+    for (const [text, name] of [['wingback', 'Wing-back'], ['Coastal defence ship', 'Coastal defense ship'], ['pepi 2', 'Pepi II'], ['Mt Etna', 'Mount Etna'], ['MountEtna', 'Mount Etna']] as const) {
+      const out = await ask(text)
+      expect(out.res, text).toMatchObject({ status: 'valid', answer: name })
+      expect(out.via, text).toBe('loose')
+    }
+    // "I" at the start of a name is a word, not a numeral: "1 confess" is only a slip, so the player is asked
+    expect((await ask('1 confess')).res).toMatchObject({ status: 'confirm', answer: 'I Confess' })
+  })
+  it('different answers that only differ by a numeral are not mixed up', async () => {
+    const repo = testRepo()
+    importQuestion(repo, { id: 'num', category: 'Test', prompt: 'p', rules: 'r', answers: [{ name: 'Ramesses II', tier: 0 }, { name: 'Ramesses III', tier: 2 }] }, { status: 'approved', source: 'import', answerSource: 'seed', at: 1 })
+    const judge = new PipelineJudge(repo, null)
+    expect((await judge.judge(head(repo, 'num'), 'ramesses 3')).res).toMatchObject({ status: 'valid', answer: 'Ramesses III' })
+    expect((await judge.judge(head(repo, 'num'), 'ramesses 2')).res).toMatchObject({ status: 'valid', answer: 'Ramesses II' })
   })
   it('one typo in a longer word is asked about, and remembered once the player agrees', async () => {
     const repo = testRepo()
@@ -191,7 +242,7 @@ describe('without a language model (mock mode)', () => {
     expect((await judge.judge(head(repo, CHEESE), 'chedar', 'confirmed')).res).toMatchObject({ status: 'valid', answer: 'Cheddar' })
     expect((await judge.judge(head(repo, CHEESE), 'chedar', 'confirmed')).via).toBe('stored')
     // "no" with no model: nothing else can be said about the text
-    expect((await judge.judge(head(repo, CHEESE), 'chedar', 'literal')).res).toEqual({ status: 'unresolved', message: MSG.demoUnknown })
+    expect((await judge.judge(head(repo, CHEESE), 'chedar', 'literal')).res).toEqual({ status: 'unresolved', message: MSG.notFound })
   })
   it('when a typo fits two answers it leans toward the rarer one (and asks); equally rare ones are not guessed between', async () => {
     const repo = testRepo()

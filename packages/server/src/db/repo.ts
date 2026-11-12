@@ -173,13 +173,18 @@ export class Repo {
     return s ? this.getAnswer(questionId, s.canon_norm) ?? null : null
   }
   /** nearest known form within the typo budget, as canonical answers */
-  fuzzy(questionId: string, norm: string): { kind: 'one'; answer: AnswerRow } | { kind: 'ambiguous'; answers: AnswerRow[] } | null {
+  /** every written form that counts for a question (answers' names, aliases, learned spellings) -> the answer it means (its norm) */
+  formsOf(questionId: string): Map<string, string> {
     const forms = new Map<string, string>()
     for (const r of this.st('SELECT norm FROM answers WHERE question_id = ?').all(questionId) as Row[]) forms.set(r.norm, r.norm)
     for (const r of this.st("SELECT norm, canon_norm FROM spellings WHERE question_id = ? AND verdict = 'valid'").all(questionId) as Row[]) forms.set(r.norm, r.canon_norm)
+    return forms
+  }
+  fuzzy(questionId: string, norm: string): { kind: 'one'; answer: AnswerRow; loose?: boolean } | { kind: 'ambiguous'; answers: AnswerRow[] } | null {
+    const forms = this.formsOf(questionId)
     const f: Fuzzy = fuzzyFind(norm, forms)
     if (!f) return null
-    if (f.kind === 'one') return { kind: 'one', answer: this.getAnswer(questionId, f.canon)! }
+    if (f.kind === 'one') return { kind: 'one', answer: this.getAnswer(questionId, f.canon)!, ...(f.loose ? { loose: true } : {}) }
     return { kind: 'ambiguous', answers: f.canons.map((c) => this.getAnswer(questionId, c)!) }
   }
   bumpGiven(questionId: string, canonNorm: string): void {
@@ -271,6 +276,14 @@ export class Repo {
   }
   attemptCount(runId: string, idx: number): number {
     return (this.st('SELECT COUNT(*) n FROM attempts WHERE run_id = ? AND idx = ?').get(runId, idx) as Row).n
+  }
+  /** Texts players typed that were not found, most often first (solo and Daily runs; multiplayer keeps nothing). */
+  unknownAttempts(sinceMs: number, min: number, limit: number): { questionId: string; text: string; n: number }[] {
+    return (this.st(`SELECT rq.question_id AS question_id, lower(trim(a.text)) AS text, COUNT(*) AS n
+      FROM attempts a JOIN run_questions rq ON rq.run_id = a.run_id AND rq.idx = a.idx
+      WHERE a.status = 'unresolved' AND a.via = 'none' AND a.created_at >= ?
+      GROUP BY rq.question_id, lower(trim(a.text)) HAVING COUNT(*) >= ? ORDER BY n DESC, rq.question_id LIMIT ?`).all(sinceMs, min, limit) as Row[])
+      .map((r) => ({ questionId: r.question_id, text: r.text, n: r.n }))
   }
   logAttempt(a: { runId: string; idx: number; text: string; status: string; answer?: string | null; tier?: number | null; message?: string | null; via: string; ms: number; at: number }): void {
     this.st('INSERT INTO attempts (run_id, idx, text, status, answer, tier, message, via, ms, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)')

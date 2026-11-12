@@ -26,7 +26,7 @@ You need a Fly account with a payment method on it. **Learned on the first deplo
 1. **Install the tool and log in.** Mac: `brew install flyctl`. Linux: `curl -L https://fly.io/install.sh | sh`. Windows (PowerShell): `iwr https://fly.io/install.ps1 -useb | iex`. Then `fly auth login`. If your setup blocks that one-liner (some security tools do), download the Windows zip from <https://github.com/superfly/flyctl/releases>, check its SHA-256 against the `..._checksums.txt` file of the same release, and unpack `flyctl.exe` into `%USERPROFILE%\.fly\bin`. If the login cannot open a browser, finish it with `fly auth login --code <the code the page shows after you approve>`.
 2. **Make the app.** Names are shared by everyone on Fly, so pick your own: `fly apps create minitude-yourname`. Then change the `app = "minitude"` line in `fly.toml` to the same name.
 3. **Make the disk** (same region as `primary_region`): `fly volumes create minitude_data --region sin --size 1`. Fly warns that one volume has no copy on another machine; that is expected here.
-4. **Give it the Gemini key** (optional; without it the game runs in mock mode). Do not type the key into the command line, it would stay in your shell history:
+4. **No key is needed (since 12 Nov 2026 the live game uses no language model).** If a `GEMINI_API_KEY` secret was set earlier it does nothing now; remove it with `fly secrets unset GEMINI_API_KEY`. The rest of this step is only for running the optional offline question generator on the server, which you normally do on your own computer. Do not type a key into the command line, it would stay in your shell history:
    ```bash
    read -rs KEY; fly secrets set GEMINI_API_KEY="$KEY"; unset KEY
    ```

@@ -18,15 +18,15 @@ import { Repo } from './db/repo'
 import { seedIfEmpty } from './bankio'
 import { loadBank } from './questions'
 import { PipelineJudge } from './judge/pipeline'
-import { makeLlm } from './llm/factory'
 
 loadEnv()
 const port = Number(process.env.PORT ?? 8787)
 const file = defaultDbFile()
 const repo = new Repo(openDb(file))
 const seeded = seedIfEmpty(repo, loadBank(), Date.now())
-const { llm, describe } = makeLlm(repo)
-const judge = new PipelineJudge(repo, llm)
+// The live game never calls a language model: answers are checked against the answer lists built ahead of time (stored answers,
+// their aliases, other ways of writing them, and slips that the player is asked about). test/nomodel.test.ts guards this.
+const judge = new PipelineJudge(repo, null)
 
 const clientIpHeader = process.env.CLIENT_IP_HEADER || undefined
 const dailyPerIp = process.env.DAILY_PER_IP !== undefined && process.env.DAILY_PER_IP !== '' ? Number(process.env.DAILY_PER_IP) : undefined
@@ -75,7 +75,7 @@ const server = serve({ fetch: root.fetch, port }, (info) => {
   console.log(`Minitude server on http://localhost:${info.port}`)
   console.log(`  database: ${file}${seeded ? `  (new: ${seeded} seed questions added)` : ''}`)
   console.log(`  questions: ${s.questionsApproved} approved, ${s.questionsDraft} draft`)
-  console.log(`  answer checker: ${describe}`)
+  console.log('  answer checker: answer lists only (no language model in the live game)')
   console.log(`  client address from: ${clientIpHeader ? `header ${clientIpHeader}` : 'the connection'}`)
   console.log(`  backups: ${backupDir ? `${backupDir} (keeps ${keepBackups})` : 'off (set BACKUP_DIR)'}`)
 })

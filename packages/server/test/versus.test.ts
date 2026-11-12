@@ -13,7 +13,7 @@ const NAMES = ['Alice', 'Bob', 'Cara', 'Dan']
 
 /** answers from a script: "common" "rare" "mythic" are valid, "typo" asks "did you mean", "slow" waits for the test, anything else is not an answer */
 class FakeJudge implements Judge {
-  readonly kind = 'mock' as const
+  readonly kind = 'list' as const
   calls: string[] = []
   gate: { resolve: () => void; promise: Promise<void> } | null = null
   async judge(_q: QuestionHead, text: string): Promise<JudgeOutcome> {

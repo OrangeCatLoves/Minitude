@@ -2,6 +2,8 @@
 
 Phase 1 = the playable solo game. Phase 2 = the database, the AI answer checker, the AI question generator and the server clock. Phase 3 = the Daily Challenge (same seven questions for everyone each UTC day, one attempt, guests only, standings, streak) and the files to put it online on Fly.io. Everything below was run in the build environment unless it says otherwise. **Two things could not be run here: the real Gemini call** (the build environment cannot reach Google, so every AI part was tested against a scripted fake model only) **and a real Fly.io deploy** (no Docker, no Fly account).
 
+> **12 Nov 2026 change:** the live game no longer uses a language model. Answers are checked against lists built ahead of time (stored answers, aliases, other ways of writing them, slips the player is asked about); an answer not on the list is rejected and kept so `answers unknown` can show what to add. Lists are grown from Wikidata with `src/expand/build.ts`. Rows below that say "model" describe the older design; the model branch is dormant and guarded by `test/nomodel.test.ts`. See `docs/DECISIONS.md` rows 75 to 80.
+
 ## Done and checked
 
 | Area | State | How it was checked |

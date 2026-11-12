@@ -7,7 +7,7 @@ import { buildJudgePrompt, DECISION_SCHEMA, JUDGE_SYSTEM, parseDecision, type De
 import type { Judge, JudgeMode, JudgeOutcome, Via } from './types'
 
 export const MSG = {
-  demoUnknown: "The demo checker doesn't know this answer. Try another.",
+  notFound: "We don't have that one. Check the spelling or try another.",
   ambiguous: 'That could mean more than one answer. Be more specific.',
   unavailable: 'The answer checker is not available right now. Try again.',
   busy: 'The answer checker is busy. Try again in a moment.',
@@ -53,7 +53,8 @@ interface Decided {
  *   1. Something already decided for this exact text (a known answer, an alias, a learned spelling, a stored "does not count")? Use it.
  *   2. Otherwise ask the language model (when there is one), once. Its decision is stored, so the same text, and every other
  *      spelling of the same answer, scores the same from then on.
- *   3. Without a language model ("mock" mode) only step 1 plus a one-typo match works; anything else is "unresolved".
+ *   3. Without a language model (how the live game runs: the answer lists are built ahead of time) only step 1 plus the generous
+ *      match works (see match.ts: other ways of writing an answer are accepted; slips are asked about); anything else is "unresolved".
  *
  * A misspelling is never accepted on the spot (mode 'ask'): the player is asked "did you mean ...?" first, and the spelling is only
  * remembered when they say yes. If they say no ('literal'), the text is judged as an answer of its own, so a real, rarer answer is
@@ -68,7 +69,7 @@ export class PipelineJudge implements Judge {
   private suggested = new Map<string, { fix: Fix; via: Via; at: number }>()
   constructor(private repo: Repo, private llm: LlmClient | null, private now: () => number = Date.now) {}
 
-  get kind(): 'mock' | 'llm' { return this.llm ? 'llm' : 'mock' }
+  get kind(): 'list' | 'llm' { return this.llm ? 'llm' : 'list' }
 
   async judge(q: QuestionHead, text: string, mode: JudgeMode = 'ask'): Promise<JudgeOutcome> {
     const norm = normalize(text)
@@ -112,8 +113,11 @@ export class PipelineJudge implements Judge {
 
     const near = this.repo.fuzzy(q.id, norm)
 
+    // The same answer written another way (a hyphen, British spelling, a Roman numeral ...) is not a misspelling: no question asked.
+    if (near?.kind === 'one' && near.loose) return { out: { res: valid(near.answer), via: 'loose' } }
+
     if (!this.llm) {
-      if (literal) return { out: unresolved(MSG.demoUnknown) }
+      if (literal) return { out: unresolved(MSG.notFound) }
       if (near?.kind === 'one') return { out: { res: valid(near.answer), via: 'typo' }, fix: { canon: near.answer, remember: { source: 'typo' } } }
       if (near?.kind === 'ambiguous') {
         // More than one answer fits: lean toward the rarer one, so a real rarer answer is never scored down by mistake. The player is
@@ -123,7 +127,8 @@ export class PipelineJudge implements Judge {
         if (rarest.length === 1) return { out: { res: valid(rarest[0]), via: 'typo' }, fix: { canon: rarest[0], remember: { source: 'typo' } } }
         return { out: unresolved(MSG.ambiguous) }
       }
-      return { out: unresolved(MSG.demoUnknown) }
+      // Not on the list: not counted. The text is logged with the attempt, so the most-typed unknown answers can be reviewed and added.
+      return { out: unresolved(MSG.notFound) }
     }
 
     // Two players (or one player, twice) typing the same new thing at once cost one model call and get one decision.
