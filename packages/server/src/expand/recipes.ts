@@ -19,6 +19,9 @@ export const anyInstance = (...qs: string[]) => `{ ${qs.map((q) => `{ ?item wdt:
 /** people by occupation: a short list of exact occupations is much cheaper for Wikidata than walking every subclass of "scientist" */
 export const occupation = (...ids: string[]) => `VALUES ?occ { ${ids.map((i) => 'wd:' + i).join(' ')} } ?item wdt:P106 ?occ .`
 
+/** people whose occupation is a kind of (for example) "athletics competitor": sprinters, hurdlers, high jumpers ... are subclasses of it */
+export const occupationUnder = (q: string) => `?item wdt:P106 ?occ . ?occ wdt:P279* wd:${q} .`
+
 /** people who held a position that is a kind of (for example) "president": the position, not the person, is the class */
 export const heldPosition = (q: string) => `?item wdt:P39 ?pos . ?pos wdt:P279* wd:${q} .`
 
