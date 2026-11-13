@@ -106,7 +106,8 @@ SELECT ?item ?label (GROUP_CONCAT(DISTINCT ?alt; separator="|") AS ?alts) (GROUP
   # Tyrannosaurus) ONLY under "mul", so asking for English alone silently skips the best-known items
   OPTIONAL { ?item rdfs:label ?labEn FILTER(lang(?labEn) = "en") }
   OPTIONAL { ?item rdfs:label ?labMul FILTER(lang(?labMul) = "mul") }
-  BIND(COALESCE(?labEn, ?labMul) AS ?label)
+  # an English label that is only the item's own code ("Q167726", put there by an edit) counts as no English label
+  BIND(IF(!BOUND(?labEn), ?labMul, IF(REGEX(STR(?labEn), "^Q[0-9]+$"), COALESCE(?labMul, ?labEn), ?labEn)) AS ?label)
   FILTER(BOUND(?label))
   OPTIONAL { ?item skos:altLabel ?alt FILTER(lang(?alt) = "en") }
   ${commonNames ? 'OPTIONAL { ?item wdt:P1843 ?cn FILTER(lang(?cn) = "en") }' : ''}

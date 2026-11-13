@@ -19,6 +19,7 @@ import { PipelineJudge } from '../judge/pipeline'
 import { looseKey, normalize } from '../normalize'
 import type { QuestionBank, QuestionRecord } from '../questions'
 import { fetchPattern, type Candidate } from './build'
+import { sparql } from './wikidata'
 
 export interface NewQuestion {
   id: string
@@ -50,6 +51,12 @@ export interface NewQuestion {
    * reported) and they lead the ranking, so the Common tier is what players really say, not what many bot-written articles happen to exist about.
    */
   mustHave?: string[]
+  /**
+   * Hand-listed names that should become the DISPLAY name of the item they land on when that item has another name (Wikidata calls spinach
+   * "Spinacia oleracea" and the lychee "litchi"). Only for names that are the same thing; a name that merely lands on a related item
+   * ("Toyota Corolla" on "Toyota Auris") must NOT be listed: add it as an `extras` entry instead, so it gets an answer of its own.
+   */
+  rename?: string[]
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -77,8 +84,10 @@ export function coldTiers(n: number): number[] {
 const GENERIC = new Set(['dog', 'horse', 'shark', 'cocktail', 'cheese', 'bread', 'game', 'board game', 'video game', 'pokemon', 'emperor', 'empress', 'god', 'goddess', 'deity', 'battle', 'country', 'capital', 'city', 'island', 'mineral', 'dinosaur', 'movie', 'film', 'tv series', 'television series', 'series', 'character', 'instrument', 'musical instrument', 'band', 'rock band', 'song', 'sport', 'driver', 'club', 'football club', 'car', 'airport', 'occupation', 'job', 'profession'])
 /** how well known to an English-speaking global audience: the 10 biggest Wikipedias dominate, an English article adds, all languages break ties; a hand boost wins */
 export const fameScore = (c: Candidate) => (c.boost ?? 0) + (c.big ?? 0) * 100 + (c.en ? 60 : 0) + Math.min(c.signal, 150)
-const okName = (n: string) => n.length >= 2 && n.length <= 60 && /\p{L}/u.test(n) && !/[()\[\]{}<>@#]/.test(n) && !/\blist of\b|disambiguation/i.test(n)
-const okAlias = (a: string) => a.length >= 2 && a.length <= 60 && /\p{L}/u.test(a) && !/[()\[\]{}<>@#]/.test(a)
+/** old names that are slurs and that Wikidata keeps as an animal's label or as another way to write a title (the thing itself is listed under its other names): never stored */
+const UNWANTED = /\b(jew lizard|jew cookie|nigger\w*|negro-dutch|squaw poker|kaffir)\b/i
+const okName = (n: string) => n.length >= 2 && n.length <= 60 && /\p{L}/u.test(n) && !/[()\[\]{}<>@#]/.test(n) && !/\blist of\b|disambiguation/i.test(n) && !/^Q\d+$/.test(n) && !UNWANTED.test(n)
+const okAlias = (a: string) => a.length >= 2 && a.length <= 60 && /\p{L}/u.test(a) && !/[()\[\]{}<>@#]/.test(a) && !/^Q\d+$/i.test(a) && !UNWANTED.test(a) // a Wikidata code is not a name
 
 export interface Built {
   record: QuestionRecord
@@ -90,7 +99,34 @@ export interface Built {
   addedByHand: string[]
 }
 
-export function buildQuestion(q: NewQuestion, fetched: Candidate[]): Built {
+const SCIENTIFIC = /^[A-Z][a-z]+ [a-z-]+( [a-z-]+)?$/
+
+/**
+ * The scientific name of a species is the language-neutral ("mul") label of its Wikidata item. The rules of the animal questions accept
+ * scientific names, so for the best-known species (the ones a person could actually type) it is added as another way to write the answer.
+ * Only Latin names are taken: other language-neutral labels can be a native-language name or, now and then, vandalism.
+ * Answers are kept in `cacheFile`, so a rebuild from saved data needs no network.
+ */
+export async function addScientificNames(fetched: Candidate[], cacheFile: string, top = 600): Promise<void> {
+  const cache: Record<string, string> = existsSync(cacheFile) ? (JSON.parse(readFileSync(cacheFile, 'utf8')) as Record<string, string>) : {}
+  const best = [...fetched].filter((c) => /^Q\d+$/.test(c.id)).sort((a, b) => fameScore(b) - fameScore(a)).slice(0, top)
+  const need = best.filter((c) => !(c.id in cache))
+  for (let i = 0; i < need.length; i += 250) {
+    const chunk = need.slice(i, i + 250)
+    const rows = await sparql(`SELECT ?item ?mul WHERE { VALUES ?item { ${chunk.map((c) => 'wd:' + c.id).join(' ')} } OPTIONAL { ?item rdfs:label ?mul FILTER(lang(?mul) = "mul") } }`)
+    for (const c of chunk) cache[c.id] = ''
+    for (const r of rows) if (r.mul) cache[r.item.replace(/^.*\//, '')] = r.mul
+  }
+  if (need.length) writeFileSync(cacheFile, JSON.stringify(cache))
+  for (const c of best) {
+    const m = cache[c.id]
+    if (m && SCIENTIFIC.test(m) && m !== c.name && !c.aliases.includes(m)) c.aliases = [...c.aliases, m]
+  }
+}
+
+export function buildQuestion(q: NewQuestion, input: Candidate[]): Built {
+  // work on copies: the head (boost, rename) changes candidates, and building the same data twice must give the same question
+  const fetched = input.map((c) => ({ ...c, aliases: [...c.aliases] }))
   const dropped: Record<string, number> = { 'no usable name': 0, 'generic word': 0, 'skipped by the recipe': 0, 'same name as a better-known one': 0 }
   const seen = new Set<string>()
   const kept: Candidate[] = []
@@ -99,22 +135,32 @@ export function buildQuestion(q: NewQuestion, fetched: Candidate[]): Built {
   // a name beats an alias (so "Money Heist" is the series, not a remake that lists it as an alias); between equals the better known wins
   const lookup = new Map<string, Candidate>()
   const byFame = [...fetched, ...extraCands].sort((a, b) => fameScore(b) - fameScore(a))
-  for (const c of byFame) { const k = looseKey(normalize(c.name)); if (k && !lookup.has(k)) lookup.set(k, c) }
+  // a hand-added answer wins a name tie with a Wikidata item ("Google" against the old social network "Google+", which the text matching reads as the same word)
+  for (const c of [...extraCands, ...byFame]) { const k = looseKey(normalize(c.name)); if (k && !lookup.has(k)) lookup.set(k, c) }
   for (const c of byFame) for (const n of [...c.aliases, ...(q.alsoWritten?.(c.name) ?? []), ...(q.extraAliases?.[c.name] ?? [])]) { const k = looseKey(normalize(n)); if (k && !lookup.has(k)) lookup.set(k, c) }
   const addedByHand: string[] = []
+  /** hand-listed names that matched only another item's alias ("Toyota Corolla" -> "Toyota Auris"): often right, sometimes a different thing */
+  const landed: string[] = []
   const musts: Candidate[] = []
   ;(q.mustHave ?? []).forEach((m, i) => {
     // a step between two listed answers is far bigger than the whole range of a fame score (at most about 1,300), so the hand-listed
     // answers rank strictly in the order they are listed, and all of them above everything else
     const boost = 10_000_000 - i * 10_000
     const hit = lookup.get(looseKey(normalize(m)))
-    if (hit) hit.boost = Math.max(hit.boost ?? 0, boost)
+    if (hit) {
+      hit.boost = Math.max(hit.boost ?? 0, boost)
+      // the listed name is the one players say: show it, and keep the item's own name as another way to write it
+      if (looseKey(normalize(hit.name)) !== looseKey(normalize(m))) {
+        if (q.rename?.includes(m)) { hit.aliases = [hit.name, ...hit.aliases]; hit.name = m }
+        else landed.push(`${m} -> ${hit.name}`)
+      }
+    }
     else { addedByHand.push(m); musts.push({ id: 'must:' + m, name: m, aliases: [], signal: 0, boost }) }
   })
   const all: Candidate[] = [...fetched, ...extraCands, ...musts]
   for (const c of all.sort((a, b) => fameScore(b) - fameScore(a) || a.name.localeCompare(b.name))) {
     if (!okName(c.name)) { dropped['no usable name']++; continue }
-    if (GENERIC.has(normalize(c.name))) { dropped['generic word']++; continue }
+    if (GENERIC.has(normalize(c.name)) && !c.boost) { dropped['generic word']++; continue } // a hand-listed answer is never dropped as generic
     if (q.skip?.(c) && !c.boost) { dropped['skipped by the recipe']++; continue } // a hand-listed answer is never skipped
     const key = looseKey(normalize(c.name))
     if (!key || seen.has(key)) { dropped['same name as a better-known one']++; continue }
@@ -146,9 +192,10 @@ export function buildQuestion(q: NewQuestion, fetched: Candidate[]): Built {
   const head = ranked.slice(0, 10)
   // (an answer added by hand has no language count: it is there on purpose, so it is not a sign of a weak head)
   if (head.length === 10 && head[9].signal < 12 && !q.fetch && !head.some((h) => addedByHand.includes(h.name))) flags.push(`WEAK HEAD: the 10th best-known answer is known in only ${head[9].signal} languages`)
-  const odd = ranked.filter((r) => /\bQ\d+\b/.test(r.name)).length
+  const odd = ranked.filter((r) => /^Q\d+$/.test(r.name)).length   // a whole name that is a Wikidata code (a car named "Audi Q5" is fine)
   if (odd) flags.push(`${odd} answers look like Wikidata codes (no English name): look at them`)
   if (addedByHand.length) flags.push(`ADDED BY HAND because the class lacked them: ${addedByHand.join(', ')}`)
+  if (landed.length) flags.push(`LISTED NAME LANDED ON AN ITEM WITH ANOTHER NAME (check each is the same thing; if not, add the listed name as an extra, if it is, add it to rename): ${landed.join('; ')}`)
   const record: QuestionRecord = { id: q.id, category: q.category, prompt: q.prompt, rules: q.rules, answers: ranked.map((r) => ({ name: r.name, tier: r.tier, ...(r.aliases.length ? { aliases: r.aliases } : {}) })) }
   return { record, stats: { fetched: fetched.length, kept: kept.length, tierCounts, withAliases, aliases, dropped }, ranked, flags, addedByHand }
 }
@@ -247,6 +294,7 @@ async function main() {
         fetched = [...byId.values()]
         writeFileSync(rawFile, JSON.stringify(fetched))
       }
+      if (d.fetch && d.commonNames) await addScientificNames(fetched, join(out, 'scientific-names.json'))
       const b = buildQuestion(d, fetched)
       built.set(d.id, b)
       console.log(`${d.id.padEnd(30)} fetched ${String(b.stats.fetched).padStart(6)} | kept ${String(b.stats.kept).padStart(6)} | tiers ${b.stats.tierCounts.join('/').padEnd(22)} | aliases ${String(b.stats.aliases).padStart(6)} | ${((Date.now() - t0) / 1000).toFixed(0)} s${b.flags.length ? ' | ' + b.flags.length + ' FLAG(S)' : ''}`)

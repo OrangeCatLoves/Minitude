@@ -69,3 +69,90 @@ describe('building a question from what Wikidata returned', () => {
     expect(md).toMatch(/\| 1 \| Name a thing\. \| Test \| 200 \|/)
   })
 })
+
+describe('the hand-listed head of a question (mustHave)', () => {
+  const filler = Array.from({ length: 40 }, (_, i) => cand('Filler ' + String(i).padStart(2, '0'), 100 - i))
+  const names = (b: ReturnType<typeof buildQuestion>) => b.ranked.map((r) => r.name)
+
+  it('ranks strictly in the order it is listed, above every fame score', () => {
+    const b = buildQuestion(def({ mustHave: ['Second', 'First'] }), [{ ...cand('First', 5), big: 10, en: true }, { ...cand('Second', 1), big: 0 }, ...filler])
+    expect(names(b).slice(0, 2)).toEqual(['Second', 'First'])
+  })
+
+  it('is never dropped as a generic word, which the filter for the older questions would do to "dog"', () => {
+    const b = buildQuestion(def({ mustHave: ['Dog'], extras: [{ name: 'Dog', signal: 50 }] }), filler)
+    expect(names(b)[0]).toBe('Dog')
+    // without being listed, the same word is still dropped
+    expect(names(buildQuestion(def({ extras: [{ name: 'Dog', signal: 50 }] }), filler))).not.toContain('Dog')
+  })
+
+  it('is never skipped by the recipe', () => {
+    const b = buildQuestion(def({ mustHave: ['Association football'], skip: (c) => /Association/.test(c.name) }), [cand('Association football', 90), ...filler])
+    expect(names(b)[0]).toBe('Association football')
+  })
+
+  it('a hand-added answer wins a name tie with a Wikidata item that reads the same ("Google" and "Google+")', () => {
+    const b = buildQuestion(def({ mustHave: ['Google'], extras: [{ name: 'Google', signal: 150 }] }), [{ ...cand('Google+', 120), big: 10, en: true }, ...filler])
+    expect(names(b)[0]).toBe('Google')
+    expect(names(b)).not.toContain('Google+')
+  })
+
+  it('"rename" shows the listed name for an item that has another name, and keeps the old name as an alias; without it the item keeps its own name', () => {
+    const items = [cand('Spinacia oleracea', 80, ['Spinach']), ...filler]
+    const renamed = buildQuestion(def({ mustHave: ['Spinach'], rename: ['Spinach'] }), items)
+    expect(names(renamed)[0]).toBe('Spinach')
+    expect(renamed.ranked[0].aliases).toContain('Spinacia oleracea')
+    const kept = buildQuestion(def({ mustHave: ['Spinach'] }), items)
+    expect(names(kept)[0]).toBe('Spinacia oleracea')
+  })
+
+  it('a famous name that is only an alias of a RELATED item gets an answer of its own when listed as an extra', () => {
+    const items = [cand('Toyota Auris', 60, ['Toyota Corolla']), ...filler]
+    const b = buildQuestion(def({ mustHave: ['Toyota Corolla'], extras: [{ name: 'Toyota Corolla', signal: 150 }] }), items)
+    expect(names(b)).toContain('Toyota Corolla')
+    expect(names(b)).toContain('Toyota Auris')
+    expect(b.ranked.find((r) => r.name === 'Toyota Auris')!.aliases).not.toContain('Toyota Corolla')
+  })
+
+  it('a Wikidata code is never an alias (Wikidata editors put "Q140" on the lion)', () => {
+    const b = buildQuestion(def(), [cand('Lion', 100, ['q140', 'Q140', 'Panthera leo']), ...filler])
+    expect(b.ranked.find((r) => r.name === 'Lion')!.aliases).toEqual(['Panthera leo'])
+  })
+
+  it('a slur that Wikidata uses as the name of an animal is never stored, as a name or as an alias: the listed name is shown instead', () => {
+    // Wikidata's English label for the bearded dragon is a slur-like Australian nickname
+    const items = [cand('Jew Lizard', 60, ['Jew lizard', 'Bearded dragon', 'Pogona']), ...filler]
+    const b = buildQuestion(def({ mustHave: ['Bearded dragon'], rename: ['Bearded dragon'] }), items)
+    expect(names(b)[0]).toBe('Bearded dragon')
+    expect(b.ranked[0].aliases.join('|')).not.toMatch(/jew/i)
+    expect(b.ranked[0].aliases).toContain('Pogona')
+    expect(names(b).join('|')).not.toMatch(/jew/i)
+  })
+})
+
+describe('a recipe can look at the one-line description (people described as something else are skipped)', () => {
+  const filler = Array.from({ length: 40 }, (_, i) => cand('Filler ' + String(i).padStart(2, '0'), 100 - i, [], 'American baseball player'))
+  const names = (b: ReturnType<typeof buildQuestion>) => b.ranked.map((r) => r.name)
+  const onlyDescribedAs = (re: RegExp) => (c: Candidate) => !!c.desc && !re.test(c.desc)
+  it('drops a president "who was a baseball player", keeps real players, keeps a person with no description, and never drops a hand-listed name', () => {
+    const items = [cand('A President', 150, [], '41st President of the United States'), cand('Real Player', 90, [], 'American baseball player'), cand('Nobody Known', 40), ...filler]
+    const b = buildQuestion(def({ skip: onlyDescribedAs(/baseball/i) }), items)
+    expect(names(b)).not.toContain('A President')
+    expect(names(b)).toContain('Real Player')
+    expect(names(b)).toContain('Nobody Known')
+    const listed = buildQuestion(def({ skip: onlyDescribedAs(/baseball/i), mustHave: ['A President'] }), items)
+    expect(names(listed)).toContain('A President')
+  })
+})
+
+describe('a listed name that landed on an item with another name', () => {
+  const filler = Array.from({ length: 40 }, (_, i) => cand('Filler ' + String(i).padStart(2, '0'), 100 - i))
+  it('is flagged for a person to check, unless it was renamed on purpose', () => {
+    const items = [cand('Toyota Auris', 60, ['Toyota Corolla']), cand('Spinacia oleracea', 50, ['Spinach']), ...filler]
+    const flagged = buildQuestion(def({ mustHave: ['Toyota Corolla', 'Spinach'] }), items)
+    expect(flagged.flags.join('\n')).toContain('Toyota Corolla -> Toyota Auris')
+    expect(flagged.flags.join('\n')).toContain('Spinach -> Spinacia oleracea')
+    const settled = buildQuestion(def({ mustHave: ['Spinach'], rename: ['Spinach'] }), items)
+    expect(settled.flags.join('\n')).not.toContain('LANDED')
+  })
+})
