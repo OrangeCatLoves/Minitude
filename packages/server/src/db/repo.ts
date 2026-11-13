@@ -385,6 +385,51 @@ export class Repo {
     this.st('INSERT INTO changes (at, question_id, norm, what, before, after, reason) VALUES (?,?,?,?,?,?,?)').run(at, questionId, norm, what, before, after, reason)
   }
 
+  // ---------------------------------------------------------------- what players send from the page under the end-of-run report
+  /** One rating per run: a second tap on the same run changes its score. A multiplayer match has no run, so each is simply added. */
+  addRating(r: { runId: string | null; mode: 'solo' | 'daily' | 'versus'; score: number; day: string; ipHash: string | null; at: number }): void {
+    if (r.runId) {
+      this.st(`INSERT INTO ratings (run_id, mode, score, day, ip_hash, created_at) VALUES (?,?,?,?,?,?)
+        ON CONFLICT(run_id) DO UPDATE SET score = excluded.score`).run(r.runId, r.mode, r.score, r.day, r.ipHash, r.at)
+    } else {
+      this.st('INSERT INTO ratings (run_id, mode, score, day, ip_hash, created_at) VALUES (NULL,?,?,?,?,?)').run(r.mode, r.score, r.day, r.ipHash, r.at)
+    }
+  }
+  ratingsFrom(day: string, ipHash: string): number {
+    return (this.st('SELECT COUNT(*) n FROM ratings WHERE day = ? AND ip_hash = ?').get(day, ipHash) as Row).n
+  }
+  ratingSummary(): { total: number; average: number; byScore: number[]; byMode: Record<string, { n: number; average: number }> } {
+    const all = this.st('SELECT COUNT(*) n, AVG(score) a FROM ratings').get() as Row
+    const byScore = [0, 0, 0, 0, 0]
+    for (const r of this.st('SELECT score, COUNT(*) n FROM ratings GROUP BY score').all() as Row[]) byScore[r.score - 1] = r.n
+    const byMode: Record<string, { n: number; average: number }> = {}
+    for (const r of this.st('SELECT mode, COUNT(*) n, AVG(score) a FROM ratings GROUP BY mode').all() as Row[]) byMode[r.mode] = { n: r.n, average: r.a }
+    return { total: all.n, average: all.a ?? 0, byScore, byMode }
+  }
+  addSuggestion(s: { text: string; day: string; ipHash: string | null; at: number }): number {
+    return Number(this.st('INSERT INTO suggestions (text, day, ip_hash, created_at) VALUES (?,?,?,?)').run(s.text, s.day, s.ipHash, s.at).lastInsertRowid)
+  }
+  suggestionsFrom(day: string, ipHash: string): number {
+    return (this.st('SELECT COUNT(*) n FROM suggestions WHERE day = ? AND ip_hash = ?').get(day, ipHash) as Row).n
+  }
+  /** the same idea sent again (any capitals) is not stored twice */
+  hasSuggestion(text: string): boolean {
+    return !!this.st('SELECT 1 FROM suggestions WHERE lower(text) = lower(?) LIMIT 1').get(text)
+  }
+  countSuggestions(status: 'new' | 'used' | 'skipped' | 'all' = 'all'): number {
+    const row = (status === 'all' ? this.st('SELECT COUNT(*) n FROM suggestions').get() : this.st('SELECT COUNT(*) n FROM suggestions WHERE status = ?').get(status)) as Row
+    return row.n
+  }
+  listSuggestions(status: 'new' | 'used' | 'skipped' | 'all', limit: number): { id: number; text: string; status: string; day: string; createdAt: number }[] {
+    const rows = (status === 'all'
+      ? this.st('SELECT id, text, status, day, created_at FROM suggestions ORDER BY id DESC LIMIT ?').all(limit)
+      : this.st('SELECT id, text, status, day, created_at FROM suggestions WHERE status = ? ORDER BY id DESC LIMIT ?').all(status, limit)) as Row[]
+    return rows.map((r) => ({ id: r.id, text: r.text, status: r.status, day: r.day, createdAt: r.created_at }))
+  }
+  setSuggestionStatus(id: number, status: 'new' | 'used' | 'skipped'): boolean {
+    return this.st('UPDATE suggestions SET status = ? WHERE id = ?').run(status, id).changes > 0
+  }
+
   stats(): Record<string, number> {
     const n = (sql: string) => (this.st(sql).get() as Row).n as number
     return {
@@ -400,6 +445,8 @@ export class Repo {
       attempts: n('SELECT COUNT(*) n FROM attempts'),
       llmCalls: n('SELECT COUNT(*) n FROM llm_log'),
       llmFailures: n('SELECT COUNT(*) n FROM llm_log WHERE ok = 0'),
+      ratings: n('SELECT COUNT(*) n FROM ratings'),
+      suggestionsNew: n("SELECT COUNT(*) n FROM suggestions WHERE status = 'new'"),
     }
   }
 }

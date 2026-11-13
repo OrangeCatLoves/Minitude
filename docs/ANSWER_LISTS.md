@@ -51,4 +51,4 @@ Deploy the new code first, then import the lists straight away: the code alone i
 3. Check: `/api/health` shows the new question count on minitude.io, `db stats`, server memory in `/proc/<pid>/status` (61 MB after Batch 1), `flyctl status`.
 4. Refresh the bank sheet (`docs/BANK_SHEET.md`).
 - Result: 22 to 52 approved questions, 19,429 to 78,938 answers, 22,135 to 87,765 spellings; the database grew from 6.9 MB to 21 MB; the planner puts never-used questions first, so the first four new Daily days were all new questions.
-- Not done after Batch 1: a live player-path check of a new question (the same answer checker was run on a copy: JFK, LHR, Heathrow, SIN accepted); short forms such as "Changi" or "Kennedy" are not accepted for airports.
+- Not done after Batch 1: a live player-path check of a new question (the same answer checker was run on a copy: JFK, LHR, Heathrow, SIN accepted). Short forms such as "Changi" or "Kennedy" on their own are not accepted for airports; the owner said that does not need fixing.

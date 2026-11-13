@@ -14,3 +14,15 @@ describe('the game never names the model behind the answer checker', () => {
     })
   }
 })
+
+// The privacy page explains how the game works and what it keeps, and says nothing about how answers are checked: no model, no provider,
+// and nothing about how an answer is looked up either. (It is HTML, so the test above, which reads src/*.ts, does not see it.)
+describe('the privacy page says nothing about how answers are checked', () => {
+  const page = readFileSync(join(__dirname, '..', 'privacy.html'), 'utf8')
+  it('names no model or provider', () => {
+    expect(page).not.toMatch(/gemini|fallback model|failover|anthropic|openai|\bllm\b|language model|\bmock\b|artificial intelligence|\bAI\b/i)
+  })
+  it('does not describe how an answer is judged', () => {
+    expect(page).not.toMatch(/answer lists?|checked against|look(ed)? up in|database of answers|wikidata|wikipedia/i)
+  })
+})

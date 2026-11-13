@@ -11,6 +11,7 @@ import { ensureDailySet, epochDay } from './daily'
 import { POLICY_VERSION, runTotal, type DailyPlayRow, type Repo, type RunQuestionRow } from './db/repo'
 import { VersusHub } from './versus'
 import { mountVersus } from './versusRoutes'
+import { mountSite } from './siteRoutes'
 
 import { GRACE_MS, MAX_ATTEMPTS_PER_QUESTION, QUESTION_SECONDS, START_DELAY_MS } from './clock'
 export { GRACE_MS, MAX_ATTEMPTS_PER_QUESTION, QUESTION_SECONDS, START_DELAY_MS }
@@ -291,6 +292,9 @@ export function createApp(deps: AppDeps) {
   // ------------------------------------------------------------------ multiplayer rooms (see versus.ts)
   const hub = deps.versus ?? new VersusHub({ judge, heads: () => repo.approvedHeads(), pick: pickRun, now, rand, seconds })
   mountVersus(app, { hub, guestOf, clientIp, now })
+
+  // ------------------------------------------------------------------ the forms under the end-of-run report (see siteRoutes.ts)
+  mountSite(app, { repo, clientIp, now })
 
   return app
 }

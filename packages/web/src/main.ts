@@ -1,6 +1,8 @@
 import { loadAssets } from './assets'
 import { Game } from './game'
 import { Sfx } from './audio'
+import { Afterword } from './afterword'
+import './site.css'
 
 const boot = document.getElementById('boot') as HTMLElement
 const canvas = document.getElementById('game') as HTMLCanvasElement
@@ -26,6 +28,8 @@ async function main(): Promise<void> {
   const sfx = new Sfx()
   game.sound = sfx
   setupMute(sfx, game)
+  const afterEl = document.getElementById('after')
+  if (afterEl) game.after = new Afterword(afterEl)
 
   const params = new URLSearchParams(location.search)
   // ?debug=1 lets a test script look inside the running game (the clock keeps running, unlike ?manual=1)
@@ -71,6 +75,8 @@ function setupMute(sfx: Sfx, game: Game): void {
   const toggle = (): void => { sfx.setMuted(!sfx.muted); sfx.unlock(); paint() }
   b.addEventListener('click', (e) => { e.stopPropagation(); toggle(); b.blur(); game.refocus() })
   window.addEventListener('keydown', (e) => {
+    // not while typing in the page under the report
+    if (e.target instanceof Element && e.target.closest('#after')) return
     if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey && !game.canType()) toggle()
   })
 }

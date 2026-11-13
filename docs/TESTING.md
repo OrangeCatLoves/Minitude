@@ -63,6 +63,7 @@ With `?manual=1` the page exposes `window.__mt`:
 ### Multiplayer and phones
 
 - `tools/browser-test/versus.cjs`: three browsers play a whole multiplayer match through the real screens; `versus-live.cjs`: two browsers on the real clock. Both need a mock-mode server on a copy of the database: the recipe is at the end of `docs/MULTIPLAYER.md`.
+- `tools/browser-test/afterword.cjs`: plays real runs to the end screen and checks the page under the report (it opens only once the report has settled, the logbook maths on screen, a rating changes instead of adding, the idea box keeps its keys, a swipe does not press a button, a phone size). Needs a built game on a server with a throw-away `DATABASE_FILE`; build with `VITE_CONTACT_EMAIL`, `VITE_BUSINESS_EMAIL` and `VITE_INSTAGRAM_URL` set to see every footer link (see `docs/SITE.md`).
 - `tools/browser-test/phone-layout.cjs`: the game picture fits fully on screen at ten phone, tablet and desktop sizes (`MINITUDE_URL=... node phone-layout.cjs`). It cannot show a real phone's sliding address bar.
 
 ## Comparing with the v5 video

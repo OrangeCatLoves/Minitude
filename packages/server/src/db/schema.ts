@@ -149,4 +149,31 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX daily_plays_ip ON daily_plays(day, ip_hash);
   CREATE INDEX daily_plays_guest ON daily_plays(guest_id, day);
   `,
+  // 3: what players send from the page under the end-of-run report. No name, no account, no guest id: only the text or the score,
+  //    the day, and the same one-way network fingerprint the Daily uses (so one network cannot flood either form).
+  `
+  -- "how was that dive?" (1 = meh, 5 = great). A solo or daily run can be rated once (a second tap changes the score).
+  CREATE TABLE ratings (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id     TEXT UNIQUE REFERENCES runs(id) ON DELETE SET NULL,   -- null for a multiplayer match
+    mode       TEXT NOT NULL CHECK (mode IN ('solo','daily','versus')),
+    score      INTEGER NOT NULL CHECK (score BETWEEN 1 AND 5),
+    day        TEXT NOT NULL,
+    ip_hash    TEXT,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX ratings_day ON ratings(day);
+
+  -- "got an idea for a question?": free text from players, read by a person (npm run cli -- suggestions list)
+  CREATE TABLE suggestions (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    text       TEXT NOT NULL,
+    status     TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','used','skipped')),
+    day        TEXT NOT NULL,
+    ip_hash    TEXT,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX suggestions_status ON suggestions(status, created_at);
+  CREATE INDEX suggestions_ip ON suggestions(day, ip_hash);
+  `,
 ]

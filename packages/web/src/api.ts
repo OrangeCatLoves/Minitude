@@ -74,6 +74,11 @@ export const sendStart = (runId: string, index: number): Promise<StartQuestionRe
 /** `confirm` answers the checker's "did you mean ...?": 'yes' accepts the suggested answer, 'no' says the text is meant as typed */
 export const sendAnswer = (runId: string, index: number, text: string, confirm?: 'yes' | 'no'): Promise<AnswerResponse> =>
   call(`/api/run/${encodeURIComponent(runId)}/answer`, confirm ? { index, text, confirm } : { index, text }, 35000)
+/** "how was that dive?": a score from 1 to 5. A solo or daily run is rated by its id; a multiplayer match has none (mode 'versus'). */
+export const sendRating = (score: number, runId: string | null): Promise<{ ok: boolean }> =>
+  call('/api/rating', runId ? { runId, score } : { mode: 'versus', score }, 10000)
+/** "got an idea for a question?": one line of text. `website` is a field people cannot see; it stays empty. */
+export const sendIdea = (text: string, website = ''): Promise<{ ok: boolean }> => call('/api/suggest', { text, website }, 10000)
 export const sendMiss = (runId: string, index: number): Promise<unknown> =>
   call(`/api/run/${encodeURIComponent(runId)}/miss`, { index }, 8000)
 

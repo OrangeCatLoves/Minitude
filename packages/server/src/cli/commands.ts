@@ -50,6 +50,10 @@ const HELP = `Minitude command line
   daily set <YYYY-MM-DD> <id> x7                       (use these seven approved questions on that day; only until somebody has played it)
   daily clear <YYYY-MM-DD>                             (forget that day's set so it is chosen again; only until somebody has played it)
 
+  suggestions list [--status new|used|skipped|all] [--limit 50]   (question ideas players sent from the page under the report; newest first)
+  suggestions mark <id> new|used|skipped               (keep track of which ideas you have dealt with)
+  ratings                                              (how players rated their runs, 1 to 5)
+
   db stats
   db backup [folder]                                   (a safe copy of the database file)
 
@@ -407,6 +411,37 @@ export async function runCli(argv: string[], ctx: CliContext): Promise<number> {
       }
     }
     return bad('unknown daily command. Try: help')
+  }
+
+  if (group === 'suggestions') {
+    switch (verb) {
+      case 'list': {
+        const status = (flag('status') ?? 'new') as 'new' | 'used' | 'skipped' | 'all'
+        if (!['new', 'used', 'skipped', 'all'].includes(status)) return bad('--status must be new, used, skipped or all')
+        const limit = flag('limit') ? Number(flag('limit')) : 50
+        if (!Number.isInteger(limit) || limit < 1 || limit > 1000) return bad('--limit must be a whole number from 1 to 1000')
+        const rows = repo.listSuggestions(status, limit)
+        for (const r of rows) out(`#${String(r.id).padEnd(5)} ${r.day}  ${r.status.padEnd(7)} ${r.text}`)
+        out(`${rows.length} shown. In all: ${repo.countSuggestions('new')} new, ${repo.countSuggestions('used')} used, ${repo.countSuggestions('skipped')} skipped.`)
+        return 0
+      }
+      case 'mark': {
+        const id = Number(args[0])
+        const to = args[1]
+        if (!Number.isInteger(id) || !['new', 'used', 'skipped'].includes(to ?? '')) return bad('usage: suggestions mark <id> new|used|skipped')
+        return repo.setSuggestionStatus(id, to as 'new' | 'used' | 'skipped') ? (out(`#${id} is now ${to}.`), 0) : bad('no such idea. See: suggestions list --status all')
+      }
+    }
+    return bad('unknown suggestions command. Try: help')
+  }
+
+  if (group === 'ratings') {
+    const r = repo.ratingSummary()
+    if (!r.total) { out('No ratings yet.'); return 0 }
+    out(`${r.total} rating${r.total === 1 ? '' : 's'}, average ${r.average.toFixed(2)} out of 5`)
+    for (let score = 5; score >= 1; score--) out(`  ${score}  ${'#'.repeat(Math.min(40, Math.round((40 * r.byScore[score - 1]) / Math.max(...r.byScore))))} ${r.byScore[score - 1]}`)
+    for (const [mode, m] of Object.entries(r.byMode)) out(`  ${mode.padEnd(7)} ${m.n} rating${m.n === 1 ? '' : 's'}, average ${m.average.toFixed(2)}`)
+    return 0
   }
 
   if (group === 'db') {

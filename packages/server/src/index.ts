@@ -50,6 +50,10 @@ if (existsSync(join(dist, 'index.html'))) {
     else c.header('cache-control', 'public, max-age=86400')
   })
   root.use('/*', serveStatic({ root: './' + join('..', 'web', 'dist').replace(/\\/g, '/') }))
+  // the privacy page lives at /privacy (the built file is privacy.html); every other unknown address is the game
+  const privacyPage = serveStatic({ path: './' + join('..', 'web', 'dist', 'privacy.html').replace(/\\/g, '/') })
+  root.get('/privacy', privacyPage)
+  root.get('/privacy/', privacyPage)
   root.get('*', serveStatic({ path: './' + join('..', 'web', 'dist', 'index.html').replace(/\\/g, '/') }))
 }
 

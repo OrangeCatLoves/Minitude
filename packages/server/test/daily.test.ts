@@ -435,8 +435,12 @@ describe('the database upgrade', () => {
       raw.close()
       const repo = new Repo(openDb(file))
       expect(repo.getRun('r1')!.mode).toBe('solo')
-      expect(repo.db.pragma('user_version', { simple: true })).toBe(2)
+      // upgraded all the way to the newest version (it was 2 until the page under the report added its tables)
+      expect(repo.db.pragma('user_version', { simple: true })).toBe(MIGRATIONS.length)
       expect(repo.dailyDays('2000-01-01')).toEqual([])
+      // the tables for ratings and question ideas came with it, empty
+      expect(repo.ratingSummary().total).toBe(0)
+      expect(repo.countSuggestions('all')).toBe(0)
       repo.db.close()
     } finally {
       rmSync(d, { recursive: true, force: true })

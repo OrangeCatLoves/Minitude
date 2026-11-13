@@ -7,6 +7,7 @@ import { ApiError, getDaily, sendAbandon, sendAnswer, sendMiss, sendStart, start
 import { drawLobby, drawStandings, drawVersusPanel, itemAt, lobbyItems, type LobbyItem } from './lobbyui'
 import { VersusClient } from './versus'
 import type { Assets } from './assets'
+import type { Afterword } from './afterword'
 import { H, INK, INTRO, INTRO_EXIT, PRESS_AT, W, FAINT, SOFT } from './config'
 import { addCard, addCharge, addFall, addLand, addReveal, bgCharge, bgReveal, frontIntro, frontReveal, frontStamp, gates, makeGems, pose, titleCard, type Gems } from './celebrate'
 import { ctxOf, mkCanvas, shade, SILF, stext, vignette, vscrim, type Ctx } from './draw'
@@ -57,6 +58,8 @@ export class Game {
   T = 0
   phase: Phase = 'title'
   sound: SoundHook = NULL_SOUND
+  /** the page that opens under the report (logbook, rating, ideas, footer); set by main.ts */
+  after: Afterword | null = null
 
   private readonly gl: WorldGL
   private readonly gems: Gems
@@ -121,6 +124,8 @@ export class Game {
   private reportAt = Infinity
   private reportData: ReportData | null = null
   private toastAt = -9
+  /** where a press on the report started (see the pointer handlers) */
+  private reportDown: { x: number; y: number } | null = null
 
   constructor(private readonly canvas: HTMLCanvasElement, private readonly input: HTMLInputElement, private readonly assets: Assets) {
     this.gl = new WorldGL(assets.scenes, assets.inners)
@@ -162,6 +167,8 @@ export class Game {
     })
     window.addEventListener('keydown', (e) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return
+      // The page under the report has a text box. Its keys are its own: an "h" typed there must not mean HOME, Enter must not start a new run.
+      if (e.target instanceof Element && e.target.closest('#after')) return
       if (this.phase === 'lobby') { this.lobbyKey(e); return }
       if (this.confirm) {
         // "did you mean ...?": Enter or Y is yes, Esc or N is no. Nothing else is typed meanwhile.
@@ -209,10 +216,9 @@ export class Game {
         return
       }
       if (this.phase === 'report') {
-        if (this.reportAt + 2.6 > this.T) return
-        if (hit(REPORT_BUTTONS.share, p)) this.share()
-        else if (hit(REPORT_BUTTONS.again, p)) this.again()
-        else if (hit(REPORT_BUTTONS.home, p)) this.home()
+        // The page can be scrolled from here, and the buttons are at the bottom where a thumb starts a swipe. So a button acts when the
+        // finger or mouse is let go in the same place, not when it first touches: a swipe is taken over by the browser (pointercancel).
+        this.reportDown = p
         return
       }
       if (this.confirm) {
@@ -327,6 +333,17 @@ export class Game {
       status: (next) => this.onVersusStatus(next),
       closed: (reason) => this.onVersusClosed(reason),
     }
+    this.canvas.addEventListener('pointerup', (e) => {
+      const down = this.reportDown
+      this.reportDown = null
+      if (!down || this.phase !== 'report' || this.reportAt + 2.6 > this.T) return
+      const p = this.toCanvas(e)
+      if (Math.hypot(p.x - down.x, p.y - down.y) > 24) return          // it was dragged, not tapped
+      if (hit(REPORT_BUTTONS.share, p)) this.share()
+      else if (hit(REPORT_BUTTONS.again, p)) void this.again()
+      else if (hit(REPORT_BUTTONS.home, p)) this.home()
+    })
+    this.canvas.addEventListener('pointercancel', () => { this.reportDown = null })
     this.canvas.addEventListener('pointermove', (e) => { this.mouse = this.toCanvas(e) })
     this.canvas.addEventListener('pointerleave', () => { this.mouse = null })
   }
@@ -824,11 +841,20 @@ export class Game {
       }
       if (this.inVersus) this.versusStep()
     }
+    this.syncAfter()
   }
-  private enterReport(at: number): void {
+  private syncAfter(): void {
+    const a = this.after
+    if (!a) return
+    const settled = this.phase === 'report' && this.T >= this.reportAt + 2.6
+    if (settled && !a.open) a.reveal()
+    else if (!settled && a.open) a.hide()
+  }
+  private enterReport(at: number, fresh = true): void {
     this.phase = 'report'
     this.reportAt = at
     this.reportData = buildReport(this.records)
+    this.after?.prepare({ mode: this.inVersus ? 'versus' : this.mode === 'daily' ? 'daily' : 'solo', runId: this.run?.runId ?? null, points: this.reportData.total, fresh })
     this.input.blur()
     this.sound.report(at, isPerfect(this.records))
     if (this.mode === 'daily') void this.fetchReportDaily(0)
@@ -877,7 +903,7 @@ export class Game {
     this.reportDaily = d
     this.fadeFrom = this.T
     this.uiT0 = this.T
-    this.enterReport(this.T + 0.2)
+    this.enterReport(this.T + 0.2, false)
   }
 
   // ------------------------------------------------------------------ rendering
