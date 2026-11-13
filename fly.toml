@@ -13,8 +13,10 @@ primary_region = "sin"
   PORT = "8787"
   # the database lives on the volume (see [[mounts]]), so it survives deploys and restarts
   DATABASE_FILE = "/data/minitude.db"
-  # a copy of the database every day on the same volume; the newest 7 are kept
+  # a copy of the database every day on the same volume; only the newest 3 are kept (each copy is as big as the database, 72 MB in Nov 2026,
+  # on a 1 GB volume; Fly also snapshots the whole volume every day and keeps 5 days of them)
   BACKUP_DIR = "/data/backups"
+  BACKUP_KEEP = "3"
   # Fly's front door puts the visitor's address in this header (the server needs it to limit daily runs per network)
   CLIENT_IP_HEADER = "fly-client-ip"
   # the answer checker's model. Your local packages/server/.env sets this, but Fly never sees that file; without this line the server would
