@@ -12,7 +12,7 @@ Regenerate and republish it whenever the questions or answers change: a new batc
 
 ```powershell
 # 1. snapshot the LIVE database from Fly + build the page (list every batch of drafts that is not live yet)
-.\tools\bank-sheet\refresh.ps1 -Drafts "C:\Users\weibi\minitude\list-build\batch1\bank.json=Batch 1"
+.\tools\bank-sheet\refresh.ps1    # with nothing waiting to be vetted; otherwise add -Drafts "C:\Users\weibi\minitude\list-build\<batch>\bank.json=Batch N"
 # 2. publish C:\Users\weibi\minitude\list-build\sheet\bank-sheet.html with the Artifact tool, same file path (keeps the link)
 ```
 
