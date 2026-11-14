@@ -1,12 +1,13 @@
 import { Hono, type Context } from 'hono'
 import { cors } from 'hono/cors'
 import {
-  RUN_LENGTH, dayNumber, msToReset, streakOf, utcDay,
-  type DailyState, type StartQuestionResponse, type StartRunResponse,
+  MAX_POINTS, RUN_LENGTH, dayNumber, msToReset, streakOf, utcDay,
+  type AnswerListItem, type AnswerListPage, type AnswersSummary, type DailyState, type RankResponse, type StartQuestionResponse, type StartRunResponse,
 } from '@minitude/core'
 import type { QuestionHead } from './questions'
 import type { Judge, JudgeMode } from './judge/types'
 import { ipFingerprint, isLoopback } from './clientip'
+import { normalize } from './normalize'
 import { ensureDailySet, epochDay } from './daily'
 import { POLICY_VERSION, runTotal, type DailyPlayRow, type Repo, type RunQuestionRow } from './db/repo'
 import { VersusHub } from './versus'
@@ -91,7 +92,7 @@ export function createApp(deps: AppDeps) {
     if (hits.size > 5000) for (const [k, v] of hits) if (v.every((x) => t - x >= 60_000)) hits.delete(k)
     return arr.length > limit
   }
-  const fail = (c: Context, status: 400 | 404 | 409 | 429 | 503, error: string, code?: string) => c.json({ error, ...(code ? { code } : {}) }, status)
+  const fail = (c: Context, status: 400 | 403 | 404 | 409 | 429 | 503, error: string, code?: string) => c.json({ error, ...(code ? { code } : {}) }, status)
   /** time the player has in total for this question: the clock, the browser's start delay, a grace period, and the time spent checking */
   const allowedMs = (q: RunQuestionRow) => seconds * 1000 + START_DELAY_MS + GRACE_MS + q.busyMs
   const isLate = (q: RunQuestionRow, t: number) => q.startedAt !== null && t - q.startedAt > allowedMs(q)
@@ -151,6 +152,21 @@ export function createApp(deps: AppDeps) {
   /** how many gems each category holds (for the cabinet). Counts only: no prompts, no answers. */
   app.get('/api/gems', (c) => c.json(repo.gemSummary()))
 
+  /**
+   * Where a score ranks among every finished solo and Daily run on record (counts only, nothing about anyone). Equal scores share a rank.
+   * `mine=1` says the score is already one of those runs; without it the score is counted as one more (a multiplayer match is not stored).
+   */
+  app.get('/api/rank', (c) => {
+    if (limited(clientIp(c))) return fail(c, 429, 'Too many requests. Slow down.', 'rate')
+    const raw = c.req.query('points') ?? ''
+    const points = Number(raw)
+    if (!/^\d{1,4}$/.test(raw) || points > MAX_POINTS) return fail(c, 400, 'Bad request.')
+    const { runs, above } = repo.runsRank(points)
+    const rank = above + 1
+    const body: RankResponse = { rank, total: Math.max(rank, c.req.query('mine') === '1' ? runs : runs + 1) }
+    return c.json(body)
+  })
+
   app.get('/api/daily', (c) => {
     const guest = guestOf(c)
     if (!guest) return fail(c, 400, 'Missing guest id.', 'guest')
@@ -185,6 +201,74 @@ export function createApp(deps: AppDeps) {
       runId: run.id, count: run.questions.length, seconds, mode: 'daily', day, number: dayNumber(epochDay(repo, day), day),
     }
     return c.json(body)
+  })
+
+  // ------------------------------------------------------------------ "what counted": every accepted answer of a Daily question, for the player who finished that Daily
+  /**
+   * The question `index` of the Daily `day` that this guest has FINISHED, or the error reply. Nothing about a question's answers is given before the
+   * player has finished (and a guest only ever sees the Daily they played themselves).
+   */
+  const finishedDailyQuestion = (c: Context): { q: RunQuestionRow } | { err: Response } => {
+    if (limited(clientIp(c))) return { err: fail(c, 429, 'Too many requests. Slow down.', 'rate') }
+    const guest = guestOf(c)
+    if (!guest) return { err: fail(c, 400, 'Missing guest id.', 'guest') }
+    const day = c.req.query('day') ?? ''
+    const index = Number(c.req.query('index'))
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !Number.isInteger(index) || index < 0 || index >= RUN_LENGTH) return { err: fail(c, 400, 'Bad request.') }
+    let play = repo.dailyPlay(day, guest)
+    if (!play) return { err: fail(c, 404, 'You did not play that Daily.', 'no_play') }
+    play = settle(play)
+    if (play.finishedAt === null) return { err: fail(c, 403, 'Finish your Daily first.', 'not_finished') }
+    const q = repo.getRun(play.runId)?.questions[index]
+    if (!q) return { err: fail(c, 404, 'Unknown question.') }
+    return { q }
+  }
+
+  /** how many accepted answers each rarity holds for the question, and its gem */
+  app.get('/api/daily/answers', (c) => {
+    const found = finishedDailyQuestion(c)
+    if ('err' in found) return found.err
+    const q = found.q
+    const counts = repo.answerTierCounts(q.id)
+    const gem = repo.gemOf(q.id)
+    const gemRow = gem ? repo.getAnswer(q.id, gem.answerNorm) : undefined
+    if (gemRow) counts[gemRow.tier] = Math.max(0, counts[gemRow.tier] - 1)   // the gem is counted under SINGULARITY, not under its stored rarity
+    const tiers = [...counts, gemRow ? 1 : 0].map((count, tier) => ({ tier, count }))
+    const body: AnswersSummary = {
+      question: { id: q.id, category: q.category, prompt: q.prompt },
+      total: tiers.reduce((a, t) => a + t.count, 0),
+      tiers,
+      gem: gemRow ? { name: gemRow.name, description: gem?.description ?? gemRow.description ?? '' } : null,
+    }
+    return c.json(body)
+  })
+
+  /** a page of the accepted answers: one rarity (`tier`), or a search across all of them (`q`); A to Z, 100 at a time */
+  app.get('/api/daily/answers/list', (c) => {
+    const found = finishedDailyQuestion(c)
+    if ('err' in found) return found.err
+    const q = found.q
+    const tierText = c.req.query('tier')
+    const tier = tierText === undefined || tierText === '' ? null : Number(tierText)
+    const text = (c.req.query('q') ?? '').trim()
+    const offset = Math.max(0, Math.floor(Number(c.req.query('offset') ?? 0)) || 0)
+    const limit = Math.min(200, Math.max(1, Math.floor(Number(c.req.query('limit') ?? 100)) || 100))
+    if ((tier !== null && (!Number.isInteger(tier) || tier < 0 || tier > 6)) || text.length > 60 || (tier === null && !text)) return fail(c, 400, 'Bad request.')
+    const gem = repo.gemOf(q.id)
+    const gemRow = gem ? repo.getAnswer(q.id, gem.answerNorm) : undefined
+    let page: AnswerListPage
+    if (tier === 6) {
+      // the gem alone
+      const matches = !!gemRow && (!text || normalize(gemRow.name).includes(normalize(text)))
+      page = { total: matches ? 1 : 0, offset: 0, items: matches && gemRow ? [{ name: gemRow.name, tier: 6 }] : [] }
+    } else {
+      // a rarity's own list leaves the gem out (it is under SINGULARITY); a search shows it, marked as the gem
+      const { total, rows } = repo.answerPage(q.id, { tier, q: text, excludeNorm: tier !== null && gemRow ? gemRow.norm : null, offset, limit })
+      const also = repo.aliasesFor(q.id, rows.map((r) => r.norm))
+      const items: AnswerListItem[] = rows.map((r) => ({ name: r.name, tier: gemRow && r.norm === gemRow.norm ? 6 : r.tier, ...(also.get(r.norm) ? { also: also.get(r.norm) } : {}) }))
+      page = { total, offset, items }
+    }
+    return c.json(page)
   })
 
   // ------------------------------------------------------------------ a run

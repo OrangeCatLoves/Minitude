@@ -5,6 +5,10 @@
  */
 @font-face { font-family: 'Silkscreen'; src: url('/fonts/Silkscreen-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
 @font-face { font-family: 'Silkscreen'; src: url('/fonts/Silkscreen-Bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'PixelifyFix'; src: url('/fonts/PixelifyFix-400.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'PixelifyFix'; src: url('/fonts/PixelifyFix-500.ttf') format('truetype'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'PixelifyFix'; src: url('/fonts/PixelifyFix-600.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'PixelifyFix'; src: url('/fonts/PixelifyFix-700.ttf') format('truetype'); font-weight: 700; font-display: swap; }
 
 :root {
   --ink: #070b17;
@@ -21,6 +25,8 @@
   --ok: #8dffb4;
   --pixel: 'Silkscreen', 'Courier New', monospace;
   --text: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* the game's own text font for the panels that sit over the game (the answers screen, the gem cabinet); the plain font stays for the page under the report and the privacy page */
+  --read: 'PixelifyFix', var(--text);
 }
 
 /* ------------------------------------------------------------------ the page under the report */
@@ -46,6 +52,10 @@ html.has-after, html.has-after body { height: auto; overflow-x: hidden; overflow
 .af-stat { margin: 0; padding: 0; min-width: 0; }
 .af-stat dt { font: 400 10px/1.2 var(--pixel); letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint); }
 .af-stat dd { margin: 6px 0 0; font: 700 30px/1 var(--pixel); color: var(--off); font-variant-numeric: tabular-nums; }
+
+.af-stat.af-rank { grid-column: 1 / -1; padding-top: 16px; border-top: 1px solid var(--line); }
+.af-rank dd:not(.af-stat-sub) { font: 700 46px/1 'PixelifyFix', var(--pixel); color: var(--cyan); }
+.af-stat dd.af-stat-sub { margin: 10px 0 0; font: 400 11px/1.4 var(--pixel); letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
 
 .af-rating { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
 .af-rate-btn {
@@ -98,7 +108,7 @@ html.has-after, html.has-after body { height: auto; overflow-x: hidden; overflow
 
 /* ------------------------------------------------------------------ the gem cabinet (opens over the game from the title screen and the report) */
 #cabinet { position: fixed; inset: 0; z-index: 10; background: rgba(4, 6, 16, 0.86); overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding: max(18px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) max(18px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); font: 15px/1.5 var(--text); color: var(--body); }
+  padding: max(18px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) max(18px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); font: 16px/1.5 var(--read); color: var(--body); }
 #cabinet[hidden] { display: none; }
 .cab-box { max-width: 880px; margin: 0 auto; background: var(--panel); border: 1px solid rgba(196, 176, 255, 0.45); padding: 20px 22px 26px; }
 .cab-head { display: flex; align-items: baseline; gap: 14px; }
@@ -106,7 +116,7 @@ html.has-after, html.has-after body { height: auto; overflow-x: hidden; overflow
 .cab-count { font: 700 14px/1 var(--pixel); letter-spacing: 0.1em; color: #d6c8ff; font-variant-numeric: tabular-nums; }
 .cab-close { margin-left: auto; padding: 9px 14px; background: transparent; color: var(--off); border: 2px solid var(--line-strong); font: 700 11px/1 var(--pixel); letter-spacing: 0.16em; cursor: pointer; }
 .cab-close:hover { border-color: var(--cyan); color: var(--cyan); }
-.cab-intro { margin: 12px 0 4px; color: var(--soft); font-size: 14px; max-width: 62ch; }
+.cab-intro { margin: 12px 0 4px; color: var(--soft); font-size: 15px; max-width: 62ch; }
 .cab-empty { margin: 26px 0 8px; color: var(--faint); }
 .cab-cat { margin-top: 22px; }
 .cab-cat-h { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); font: 700 11px/1.3 var(--pixel); letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
@@ -118,7 +128,7 @@ button.cab-slot:hover, button.cab-slot:focus-visible, .cab-slot.on { border-colo
 .cab-slot.locked { border-style: dashed; color: var(--faint); }
 .cab-gem { width: 48px; height: 48px; image-rendering: pixelated; display: block; }
 .cab-gem.dim { filter: brightness(0.16) saturate(0.25); opacity: 0.85; }
-.cab-name { max-width: 100%; font-size: 12px; line-height: 1.25; overflow-wrap: anywhere; }
+.cab-name { max-width: 100%; font-size: 13px; line-height: 1.25; overflow-wrap: anywhere; }
 .cab-card { display: flex; gap: 18px; align-items: center; margin: 16px 0 4px; padding: 16px 18px; background: #100c28; border: 1px solid rgba(196, 176, 255, 0.55); }
 .cab-big { width: 96px; height: 96px; flex: none; image-rendering: pixelated; }
 .cab-card-t { min-width: 0; }
@@ -126,12 +136,63 @@ button.cab-slot:hover, button.cab-slot:focus-visible, .cab-slot.on { border-colo
 .cab-card-name { margin-top: 4px; font: 700 22px/1.25 var(--pixel); color: var(--off); overflow-wrap: anywhere; }
 .cab-card p { margin: 6px 0 0; }
 .cab-card-desc { color: var(--body); }
-.cab-card-q, .cab-card-day { color: var(--faint); font-size: 13px; }
+.cab-card-q, .cab-card-day { color: var(--faint); font-size: 14px; }
 :where(#cabinet) :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 @media (max-width: 520px) {
   .cab-box { padding: 16px 14px 20px; }
   .cab-grid { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
   .cab-card { flex-direction: column; align-items: flex-start; }
+}
+
+/* ------------------------------------------------------------------ "everything that counted" (the answers of a Daily question, opened from its report) */
+#answers { position: fixed; inset: 0; z-index: 10; background: rgba(4, 6, 16, 0.86); overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: max(18px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) max(18px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); font: 16px/1.5 var(--read); color: var(--body); }
+#answers[hidden] { display: none; }
+.ans-box { max-width: 760px; margin: 0 auto; background: var(--panel); border: 1px solid var(--line-strong); padding: 20px 22px 26px; }
+.ans-head { display: flex; align-items: baseline; gap: 14px; }
+.ans-title { margin: 0; font: 700 14px/1.2 var(--pixel); letter-spacing: 0.2em; color: var(--off); }
+.ans-close { margin-left: auto; padding: 9px 14px; background: transparent; color: var(--off); border: 2px solid var(--line-strong); font: 700 11px/1 var(--pixel); letter-spacing: 0.16em; cursor: pointer; }
+.ans-close:hover { border-color: var(--cyan); color: var(--cyan); }
+.ans-cat { margin: 18px 0 0; font: 700 10px/1.2 var(--pixel); letter-spacing: 0.18em; color: var(--soft); }
+.ans-q { margin: 4px 0 0; font: 600 23px/1.3 var(--read); color: var(--off); }
+.ans-own { margin: 8px 0 0; color: var(--body); } .ans-own b { color: var(--off); }
+.ans-note { margin: 8px 0 0; color: var(--faint); font-size: 15px; }
+.ans-error { margin: 12px 0; color: var(--amber); }
+.ans-searchbox { display: block; margin: 16px 0 6px; }
+.ans-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.ans-search { width: 100%; box-sizing: border-box; padding: 12px 14px; background: var(--ink); color: var(--off); border: 1px solid var(--line-strong); border-radius: 0; font: 17px/1.3 var(--read); }
+.ans-search::placeholder { color: var(--faint); opacity: 1; }
+.ans-search:hover { border-color: var(--soft); }
+.ans-tiers { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.ans-tier { border: 1px solid var(--line); border-left: 4px solid var(--tc, var(--line)); background: var(--ink); }
+.ans-tier-h { width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 12px; background: transparent; color: var(--off); border: 0; font: inherit; text-align: left; cursor: pointer; }
+.ans-tier-h:hover:not(:disabled), .ans-tier-h[aria-expanded="true"] { background: rgba(255, 255, 255, 0.04); }
+.ans-tier-h:disabled { cursor: default; color: var(--faint); }
+.ans-dot { width: 10px; height: 10px; flex: none; background: var(--tc, var(--soft)); }
+.ans-tier-n { font: 700 12px/1 var(--pixel); letter-spacing: 0.12em; text-transform: uppercase; }
+.ans-tier-p { color: var(--faint); font-size: 13px; }
+.ans-yours { margin-left: 4px; padding: 2px 6px; border: 1px solid var(--cyan); color: var(--cyan); font: 700 9px/1.2 var(--pixel); letter-spacing: 0.12em; white-space: nowrap; }
+.ans-tier-c { margin-left: auto; font: 700 16px/1 var(--pixel); font-variant-numeric: tabular-nums; }
+.ans-caret { width: 14px; color: var(--soft); font-size: 10px; text-align: center; }
+.ans-list-wrap { padding: 2px 14px 14px 26px; }
+.ans-names { list-style: none; margin: 0; padding: 0; columns: 2 220px; column-gap: 24px; }
+.ans-name { break-inside: avoid; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 4px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.ans-name.mine .ans-n { color: var(--cyan); }
+.ans-n { color: var(--off); }
+.ans-also { flex-basis: 100%; color: var(--faint); font-size: 13px; }
+.ans-chip { display: inline-block; margin-left: auto; padding: 1px 7px; border: 1px solid var(--tc, var(--line-strong)); color: var(--tc, var(--soft)); font-size: 12px; white-space: nowrap; }
+.ans-foot { margin-top: 10px; }
+.ans-more { padding: 10px 14px; background: transparent; color: var(--cyan); border: 2px solid var(--cyan); font: 700 11px/1 var(--pixel); letter-spacing: 0.12em; cursor: pointer; }
+.ans-more:hover { background: var(--cyan); color: var(--ink); }
+.ans-found { margin-top: 12px; }
+.ans-gem-name { margin: 4px 0 0; font: 700 22px/1.25 var(--pixel); color: #d6c8ff; overflow-wrap: anywhere; }
+.ans-gem-line { margin: 6px 0 0; color: var(--body); }
+.ans-gem-note { margin: 8px 0 0; color: var(--faint); font-size: 14px; }
+:where(#answers) :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+@media (max-width: 520px) {
+  .ans-box { padding: 16px 14px 20px; }
+  .ans-tier-p { display: none; }
+  .ans-names { columns: 1; }
 }
 
 /* ------------------------------------------------------------------ the privacy page */

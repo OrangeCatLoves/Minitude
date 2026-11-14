@@ -327,8 +327,13 @@ export const REPORT_BUTTONS: ReportButtons = {
   home: { x: 476, y: 650, w: 170, h: 50 },
 }
 
+/** the clickable band of row i of the report's list of answers (a Daily: it opens "everything that counted") */
+export const reportRowBox = (i: number, hasExtraLine: boolean): PlayBox => ({ x: 80, y: (hasExtraLine ? 394 : 378) + i * 34 - 24, w: 540, h: 32 })
+
 /** what the report shows besides the run itself */
 export interface ReportExtras {
+  /** a Daily: its rows open the list of every accepted answer; `hover` is the row under the mouse (-1 = none). null = the rows do nothing. */
+  answers: null | { hover: number }
   /** the cabinet, for the gem line and the small gem beside a gem answer (null = no cabinet, nothing shown) */
   gem: null | { icon: HTMLCanvasElement; found: number; total: number }
   /** the second button: 'PLAY AGAIN' after a solo run, 'SOLO RUN' after the daily */
@@ -362,6 +367,13 @@ export function report(c: Ctx, tr: number, recs: Rec[], data: ReportData, toast:
     const ra = easeOut((tr - 0.9 - 0.22 * i) / 0.35)
     if (ra <= 0) return
     const ry_ = top + i * 34 + (1 - ra) * 12
+    if (extras.answers) {
+      // a row that opens: a faint band under the mouse and a small arrow at its end
+      const hv = extras.answers.hover === i
+      if (hv) rect(c, 80, ry_ - 24, 540, 32, lerpc(dark, [26, 34, 66], ra))
+      const ac = lerpc(dark, hv ? OFF : [112, 126, 172], ra)
+      for (let k = 0; k < 3; k++) rect(c, x + 504 + 2 * k, ry_ - 10 + 2 * k, 12 - 4 * k, 2, ac)
+    }
     if (r.miss) {
       rect(c, x, ry_ - 14, 14, 14, lerpc(dark, [84, 98, 140], ra))
       stext(c, 'time ran out', x + 30, ry_, PXF(23, 500), lerpc(dark, FAINT, ra))
@@ -371,7 +383,7 @@ export function report(c: Ctx, tr: number, recs: Rec[], data: ReportData, toast:
     rect(c, x, ry_ - 14, 14, 14, lerpc(dark, TIERS[r.ti].edge, ra))
     // a long name is made smaller so it never runs into its points
     let nf = 23
-    while (nf > 14 && textWidth(PXF(nf, 500), r.answer) > 395) nf--
+    while (nf > 14 && textWidth(PXF(nf, 500), r.answer) > 360) nf--
     stext(c, r.answer, x + 30, ry_, PXF(nf, 500), lerpc(dark, OFF, ra))
     if (r.ti === GEM_TIER && extras.gem) {
       c.save()
@@ -385,8 +397,9 @@ export function report(c: Ctx, tr: number, recs: Rec[], data: ReportData, toast:
     const la = easeOut((tr - 2.0) / 0.5)
     const n = data.gems
     const txt = n > 0 ? `${n} GEM${n === 1 ? '' : 'S'} FOUND IN THIS DIVE  ·  CABINET ${extras.gem.found} / ${extras.gem.total}` : `CABINET ${extras.gem.found} / ${extras.gem.total}`
-    stext(c, txt, x, 628, SILF(12, false), lerpc(dark, [214, 200, 255], la), 3)
+    stext(c, txt, x, 636, SILF(12, false), lerpc(dark, [214, 200, 255], la), 3)
   }
+  if (extras.answers) stext(c, 'CLICK AN ANSWER (OR PRESS 1 TO 7) TO SEE EVERYTHING THAT COUNTED', x, 614, SILF(11, false), lerpc(dark, [150, 164, 204], easeOut((tr - 2.2) / 0.5)), 2)
   const ba = easeOut((tr - 2.6) / 0.5)
   if (ba > 0.01) {
     const col = lerpc(dark, OFF, ba)

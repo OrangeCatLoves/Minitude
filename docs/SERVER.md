@@ -189,3 +189,11 @@ Every approved question has one **gem**: a very obscure answer that scores 120 p
 - **Data:** `packages/server/data/gems.json` (200 gems, owner-approved 14 Nov 2026: `question`, `answer`, `description`, `tier` = the stored rarity it was picked at, `note`).
 - **Importing on the live site** follows the usual steps: a `db backup` first, `gems import --dry-run`, then for real, then `gems audit`. The migration runs by itself when the new code starts.
 - **Multiplayer and the Daily** need no changes: they take the checker's tier and points (`TIERS` has seven entries).
+
+## What counted (the Daily report's answer lists)
+
+`GET /api/daily/answers?day=YYYY-MM-DD&index=0..6` returns `{ question, total, tiers: [{ tier 0..6, count }], gem }`; `GET /api/daily/answers/list?day&index&tier=0..6` or `&q=text` (not both needed) returns `{ total, offset, items: [{ name, tier, also? }] }` A to Z, `offset`/`limit` (default 100, max 200). Both need the `x-guest` header of a guest whose Daily of that day is FINISHED (`403 not_finished` while it is open, `404 no_play` otherwise). Repo: `answerTierCounts`, `answerPage` (tier / search / exclude one answer / paging), `aliasesFor` (curated aliases only). The gem is tier 6 in both: its own count of 1, left out of its stored rarity's list, and shown as tier 6 in a search. Tested in `test/answers.test.ts`.
+
+## Rank
+
+`GET /api/rank?points=0..840[&mine=1]` returns `{ rank, total }`: `rank` = 1 + the number of finished runs that scored more, `total` = the finished runs (+1 when `mine` is not given: a score that is not among them, like a multiplayer match). A run is finished when every one of its questions has a result (`Repo.runsRank`); solo and Daily runs both count, rooms are not stored. No guest id needed; the replies hold only the two numbers (tested in `test/rank.test.ts`). Words for it: `packages/core/src/rank.ts`.

@@ -1,5 +1,5 @@
 /** Talks to the Minitude API. In development Vite proxies /api to the server; in production set VITE_API_BASE if it lives elsewhere. */
-import type { AnswerResponse, DailyState, GemSummary, StartQuestionResponse, StartRunResponse, VEvent, VPublicRoom, VRoom, Visibility } from '@minitude/core'
+import type { AnswerListPage, AnswerResponse, AnswersSummary, DailyState, GemSummary, RankResponse, StartQuestionResponse, StartRunResponse, VEvent, VPublicRoom, VRoom, Visibility } from '@minitude/core'
 
 const BASE: string = (import.meta.env.VITE_API_BASE as string | undefined) ?? ''
 
@@ -65,10 +65,24 @@ export function guestId(): string {
 const guestHeader = (): Record<string, string> => ({ 'x-guest': guestId() })
 
 // ------------------------------------------------------------------ calls
+/** where a score ranks among every finished solo and Daily run. `mine`: the score is already one of those runs (false for a multiplayer match, which is not stored). */
+export const getRank = (points: number, mine: boolean): Promise<RankResponse> => call(`/api/rank?points=${Math.max(0, Math.round(points))}${mine ? '&mine=1' : ''}`, undefined, 8000)
 export const startRun = (): Promise<StartRunResponse> => call('/api/run', {})
 /** how many gems each category holds (counts only: no questions, no answers) */
 export const getGemSummary = (): Promise<GemSummary> => call('/api/gems', undefined, 8000)
 export const getDaily = (): Promise<DailyState> => call('/api/daily', undefined, 8000, guestHeader())
+/** after finishing a Daily: how many accepted answers each rarity holds for question `index`, and its gem */
+export const getDailyAnswers = (day: string, index: number): Promise<AnswersSummary> =>
+  call(`/api/daily/answers?day=${encodeURIComponent(day)}&index=${index}`, undefined, 10000, guestHeader())
+/** a page of the accepted answers of that question: one rarity (`tier`) or a search (`q`), A to Z */
+export const getDailyAnswerList = (day: string, index: number, p: { tier?: number; q?: string; offset?: number; limit?: number }): Promise<AnswerListPage> => {
+  const qs = new URLSearchParams({ day, index: String(index) })
+  if (p.tier !== undefined) qs.set('tier', String(p.tier))
+  if (p.q) qs.set('q', p.q)
+  if (p.offset) qs.set('offset', String(p.offset))
+  if (p.limit) qs.set('limit', String(p.limit))
+  return call(`/api/daily/answers/list?${qs.toString()}`, undefined, 15000, guestHeader())
+}
 export const startDaily = (): Promise<StartRunResponse> => call('/api/daily/start', {}, 20000, guestHeader())
 /** tells the server that question `index` is on screen: its clock starts now, and the prompt comes back in the reply */
 export const sendStart = (runId: string, index: number): Promise<StartQuestionResponse> =>

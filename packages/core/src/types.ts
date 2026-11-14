@@ -92,3 +92,33 @@ export interface DailyState {
   total?: number
   standings?: DailyStandings
 }
+
+// ------------------------------------------------------------------ "what counted": every accepted answer of a Daily question, shown on the Daily's report
+/** one rarity (tier 0..5 as stored, 6 = the question's gem) and how many accepted answers it holds; the gem is counted under 6 and not under its stored tier */
+export interface AnswerTierCount {
+  tier: number
+  count: number
+}
+/** the reply to "show me everything that counted for question `index` of the Daily I finished" */
+export interface AnswersSummary {
+  question: Question
+  /** every accepted answer of the question */
+  total: number
+  /** always 7 entries, tier 0 to 6 */
+  tiers: AnswerTierCount[]
+  /** the SINGULARITY answer and its line (null if the question has no gem) */
+  gem: { name: string; description: string } | null
+}
+export interface AnswerListItem {
+  name: string
+  /** 0..5, or 6 for the gem */
+  tier: number
+  /** other accepted ways of writing it (a few) */
+  also?: string[]
+}
+export interface AnswerListPage {
+  /** how many answers match (all of the rarity, or those that contain the search text) */
+  total: number
+  offset: number
+  items: AnswerListItem[]
+}

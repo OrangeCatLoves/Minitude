@@ -19,6 +19,8 @@ node focus.cjs             # typing still works after Tab, clicks elsewhere, the
 node home.cjs              # the HOME button on every report (plays a solo run, today's Daily and "today's result"; answers nothing)
 node afterword.cjs         # the page under the report: logbook, rating, idea box, footer, scrolling, a swipe over a button, a phone size (docs/SITE.md; use a throw-away database)
 node gem.cjs gem 7         # SINGULARITY gems: plays seven gems (840 points), pictures of the pull / vacuum / birth, the report and the cabinet (needs a database with the gems: use a throw-away copy)
+node daily-answers.cjs ans  # the Daily's report: click an answer to see everything that counted (plays a Daily as a new guest: use a throw-away database that has the gems)
+node rank.cjs rank 3        # the rank statistic on the page under the report (plays a solo run; needs a database with the gems: use a throw-away copy)
 node glloss.cjs            # the world picture rebuilds itself after the browser takes the graphics context away (submits nothing)
 ```
 

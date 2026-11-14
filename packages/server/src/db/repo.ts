@@ -3,6 +3,7 @@ import type { Statement } from 'better-sqlite3'
 import type { Db } from './open'
 import type { QuestionHead, QuestionRecord } from '../questions'
 import { fuzzyFind, type Fuzzy } from '../match'
+import { normalize } from '../normalize'
 
 /** Version of the scoring rules stored with questions and runs. Bump it when tier meaning changes. */
 export const POLICY_VERSION = 'v1'
@@ -225,6 +226,56 @@ export class Repo {
       this.logChange(questionId, norm, 'answer removed', `${a.name} (tier ${a.tier})`, null, reason, at)
     })
     return true
+  }
+
+  // ---------------------------------------------------------------- how a score ranks
+  /**
+   * Every FINISHED run on record (solo and Daily: all of its questions have a result; a run somebody left half way is not counted), and how many
+   * of them scored more than `points`. A multiplayer match is not stored, so it is not in here.
+   */
+  runsRank(points: number): { runs: number; above: number } {
+    const r = this.st(`SELECT COUNT(*) AS runs, COALESCE(SUM(CASE WHEN total > ? THEN 1 ELSE 0 END), 0) AS above FROM (
+        SELECT SUM(COALESCE(points, 0)) AS total FROM run_questions GROUP BY run_id HAVING COUNT(*) = COUNT(result))`).get(points) as Row
+    return { runs: r.runs as number, above: r.above as number }
+  }
+
+  // ---------------------------------------------------------------- what counted (the Daily report's answer lists)
+  /** how many canonical answers each stored tier (0 to 5) holds for a question */
+  answerTierCounts(questionId: string): number[] {
+    const out = [0, 0, 0, 0, 0, 0]
+    for (const r of this.st('SELECT tier, COUNT(*) n FROM answers WHERE question_id = ? GROUP BY tier').all(questionId) as Row[]) out[r.tier] = r.n
+    return out
+  }
+  /**
+   * One page of a question's answers, A to Z. `tier` limits it to one stored tier, `q` to answers whose name, normalised name or an
+   * alias contains the text, `excludeNorm` leaves one answer out (the gem, which is shown under its own rarity).
+   */
+  answerPage(questionId: string, o: { tier: number | null; q: string; excludeNorm: string | null; offset: number; limit: number }): { total: number; rows: AnswerRow[] } {
+    const where = ['question_id = ?']
+    const args: unknown[] = [questionId]
+    if (o.tier !== null) { where.push('tier = ?'); args.push(o.tier) }
+    if (o.excludeNorm) { where.push('norm <> ?'); args.push(o.excludeNorm) }
+    if (o.q) {
+      const like = (t: string) => '%' + t.replace(/[\\%_]/g, (c) => '\\' + c) + '%'
+      const nq = like(normalize(o.q) || o.q.toLowerCase())
+      where.push("(name LIKE ? ESCAPE '\\' OR norm LIKE ? ESCAPE '\\' OR norm IN (SELECT canon_norm FROM spellings WHERE question_id = ? AND verdict = 'valid' AND source = 'alias' AND norm LIKE ? ESCAPE '\\'))")
+      args.push(like(o.q), nq, questionId, nq)
+    }
+    const w = where.join(' AND ')
+    const total = (this.st(`SELECT COUNT(*) n FROM answers WHERE ${w}`).get(...args) as Row).n as number
+    const rows = this.st(`SELECT * FROM answers WHERE ${w} ORDER BY tier, name COLLATE NOCASE, norm LIMIT ? OFFSET ?`).all(...args, o.limit, o.offset) as Row[]
+    return { total, rows: rows.map(toAnswer) }
+  }
+  /** a few other accepted ways of writing each of these answers (curated aliases only), by the answer's normalised name */
+  aliasesFor(questionId: string, norms: string[], perAnswer = 5): Map<string, string[]> {
+    const m = new Map<string, string[]>()
+    if (!norms.length) return m
+    const marks = norms.map(() => '?').join(',')
+    for (const r of this.st(`SELECT canon_norm, norm FROM spellings WHERE question_id = ? AND verdict = 'valid' AND source = 'alias' AND canon_norm IN (${marks}) ORDER BY norm`).all(questionId, ...norms) as Row[]) {
+      const list = m.get(r.canon_norm) ?? []
+      if (list.length < perAnswer) { list.push(r.norm); m.set(r.canon_norm, list) }
+    }
+    return m
   }
 
   // ---------------------------------------------------------------- gems (SINGULARITY)

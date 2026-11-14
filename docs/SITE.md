@@ -63,3 +63,7 @@ The privacy text is only true while these are: no cookies, no analytics or other
 ## The gem cabinet and the privacy page (14 Nov 2026)
 
 The browser now keeps a **fifth** item, `minitude.gems` (the gems found: question, answer, one line, day). The privacy page says "five small items", lists it, explains the cabinet and the new rarity (Singularity 120, the most a run can score is 840); its date stayed 14 November 2026 because it changed that day. It still says nothing about how answers are checked (`packages/web/test/private.test.ts`). The cabinet itself is `packages/web/src/cabinet.ts` (HTML over the game, styled in `site.css`), opened from `#cabbtn` on the title screen and the report.
+
+## Rank and the reading font (14 Nov 2026)
+
+The logbook card has a fifth statistic, **rank** ("#3" big in cyan, "of 14 dives · top 21%" under it), from `GET /api/rank`; `afterword.ts` asks for it when a run ends and shows it when the answer arrives (nothing is shown if it fails). The panels over the game (`#answers`, `#cabinet`) now read in Pixelify Sans (`--read` in `site.css`); the page under the report and the privacy page keep the plain document font.

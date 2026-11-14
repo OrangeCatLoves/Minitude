@@ -8,6 +8,7 @@ import { drawLobby, drawStandings, drawVersusPanel, itemAt, lobbyItems, type Lob
 import { VersusClient } from './versus'
 import type { Assets } from './assets'
 import type { Afterword } from './afterword'
+import type { AnswersUi } from './answers'
 import type { CabinetUi } from './cabinet'
 import { H, INK, INTRO, INTRO_EXIT, PRESS_AT, W, FAINT, SOFT } from './config'
 import { addCard, addCharge, addFall, addLand, addPull, addReveal, bgCharge, bgPull, bgReveal, frontIntro, frontPull, frontReveal, frontStamp, gates, makeGems, pose, titleCard, type Gems } from './celebrate'
@@ -18,7 +19,7 @@ import { WorldGL } from './gl'
 import { flashAt, shakeAmp, vignetteAt } from './impact'
 import { makeMiss, newRec, pullStart, schedule, skipCard, Timeline, type Cam, type Rec } from './timeline'
 import {
-  ask, CONFIRM_BOXES, Groups, hud, hudDotsOnly, introButtons, landingLines, rail, report, REPORT_BUTTONS, roll, result, scalebar, TITLE_BOXES, timeUp,
+  ask, CONFIRM_BOXES, Groups, hud, hudDotsOnly, introButtons, landingLines, rail, report, REPORT_BUTTONS, reportRowBox, roll, result, scalebar, TITLE_BOXES, timeUp,
   type AskView, type HudState, type LandingLine, type PlayBox, type ReportExtras, type TitleView,
 } from './ui'
 import { clamp01, easeInOut, easeOut, smooth, type RGB } from './util'
@@ -63,6 +64,8 @@ export class Game {
   after: Afterword | null = null
   /** the gem cabinet (what the player has found, kept in this browser); set by main.ts */
   cabinet: CabinetUi | null = null
+  /** "everything that counted" for the Daily's questions (what is accepted, by rarity); set by main.ts */
+  answers: AnswersUi | null = null
 
   private readonly gl: WorldGL
   private readonly gems: Gems
@@ -173,7 +176,7 @@ export class Game {
       // The page under the report has a text box. Its keys are its own: an "h" typed there must not mean HOME, Enter must not start a new run.
       if (e.target instanceof Element && e.target.closest('#after')) return
       // the same for the gem cabinet (Esc closes it; it must not mean HOME, Enter must not start a run)
-      if (this.cabinet?.isOpen || (e.target instanceof Element && e.target.closest('#cabinet'))) return
+      if (this.cabinet?.isOpen || this.answers?.isOpen || (e.target instanceof Element && e.target.closest('#cabinet, #answers'))) return
       if (this.phase === 'lobby') { this.lobbyKey(e); return }
       if (this.confirm) {
         // "did you mean ...?": Enter or Y is yes, Esc or N is no. Nothing else is typed meanwhile.
@@ -195,6 +198,10 @@ export class Game {
       } else if (this.phase === 'title' && (e.key === 's' || e.key === 'S') && this.titleView().secondary) {
         e.preventDefault()
         void this.press('solo')
+      } else if (this.phase === 'report' && /^[1-7]$/.test(e.key) && this.answersOn()) {
+        // the Daily's report: the number of a question opens everything that counted for it
+        e.preventDefault()
+        this.openAnswers(Number(e.key) - 1)
       } else if (this.phase === 'report' && (e.key === 'Escape' || e.key === 'h' || e.key === 'H')) {
         // back to the title (the buttons appear 2.6 s after the report starts)
         e.preventDefault()
@@ -347,6 +354,7 @@ export class Game {
       if (hit(REPORT_BUTTONS.share, p)) this.share()
       else if (hit(REPORT_BUTTONS.again, p)) void this.again()
       else if (hit(REPORT_BUTTONS.home, p)) this.home()
+      else if (this.answersOn()) { const i = this.answerRowAt(p); if (i >= 0) this.openAnswers(i) }
     })
     this.canvas.addEventListener('pointercancel', () => { this.reportDown = null })
     this.canvas.addEventListener('pointermove', (e) => { this.mouse = this.toCanvas(e) })
@@ -1090,16 +1098,43 @@ export class Game {
     this.sound.frame(T, cam, tl, this.phase === 'lobby' ? 'title' : this.phase)
   }
 
+  // ------------------------------------------------------------------ the Daily's report: click an answer to see everything that counted
+  /** the Daily this report is about (the run just played, or today's result opened from the title) */
+  private answersDay(): string | null {
+    return this.run?.day ?? this.reportDaily?.day ?? this.daily?.day ?? null
+  }
+  /** the rows of the report open the answer lists: a Daily, once the buttons are up (the same moment they can be pressed) */
+  private answersOn(): boolean {
+    return !!this.answers && this.phase === 'report' && !this.inVersus && this.mode === 'daily' && !!this.answersDay() && this.T > this.reportAt + 2.6
+  }
+  private answerRowAt(p: { x: number; y: number } | null): number {
+    if (!p) return -1
+    const extra = !!this.reportData?.extraLine
+    for (let i = 0; i < this.tl.recs.length; i++) if (hit(reportRowBox(i, extra), p)) return i
+    return -1
+  }
+  private openAnswers(i: number): void {
+    const day = this.answersDay(), r = this.tl.recs[i]
+    if (!day || !r || !this.answers) return
+    this.sound.unlock()
+    this.answers.open(day, i, r.miss || !r.known ? null : { answer: r.answer, tier: r.ti, points: r.pts })
+  }
+
   /** what the report shows besides the run: the second button's name and, for a daily, its standing and the countdown */
   private reportExtras(): ReportExtras {
     const gem = this.cabinet ? { icon: this.gems.canvas(GEM_TIER, 22), found: this.cabinet.count, total: this.cabinet.total } : null
-    if (this.inVersus) return { againLabel: 'BACK TO ROOM', daily: null, gem }
-    if (this.mode !== 'daily') return { againLabel: 'PLAY AGAIN', daily: null, gem }
+    const on = this.answersOn()
+    const hover = on ? this.answerRowAt(this.mouse) : -1
+    this.canvas.style.cursor = hover >= 0 ? 'pointer' : ''
+    const answers = on ? { hover } : null
+    if (this.inVersus) return { againLabel: 'BACK TO ROOM', daily: null, gem, answers }
+    if (this.mode !== 'daily') return { againLabel: 'PLAY AGAIN', daily: null, gem, answers }
     const d = this.reportDaily
     const ms = this.daily ? this.msToReset() : Infinity
     return {
       againLabel: 'SOLO RUN',
       gem,
+      answers,
       daily: {
         number: d?.number ?? this.run?.number ?? this.daily?.number ?? 0,
         lines: d?.standings ? standingsLines(d.standings) : [],

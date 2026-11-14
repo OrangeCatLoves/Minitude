@@ -75,3 +75,11 @@ With `?manual=1` the page exposes `window.__mt`:
 ## Gems
 
 `packages/core/test/gems.test.ts` (the tier, 840, perfect runs, the share square, the cabinet's add / save / damaged input / layout), `packages/server/test/gems.test.ts` (migration 4, the checker, `/api/gems` leaks nothing, a run scored 120, the `gems` commands, the audit), a gem round in `versus.test.ts`, a gem marker in `banksheet.test.ts`, and the gem schedule in `packages/web/test/timeline.test.ts`. `tools/browser-test/gem.cjs` plays a whole run of gems in Chrome against a server whose database has the gems (use a throw-away copy), saves a picture at each stage of the reveal, the report and the cabinet, and checks 840 points and the cabinet's storage.
+
+## What counted
+
+`packages/server/test/answers.test.ts` (who may read it: no guest, another guest, an open Daily, another day; the counts add up and put the gem under SINGULARITY; A to Z, paging, search, curated aliases shown, learned typos not, `%` and `_` are letters; bad input; nothing about how answers are checked in the replies). `tools/browser-test/daily-answers.cjs` plays a Daily (three gems, four time-outs) in Chrome and checks the arrow and hover on the report, the counts, the names A to Z, SHOW MORE, search, Esc, the number keys, a timed-out question and today's result opened from the title.
+
+## Rank
+
+`packages/core/test/rank.test.ts` (the words), `packages/server/test/rank.test.ts` (ties share a rank, half-played runs are not counted, solo and Daily both count, a score that is not among the runs counts as one more, bad input refused, only two numbers in the reply). `tools/browser-test/rank.cjs` plays a run in Chrome and checks the tile on the page under the report against the server's numbers, on a desktop and a phone-sized screen. `daily-answers.cjs` and `gem.cjs` also check that the panels really use Pixelify Sans.

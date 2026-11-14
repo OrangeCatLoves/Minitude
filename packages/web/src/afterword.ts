@@ -3,8 +3,8 @@
  * "got an idea for a question?", and the footer. It is ordinary HTML over the game, which is drawn on a canvas, so it can
  * be read, tabbed through and selected like any other page.
  */
-import { emptyLogbook, logbookStats, parseLogbook, recordRun, serializeLogbook, utcDay, type Logbook } from '@minitude/core'
-import { ApiError, sendIdea, sendRating } from './api'
+import { emptyLogbook, logbookStats, parseLogbook, rankText, recordRun, serializeLogbook, utcDay, type Logbook, type RankText } from '@minitude/core'
+import { ApiError, getRank, sendIdea, sendRating } from './api'
 import { buildFooter } from './site'
 
 const LOGBOOK_KEY = 'minitude.logbook'
@@ -47,6 +47,9 @@ export class Afterword {
   private readonly ideaBtn = el('button', 'af-btn', 'submit')
   private readonly ideaNote = el('p', 'af-note')
   private rateSeq = 0
+  /** where this run's score ranks among everyone's (null until the server has answered, or when it could not) */
+  private rank: RankText | null = null
+  private rankSeq = 0
 
   constructor(private readonly root: HTMLElement) {
     this.log = this.load()
@@ -135,7 +138,13 @@ export class Afterword {
       box.append(dt, el('dd', undefined, String(value)))
       return box
     }))
-    this.logCard.setAttribute('aria-label', `Logbook: streak ${s.streak}, played ${s.played}, average ${s.avg}, best ${s.best}`)
+    // one more statistic: where this run's score ranks among everyone's (a row of its own: the number can be long)
+    if (this.rank) {
+      const box = el('div', 'af-stat af-rank')
+      box.append(el('dt', undefined, 'rank'), el('dd', undefined, this.rank.main), el('dd', 'af-stat-sub', this.rank.sub))
+      this.stats.append(box)
+    }
+    this.logCard.setAttribute('aria-label', `Logbook: streak ${s.streak}, played ${s.played}, average ${s.avg}, best ${s.best}${this.rank ? ', rank ' + this.rank.main + ' ' + this.rank.sub : ''}`)
   }
 
   // ------------------------------------------------------------------ the game tells us a run has ended
@@ -148,7 +157,10 @@ export class Afterword {
     } else {
       this.log = this.load()
     }
+    this.rank = null
+    this.rankSeq++
     this.renderStats()
+    void this.loadRank(info)
     // a rating belongs to a run: only a run that just ended (solo or daily, with its id) or a multiplayer match can be rated
     const canRate = info.mode === 'versus' ? info.fresh : info.runId !== null
     this.rateCard.hidden = !canRate
@@ -159,6 +171,17 @@ export class Afterword {
     this.ideaNote.textContent = ''
     this.ideaNote.className = 'af-note'
     this.ideaBtn.disabled = false
+  }
+
+  /** asks the server where the score ranks; if it cannot say, the statistic is simply not shown */
+  private async loadRank(info: RunSummary): Promise<void> {
+    const mine = this.rankSeq
+    try {
+      const r = await getRank(info.points, info.mode !== 'versus')
+      if (mine !== this.rankSeq) return
+      this.rank = rankText(r.rank, r.total)
+      this.renderStats()
+    } catch { /* no statistic this time */ }
   }
 
   /** the report has settled: let the page scroll, with this sheet below the game */
