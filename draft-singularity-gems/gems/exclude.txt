@@ -1,0 +1,37 @@
+# Answers I rejected in review, and why. Format: question number | answer (as in the list)
+3 | Cocksucking Cowboy | profane name for a cocktail
+29 | Vocaloid producer | its article is about Vocaloid software, not the occupation
+35 | Eva | a single apple cultivar, not really "a fruit"
+37 | Wheat Thins | a cracker, not a dessert
+40 | AirConsole | a gaming platform, not a console
+51 | La Nouvelle branch | a canal branch, not itself a World Heritage Site
+53 | byte per second | its article describes bit rate
+54 | Star Tribune | a newspaper, not a website
+55 | Catherine Asaro | known as an author; the lead does not say scientist
+57 | Rita Lee | known as a singer, not an actor
+60 | Reva Sevander | the article text found describes the Sith, not the character
+65 | Gian Piero Ventura | a football manager, not a footballer
+89 | Tandy Video Information System | a CD-ROM player, not a toy
+93 | Didier Migaud | president of a court of auditors, not a head of state
+104 | XtreemOS | the extract found describes EU funding programmes
+12 | Kingdom of Denmark | the realm, not a country in the usual sense
+3 | Cola & Pola | a soft drink brand, not a cocktail
+21 | wobble board | its article centres on a person I would rather not feature
+37 | Triscuit | a cracker, not a dessert
+39 | Medieval Times | a dinner theatre rather than a restaurant chain
+48 | Golovnin | a caldera, not clearly a mountain
+53 | Miniassegno | a type of scrip, not a unit of measurement
+55 | Burt Rutan | an engineer rather than a scientist
+93 | Guido Carli | a banker, not a president of a country
+110 | Bane | the article text found is not about the character
+124 | Our Lady of La Vang | a Marian title, not a religion
+128 | Annobon Scops Owl | the article found is about a different (wider) species
+137 | Sticks'n'Sushi | a restaurant group, not a dish
+147 | Baltasound | a settlement, not a sea or bay
+151 | Mur de Huy | a hill climb rather than a street or square
+155 | SWViewer | a Wikipedia project page, not an article
+157 | Cult Killer | its article calls it a crime thriller, not a horror film
+160 | Otto Hightower | the extract found is garbled
+182 | Min Min | the article found is about the Australian light, not the game character
+189 | The Pleasure Garden | the article found is about gardens in general, not the Hitchcock film
+17 | Huxleysaurus | its article is about Hypselospinus (redirect)

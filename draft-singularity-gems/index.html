@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SINGULARITY gems: draft for review</title>
+<style>
+  :root { --bg:#04060f; --panel:#0b1124; --line:#243058; --text:#eef2ff; --soft:#a3b0d6; --faint:#54628c; --accent:#b99cff; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width:1320px; margin:0 auto; padding:12px 16px 28px; }
+  h1 { font:700 15px/1 Silkscreen, monospace; letter-spacing:.06em; margin:6px 0 10px; color:var(--soft); }
+  h1 b { color:var(--accent); font-weight:700; }
+  .nav { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px; }
+  .nav .sp { flex:1; }
+  button { font:700 12px/1 Silkscreen, monospace; letter-spacing:.04em; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:10px 12px; cursor:pointer; }
+  button:hover { border-color:var(--accent); } button.on { background:#1b2350; border-color:var(--accent); }
+  .screen { position:relative; width:100%; aspect-ratio:1280/780; background:#04060f; border:1px solid var(--line); }
+  .screen canvas { position:absolute; inset:0; width:100%; height:100%; image-rendering:auto; display:block; }
+  #ans { position:absolute; left:calc(340/1280*100%); top:calc(440/780*100%); width:calc(600/1280*100%); height:calc(54/780*100%); font:500 28px PixelifyFix, monospace; text-align:center; color:var(--text); background:rgba(14,20,46,.9); border:2px solid #6e7caa; border-radius:2px; outline:none; }
+  #ans:focus { border-color:var(--accent); }
+  #startbtn { position:absolute; left:calc(540/1280*100%); top:calc(640/780*100%); width:calc(200/1280*100%); padding:14px 0; font-size:16px; border-color:var(--accent); background:#1b2350; }
+  #pbtn { position:absolute; left:calc(560/1280*100%); top:calc(700/780*100%); }
+  .bar { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; align-items:center; } .bar[hidden], [hidden] { display:none !important; }
+  #chap { font:700 12px Silkscreen, monospace; color:var(--soft); margin-left:6px; }
+  #help { color:var(--soft); margin:2px 0 0; }
+  .note { margin-top:18px; padding:12px 14px; background:var(--panel); border:1px solid var(--line); border-radius:6px; color:var(--soft); font-size:14px; }
+  .note b { color:var(--text); }
+  button.accent { border-color:var(--accent); background:#1b2350; } #choice { font:700 11px Silkscreen, monospace; color:var(--soft); letter-spacing:.04em; }
+  #picker { position:fixed; inset:0; z-index:20; background:rgba(3,5,14,.82); display:flex; align-items:center; justify-content:center; padding:14px; } #picker[hidden] { display:none; }
+  .pbox { background:var(--panel); border:1px solid var(--accent); border-radius:8px; width:min(960px,100%); max-height:94vh; overflow:auto; padding:14px 16px; }
+  .phead { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; } .phead b { font:700 15px Silkscreen, monospace; letter-spacing:.06em; } #pname { color:var(--soft); margin-top:2px; font-size:13px; }
+  .pbody { display:flex; gap:18px; margin-top:10px; flex-wrap:wrap; } #pgrid { flex:1 1 520px; }
+  .prow { display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px solid #151d3a; } .plab { width:210px; font-size:12px; color:var(--soft); line-height:1.25; } .plab b { display:block; color:var(--text); font:700 12px Silkscreen, monospace; }
+  .pc { padding:3px; background:#0b1124; line-height:0; } .pc canvas { width:64px; height:64px; image-rendering:pixelated; display:block; } .pc.on { border-color:#fff; background:#1b2350; }
+  .pside { flex:0 0 220px; text-align:center; } #pbig { width:192px; height:192px; image-rendering:pixelated; background:#0b1124; border:1px solid var(--line); } #pdesc { color:var(--soft); font-size:13px; margin:8px 0; min-height:36px; } .pside button { display:block; width:100%; margin-top:8px; }
+  #pgrid { flex:1 1 520px; max-height:72vh; overflow:auto; padding-right:4px; }
+  .ptones { display:flex; gap:8px; align-items:center; margin-bottom:8px; position:sticky; top:0; background:var(--panel); padding:4px 0 8px; z-index:2; } .ptones span { font:700 11px Silkscreen, monospace; color:var(--soft); }
+  .ptone.on { background:#1b2350; border-color:#fff; }
+  .ptiles { display:grid; grid-template-columns:repeat(auto-fill, minmax(86px, 1fr)); gap:6px; }
+  .ptile { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 3px 5px; background:#0b1124; line-height:1.1; } .ptile canvas { width:64px; height:64px; image-rendering:pixelated; display:block; }
+  .ptile span { font-size:10px; color:var(--soft); text-align:center; } .ptile.on { border-color:#fff; background:#1b2350; } .ptile.on span { color:#fff; }
+  body:not(.ready) .screen::after { content:"loading…"; position:absolute; inset:0; display:grid; place-items:center; color:var(--soft); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><b>SINGULARITY</b> GEMS · DRAFT FOR REVIEW · NOT IN THE LIVE GAME</h1>
+  <div class="nav">
+    <button data-mode="tour" class="on">GUIDED TOUR</button>
+    <button data-mode="play">PLAYTEST</button>
+    <button data-mode="cabinet">GEM CABINET</button><button id="pickbtn" class="accent">CHOOSE GEM</button><span id="choice"></span>
+    <span class="sp"></span>
+    <button data-scene="ladder">LADDER</button><button data-scene="chain">THE CHAIN</button><button data-scene="reveal">THE REVEAL</button><button data-scene="report">REPORT</button>
+    <button id="mute">SOUND: ON</button>
+  </div>
+  <div class="screen">
+    <canvas id="game"></canvas>
+    <input id="ans" hidden autocomplete="off" spellcheck="false" placeholder="type an answer, press Enter">
+    <button id="startbtn" hidden>START</button>
+    <button id="pbtn" hidden>PLAY AGAIN</button>
+  </div>
+  <div class="bar" id="tourbar"><button id="prev">&larr; PREV</button><button id="pause">PAUSE</button><button id="next">NEXT &rarr;</button><button id="replay">REPLAY CHAPTER</button><span id="chap"></span></div>
+  <div class="bar" id="playbar" hidden><button id="peek">PEEK: ON</button><button id="pass">PASS THIS QUESTION (TAB)</button></div>
+  <div class="bar" id="cabbar" hidden><button id="fill30">DEMO: 60 GEMS</button><button id="fillall">DEMO: ALL 200</button><button id="empty">EMPTY IT</button></div>
+  <p id="help"></p>
+  <div id="picker" hidden><div class="pbox"><div class="phead"><div><b>CHOOSE YOUR GEM</b><div id="pname"></div></div><button id="pclose">CLOSE</button></div>
+  <div class="pbody"><div id="pgrid"></div><div class="pside"><canvas id="pbig" width="32" height="32"></canvas><div id="pdesc"></div><button id="pplay" class="accent">PLAY WITH THIS GEM</button><button id="preveal">WATCH THE REVEAL</button></div></div></div></div>
+  <div class="note"><b>What this is.</b> A design prototype for the SINGULARITY rarity (one hand-picked gem answer in each of the 200 questions, 120 points). It does not use the real game engine or server and it changes nothing in the game. In the playtest your typing is checked against the real answer lists of 14 sample questions with a simplified matcher, and the six old rarities get a simplified reveal. The gem is the Crescent in the Twilight tone, chosen by the owner on 14 Nov 2026 and used everywhere, including the reveal; CHOOSE GEM still lets you try the other 61 designs. Your cabinet is saved only in this browser.</div>
+</div>
+<script src="data/assets.js"></script>
+<script src="data/gems-data.js"></script>
+<script src="data/play-data.js"></script>
+<script src="src/gem.js"></script>
+<script src="src/designs2.js"></script>
+<script src="src/sound.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/scenes.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>

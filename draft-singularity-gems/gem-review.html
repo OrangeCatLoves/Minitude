@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The 200 gem picks: for review</title>
+<style>
+  :root { --bg:#070b17; --panel:#0d1428; --line:#243058; --text:#eef2ff; --soft:#a3b0d6; --faint:#6b7aa8; --accent:#b99cff; --warn:#ffb86b; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .wrap { max-width:1240px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:6px 0 4px; } p.lead { color:var(--soft); margin:0 0 8px; max-width:88ch; }
+  .tools { position:sticky; top:0; z-index:5; background:var(--bg); padding:10px 0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; border-bottom:1px solid var(--line); }
+  input,select,button { font:inherit; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px 10px; }
+  input[type=search] { flex:1 1 220px; min-width:160px; } button { cursor:pointer; } button:hover { border-color:var(--accent); }
+  .count { color:var(--soft); font-size:13px; margin-left:auto; }
+  table { width:100%; border-collapse:collapse; margin-top:10px; }
+  th { text-align:left; font-size:12px; color:var(--faint); font-weight:600; letter-spacing:.04em; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--line); }
+  td { padding:8px; border-bottom:1px solid #151d3a; vertical-align:top; }
+  tr.swap td { background:rgba(255,184,107,.08); }
+  .gemc { width:60px; } canvas { width:52px; height:52px; display:block; }
+  .gem { font-weight:700; font-size:16px; } .why { color:var(--text); } .q { color:var(--soft); }
+  .langs { font-variant-numeric:tabular-nums; font-weight:700; white-space:nowrap; }
+  .langs small { display:block; color:var(--faint); font-weight:400; font-size:11px; white-space:normal; max-width:140px; }
+  .low { color:#8dffb4; } .mid { color:#ffd488; } .high { color:#ffa8d6; }
+  .src { font-size:12px; margin-top:2px; } .src a { color:var(--accent); text-decoration:none; } .src a:hover { text-decoration:underline; }
+  .exc { display:inline-block; margin-left:6px; font-size:11px; padding:1px 7px; border-radius:99px; border:1px solid var(--warn); color:var(--warn); }
+  .cat td { background:#0a1126; font-weight:700; color:var(--accent); padding-top:14px; }
+  td.sw { width:70px; text-align:center; }
+  @media (max-width:760px){ th:nth-child(3), td:nth-child(3){ display:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The 200 gem picks</h1>
+  <p class="lead">One <b>obscure</b> answer per question that would be the <b>SINGULARITY</b> (120 points). Every pick is a Mythic answer in the answer list, chosen because very few people would think of it. The number under <b>Wikipedia languages</b> is how many language editions of Wikipedia have an article about it (the lower, the more obscure). Every description is written from the opening of the English Wikipedia article linked under it, so you can check each one. Tick <b>swap</b> on any you dislike, then <b>Copy my swap list</b> and paste it to me.</p>
+  <p class="lead" style="font-size:13px;color:var(--faint)">One exception, chosen by you: <b>Name a soup</b> keeps Tonkotsu ramen, with your wording. In big categories the answer lists only hold entries that are already known in 15 to 50 languages, so for some questions the least-known answer the list contains is still not tiny; those show a higher number.</p>
+  <div class="tools">
+    <input id="q" type="search" placeholder="Search a question, a gem or a category…">
+    <select id="cat"><option value="">All categories</option></select>
+    <select id="lang"><option value="">Any number of languages</option><option value="3">3 languages or fewer</option><option value="6">6 or fewer</option><option value="10">10 or fewer</option><option value="20">20 or fewer</option><option value="21">More than 20</option><option value="0">No article of its own</option></select>
+    <button id="copy">Copy my swap list</button>
+    <span class="count" id="count"></span>
+  </div>
+  <table><thead><tr><th></th><th>Gem</th><th>Question</th><th>Wikipedia languages</th><th>What it is</th><th>Swap?</th></tr></thead><tbody id="rows"></tbody></table>
+</div>
+<script src="data/gems-data.js"></script>
+<script src="src/gem.js"></script>
+<script src="src/designs2.js"></script>
+<script>
+(function () {
+  const G = window.Gem, KEY = 'gem-review-swaps-v2'
+  let swaps = new Set(); try { swaps = new Set(JSON.parse(localStorage.getItem(KEY) || '[]')) } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify([...swaps])) } catch (e) {} }
+  const cats = G.CATEGORIES.map((c) => c.name)
+  const SORTED = window.GEMS.slice().sort((a, b) => cats.indexOf(a.cat) - cats.indexOf(b.cat) || a.n - b.n)
+  const sel = document.getElementById('cat'); cats.forEach((c) => sel.insertAdjacentHTML('beforeend', '<option>' + c + '</option>'))
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+  const tbody = document.getElementById('rows')
+  function sprite(g) {
+    const cat = G.byCategory(g.cat), cv = document.createElement('canvas'); cv.width = cv.height = 104
+    G.draw(cv.getContext('2d'), cat, 52, 52, 96, {})
+    return cv
+  }
+  const langCell = (g) => g.langs == null ? '<span class="langs">–<small>' + esc(g.exc ? 'your own pick' : (g.note || 'no article of its own')) + '</small></span>' : '<span class="langs ' + (g.langs <= 6 ? 'low' : g.langs <= 20 ? 'mid' : 'high') + '">' + g.langs + '</span>'
+  function render() {
+    const q = document.getElementById('q').value.trim().toLowerCase(), c = sel.value, l = document.getElementById('lang').value
+    tbody.innerHTML = ''; let n = 0, last = ''
+    for (const g of SORTED) {
+      if (c && g.cat !== c) continue
+      if (l === '0' && g.langs != null) continue
+      if (l && l !== '0' && (g.langs == null || (l === '21' ? g.langs <= 20 : g.langs > +l))) continue
+      if (q && !(g.gem + ' ' + g.prompt + ' ' + g.cat + ' ' + g.why).toLowerCase().includes(q)) continue
+      if (g.cat !== last) { last = g.cat; tbody.insertAdjacentHTML('beforeend', '<tr class="cat"><td colspan="6">' + esc(g.cat) + '</td></tr>') }
+      const tr = document.createElement('tr'); if (swaps.has(g.n)) tr.className = 'swap'
+      tr.innerHTML = '<td class="gemc"></td><td><div class="gem">' + esc(g.gem) + (g.exc ? '<span class="exc">your exception</span>' : '') + '</div></td><td class="q">' + esc(g.prompt) + '</td><td>' + langCell(g) + '</td><td class="why">' + esc(g.why) + (g.src ? '<div class="src"><a href="' + esc(g.src) + '" target="_blank" rel="noopener">Wikipedia article</a>' + (g.note ? ' · ' + esc(g.note) : '') + '</div>' : (g.note && !g.exc ? '<div class="src">' + esc(g.note) + '</div>' : '')) + '</td><td class="sw"><input type="checkbox" ' + (swaps.has(g.n) ? 'checked' : '') + '></td>'
+      tr.firstChild.appendChild(sprite(g))
+      tr.querySelector('input').onchange = (e) => { e.target.checked ? swaps.add(g.n) : swaps.delete(g.n); tr.className = swaps.has(g.n) ? 'swap' : ''; save(); upd() }
+      tbody.appendChild(tr); n++
+    }
+    document.getElementById('count').textContent = n + ' shown · ' + swaps.size + ' marked to swap'
+  }
+  const upd = () => { document.getElementById('count').textContent = document.getElementById('count').textContent.replace(/· \d+ marked/, '· ' + swaps.size + ' marked') }
+  document.getElementById('copy').onclick = async () => {
+    const lines = window.GEMS.filter((g) => swaps.has(g.n)).map((g) => g.n + ' | ' + g.prompt + ' | currently: ' + g.gem)
+    const text = lines.length ? 'Please swap these gems:\n' + lines.join('\n') : 'No swaps marked.'
+    try { await navigator.clipboard.writeText(text); alert('Copied ' + lines.length + ' line(s). Paste them into the chat.') } catch (e) { prompt('Copy this:', text) }
+  }
+  ;['q', 'cat', 'lang'].forEach((id) => document.getElementById(id).addEventListener('input', render))
+  render()
+})()
+</script>
+</body>
+</html>

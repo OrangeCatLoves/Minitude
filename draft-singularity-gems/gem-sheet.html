@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Gem sheet</title>
+<style>
+  html,body{margin:0;background:#0b1124;color:#eef2ff;font:12px/1.25 system-ui,sans-serif}
+  h2{margin:10px 14px 4px;font-size:13px;color:#a3b0d6;font-weight:600}
+  .grid{display:grid;gap:8px 10px;padding:8px 14px}
+  .cell{background:#0d1428;border:1px solid #1d2748;border-radius:6px;padding:6px 8px}
+  .cell b{display:block;margin-bottom:4px;color:#eef2ff;font-size:12px} .cell small{color:#7f8db8;display:block;min-height:15px;margin-bottom:3px;font-size:10px}
+  .tones{display:flex;gap:4px} canvas{image-rendering:pixelated;background:#0b1124}
+  .row{display:flex;gap:8px;padding:6px 14px}
+</style></head>
+<body>
+<div id="out"></div>
+<script src="data/assets.js"></script>
+<script src="src/gem.js"></script>
+<script src="src/designs2.js"></script>
+<script>
+  // ?from=1&to=12 (design numbers, 1-based)  &s=3 (scale)  &cols=4  &ref=1 (show the six agreed icons first)
+  const q = new URLSearchParams(location.search), scale = +(q.get('s') || 3), cols = +(q.get('cols') || 4)
+  const from = +(q.get('from') || 1), to = Math.min(Gem.DESIGNS.length, +(q.get('to') || Gem.DESIGNS.length))
+  const out = document.getElementById('out'), S = 32 * scale
+  const mkc = () => { const c = document.createElement('canvas'); c.width = c.height = 32; c.style.width = c.style.height = S + 'px'; return c }
+  if (q.get('ref')) {
+    out.insertAdjacentHTML('beforeend', '<h2>THE SIX AGREED ICONS (Common to Mythic), for comparison</h2>')
+    const row = document.createElement('div'); row.className = 'row'; out.appendChild(row)
+    window.ASSETS.tierIcons.forEach((src) => { const c = mkc(), i = new Image(); i.onload = () => c.getContext('2d').drawImage(i, 0, 0); i.src = src; row.appendChild(c) })
+  }
+  out.insertAdjacentHTML('beforeend', '<h2>DESIGNS ' + from + ' TO ' + to + ' OF ' + Gem.DESIGNS.length + ', IN THE THREE RAINBOW TONES</h2>')
+  const grid = document.createElement('div'); grid.className = 'grid'; grid.style.gridTemplateColumns = 'repeat(' + cols + ', max-content)'; out.appendChild(grid)
+  for (let di = from - 1; di < to; di++) {
+    const d = Gem.DESIGNS[di], cell = document.createElement('div'); cell.className = 'cell'
+    cell.insertAdjacentHTML('beforeend', '<b>' + (di + 1) + '  ' + d.name + '</b><small>' + d.vibe + '</small>')
+    const t = document.createElement('div'); t.className = 'tones'
+    Gem.COLOURS.forEach((c, ci) => { const cv = mkc(); cv.getContext('2d').drawImage(Gem.sprite(di, ci), 0, 0); t.appendChild(cv) })
+    cell.appendChild(t); grid.appendChild(cell)
+  }
+</script>
+</body></html>

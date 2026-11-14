@@ -1,0 +1,578 @@
+[
+ {
+  "q": "games-video-game",
+  "rare": "The Witcher",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "The Witcher 3: Wild Hunt",
+  "commonTier": 1
+ },
+ {
+  "q": "games-video-game",
+  "rare": "Street Fighter",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Street Fighter II",
+  "commonTier": 1
+ },
+ {
+  "q": "history-emperor",
+  "rare": "Alexander",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Alexander I of Russia",
+  "commonTier": 2
+ },
+ {
+  "q": "history-emperor",
+  "rare": "Theodosius",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Theodosius I",
+  "commonTier": 2
+ },
+ {
+  "q": "history-emperor",
+  "rare": "Constantine",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Constantine the Great",
+  "commonTier": 0
+ },
+ {
+  "q": "history-emperor",
+  "rare": "Marcus",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Marcus Aurelius",
+  "commonTier": 0
+ },
+ {
+  "q": "history-emperor",
+  "rare": "Wu",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Wu Zetian",
+  "commonTier": 1
+ },
+ {
+  "q": "history-emperor",
+  "rare": "Septimius",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Septimius Severus",
+  "commonTier": 2
+ },
+ {
+  "q": "movies-movie",
+  "rare": "Home",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Home Alone",
+  "commonTier": 1
+ },
+ {
+  "q": "movies-movie",
+  "rare": "Snow White",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Snow White and the Seven Dwarfs",
+  "commonTier": 2
+ },
+ {
+  "q": "movies-movie",
+  "rare": "Oliver!",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Oliver & Company",
+  "commonTier": 2
+ },
+ {
+  "q": "movies-movie",
+  "rare": "Gone",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Gone with the Wind",
+  "commonTier": 1
+ },
+ {
+  "q": "movies-movie",
+  "rare": "Black",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Black Panther",
+  "commonTier": 2
+ },
+ {
+  "q": "movies-tv-series",
+  "rare": "Stranger",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Stranger Things",
+  "commonTier": 0
+ },
+ {
+  "q": "movies-tv-series",
+  "rare": "Mad",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Mad Men",
+  "commonTier": 1
+ },
+ {
+  "q": "movies-tv-series",
+  "rare": "Black",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Black Mirror",
+  "commonTier": 1
+ },
+ {
+  "q": "movies-tv-series",
+  "rare": "My Little Pony",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "My Little Pony: Friendship Is Magic",
+  "commonTier": 2
+ },
+ {
+  "q": "music-instrument",
+  "rare": "pipe",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "pipe organ",
+  "commonTier": 2
+ },
+ {
+  "q": "sports-football-club",
+  "rare": "Real Madrid",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Real Madrid Club de Fútbol",
+  "commonTier": 0
+ },
+ {
+  "q": "transport-car-brand",
+  "rare": "Mercedes",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Mercedes-Benz Group",
+  "commonTier": 0
+ },
+ {
+  "q": "transport-car-brand",
+  "rare": "Lincoln",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Lincoln Motor Company",
+  "commonTier": 2
+ },
+ {
+  "q": "misc-occupation",
+  "rare": "vice president",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Vice President of the United States",
+  "commonTier": 2
+ },
+ {
+  "q": "food-soft-drink",
+  "rare": "Ginger",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "ginger ale",
+  "commonTier": 0
+ },
+ {
+  "q": "food-restaurant-chain",
+  "rare": "A&W",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "A&W Restaurants",
+  "commonTier": 2
+ },
+ {
+  "q": "movies-actor",
+  "rare": "Emma",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Emma Watson",
+  "commonTier": 1
+ },
+ {
+  "q": "movies-director",
+  "rare": "Francis Ford",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Francis Ford Coppola",
+  "commonTier": 0
+ },
+ {
+  "q": "sports-footballer",
+  "rare": "Míchel",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Michel Platini",
+  "commonTier": 1
+ },
+ {
+  "q": "sports-stadium",
+  "rare": "Estádio Nacional",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Estádio Nacional de Brasília",
+  "commonTier": 2
+ },
+ {
+  "q": "sports-stadium",
+  "rare": "Central Stadium",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Central Stadium Yekaterinburg",
+  "commonTier": 2
+ },
+ {
+  "q": "transport-aircraft",
+  "rare": "Dassault Mirage",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Dassault Mirage 2000",
+  "commonTier": 2
+ },
+ {
+  "q": "misc-currency",
+  "rare": "Pound",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "pound sterling",
+  "commonTier": 0
+ },
+ {
+  "q": "misc-university",
+  "rare": "Trinity College",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Trinity College, Dublin",
+  "commonTier": 2
+ },
+ {
+  "q": "games-video-game-series",
+  "rare": "Mario",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Mario Kart",
+  "commonTier": 0
+ },
+ {
+  "q": "games-nintendo-game",
+  "rare": "Pokémon Red",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Pokémon Red and Blue",
+  "commonTier": 2
+ },
+ {
+  "q": "games-mario-character",
+  "rare": "Koopa",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Koopa Troopa",
+  "commonTier": 1
+ },
+ {
+  "q": "history-monarch",
+  "rare": "Alexander",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Alexander the Great",
+  "commonTier": 2
+ },
+ {
+  "q": "history-monarch",
+  "rare": "Henry V",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Henry V of England",
+  "commonTier": 1
+ },
+ {
+  "q": "history-monarch",
+  "rare": "Constantine",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Constantine the Great",
+  "commonTier": 2
+ },
+ {
+  "q": "history-monarch",
+  "rare": "Marcus",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Marcus Aurelius",
+  "commonTier": 2
+ },
+ {
+  "q": "history-saint",
+  "rare": "Constantine",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Constantine the Great",
+  "commonTier": 2
+ },
+ {
+  "q": "history-saint",
+  "rare": "Benedict",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Benedict of Nursia",
+  "commonTier": 1
+ },
+ {
+  "q": "science-operating-system",
+  "rare": "Windows Server",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Windows Server 2003",
+  "commonTier": 2
+ },
+ {
+  "q": "transport-spacecraft",
+  "rare": "Apollo",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Apollo Lunar Module",
+  "commonTier": 2
+ },
+ {
+  "q": "transport-spacecraft",
+  "rare": "Viking",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Viking 1",
+  "commonTier": 1
+ },
+ {
+  "q": "transport-spacecraft",
+  "rare": "Cassini",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Cassini–Huygens",
+  "commonTier": 1
+ },
+ {
+  "q": "misc-holiday",
+  "rare": "Eid",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Eid al-Fitr",
+  "commonTier": 0
+ },
+ {
+  "q": "games-rpg",
+  "rare": "Fallout",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Fallout 4",
+  "commonTier": 1
+ },
+ {
+  "q": "games-rpg",
+  "rare": "The Witcher",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "The Witcher 3: Wild Hunt",
+  "commonTier": 0
+ },
+ {
+  "q": "games-rpg",
+  "rare": "Dragon Quest",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Dragon Quest XI",
+  "commonTier": 1
+ },
+ {
+  "q": "games-rpg",
+  "rare": "Divinity: Original Sin",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Divinity: Original Sin 2",
+  "commonTier": 1
+ },
+ {
+  "q": "games-rpg",
+  "rare": "Kingdom Hearts χ",
+  "rareTier": 5,
+  "why": "same text as an alias/name of",
+  "common": "Kingdom Hearts",
+  "commonTier": 1
+ },
+ {
+  "q": "games-rpg",
+  "rare": "Monster Hunter",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Monster Hunter: World",
+  "commonTier": 2
+ },
+ {
+  "q": "games-rpg",
+  "rare": "Pokémon Red",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Pokémon Red and Blue",
+  "commonTier": 0
+ },
+ {
+  "q": "games-fps",
+  "rare": "Killzone",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Killzone 2",
+  "commonTier": 2
+ },
+ {
+  "q": "games-fps",
+  "rare": "Unreal",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Unreal Tournament",
+  "commonTier": 1
+ },
+ {
+  "q": "games-fps",
+  "rare": "Team Fortress",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Team Fortress 2",
+  "commonTier": 1
+ },
+ {
+  "q": "games-fighting",
+  "rare": "Tekken",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Tekken 3",
+  "commonTier": 0
+ },
+ {
+  "q": "places-palace",
+  "rare": "Royal Palace",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Royal Palace of Madrid",
+  "commonTier": 1
+ },
+ {
+  "q": "places-palace",
+  "rare": "Palace of Culture",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Palace of Culture and Science",
+  "commonTier": 2
+ },
+ {
+  "q": "places-palace",
+  "rare": "City Palace",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "City Palace, Jaipur",
+  "commonTier": 2
+ },
+ {
+  "q": "science-application",
+  "rare": "WEB",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "web application",
+  "commonTier": 2
+ },
+ {
+  "q": "movies-animated-film",
+  "rare": "Alice",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Alice in Wonderland",
+  "commonTier": 2
+ },
+ {
+  "q": "movies-animated-film",
+  "rare": "Snow White",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Snow White and the Seven Dwarfs",
+  "commonTier": 1
+ },
+ {
+  "q": "movies-horror-film",
+  "rare": "The Silence",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "The Silence of the Lambs",
+  "commonTier": 2
+ },
+ {
+  "q": "movies-animated-series",
+  "rare": "My Little Pony",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "My Little Pony: Friendship Is Magic",
+  "commonTier": 2
+ },
+ {
+  "q": "movies-animated-series",
+  "rare": "Dora",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Dora the Explorer",
+  "commonTier": 2
+ },
+ {
+  "q": "music-genre",
+  "rare": "hardcore",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "hardcore punk",
+  "commonTier": 2
+ },
+ {
+  "q": "music-abba-song",
+  "rare": "Rock 'n' Roll",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Rock'n Roll Band",
+  "commonTier": 2
+ },
+ {
+  "q": "transport-rocket",
+  "rare": "R-7",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "R-7 Semyorka",
+  "commonTier": 2
+ },
+ {
+  "q": "transport-rocket",
+  "rare": "Falcon",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "Falcon 9",
+  "commonTier": 0
+ },
+ {
+  "q": "transport-rocket",
+  "rare": "Jupiter",
+  "rareTier": 5,
+  "why": "is the start of",
+  "common": "Jupiter-C",
+  "commonTier": 1
+ },
+ {
+  "q": "misc-publication",
+  "rare": "New York",
+  "rareTier": 4,
+  "why": "is the start of",
+  "common": "New York Post",
+  "commonTier": 2
+ }
+]

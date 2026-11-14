@@ -1,0 +1,59 @@
+# Hand-made picks and hand-corrected descriptions. Every description is written from the opening of the named English Wikipedia article.
+# Format: n | answer | languages ("?" = look up on Wikidata, "-" = none) | description | Wikipedia article title | note (when the answer has no article of its own)
+0 | Sertanejo Dog | 3 | A regional dog landrace native to northeastern Brazil, traditionally used for hunting and cattle work. | Boca-preta sertanejo |
+3 | Ouzini | 1 | A cocktail invented by the novelist Michael Paraskos as an alternative national drink of Cyprus. | Ouzini |
+4 | Government cheese | 3 | Processed cheese given to welfare beneficiaries, food stamp recipients and the elderly in the United States. | Government cheese |
+8 | Passimian | - | A Pokémon species introduced in the seventh generation of the franchise (Pokémon Sun and Moon). | List of generation VII Pokémon | no article of its own: it redirects to the list of generation VII Pokémon
+11 | Battle of Port Republic | 7 | Fought on 9 June 1862 in Virginia during Stonewall Jackson's Shenandoah Valley campaign of the American Civil War. | Battle of Port Republic |
+12 | Saint Vincent and the Grenadines | 199 | An archipelagic country in the Caribbean. | Saint Vincent and the Grenadines |
+20 | Señor Spielbergo | - | A character in the Simpsons episode "A Star Is Burns". | A Star Is Burns | no article of its own: it redirects to the article on the episode "A Star Is Burns"
+21 | servant bell | 2 | A bell used to call the attention of a servant. | Servant bell |
+23 | Etcetera | 3 | An unreleased song Paul McCartney recorded as a demo on 20 August 1968, during a session for The Beatles. | Etcetera (song) |
+25 | Tommy Hinnershitz | 4 | An American racing driver, active in the 1930s, 1940s and 1950s on dirt, asphalt and board tracks. | Tommy Hinnershitz |
+33 | Dwelf | - | An experimental cat breed that is not recognised by any major cat registry. | List of experimental cat breeds | no article of its own: it is listed in the article on experimental cat breeds
+35 | youngberry | 2 | A hybrid of raspberry, blackberry and dewberry, created in the early 20th century in Louisiana. | Youngberry |
+46 | Guy de Larigaudie | 6 | A French writer of Scout novels and travel books, known as "the legendary Rover". | Guy de Larigaudie |
+52 | systemic scleroderma | 19 | An autoimmune rheumatic disease with excessive collagen build-up (fibrosis) in the skin and internal organs. | Systemic scleroderma |
+53 | sokha | 6 | A unit of land measure used in Russia in the 13th to 17th centuries. | Sokha (unit) |
+55 | Cyril V. Jackson | ? | A South African astronomer known for discovering 72 asteroids and a number of comets. | Cyril Jackson (astronomer) |
+56 | cetrimide | 7 | An antiseptic that is a mixture of three quaternary ammonium compounds. | Cetrimide |
+57 | Dhanush | 35 | An Indian actor, filmmaker, lyricist and playback singer who works mainly in Tamil films. | Dhanush |
+61 | Amanda Palmer | 32 | An American singer, songwriter, musician and performance artist. | Amanda Palmer |
+78 | Plestiodon leucostictus | 3 | The Chinese blue-tailed skink, a species of skink endemic to Taiwan. | Plestiodon leucostictus |
+81 | khondalite | 3 | A foliated metamorphic rock named after the Khond tribe of Odisha and Andhra Pradesh. | Khondalite |
+91 | Count Bleck | - | The villain of the 2007 game Super Paper Mario. | Super Paper Mario | no article of its own: it redirects to the article on Super Paper Mario
+93 | José Madriz | 12 | President of Nicaragua from December 1909 to August 1910. | José Madriz |
+94 | William Hall-Jones | 10 | The 16th prime minister of New Zealand, in office from June to August 1906. | William Hall-Jones |
+98 | Khandadhar Falls, Sundagarh | 10 | A waterfall in Odisha, India: the 9th highest in India and the second highest in Odisha. | Khandadhar Falls (Sundargarh) |
+99 | Saint Hilarion Castle | 23 | A castle in the Kyrenia Mountains of Cyprus, the best preserved ruin of the three strongholds there. | Saint Hilarion Castle |
+100 | Euromast | 23 | An observation tower in Rotterdam, designed by Hugh Maaskant and built between 1958 and 1960. | Euromast |
+101 | International Spy Museum | 13 | An independent non-profit history museum documenting the tradecraft and history of espionage. | International Spy Museum |
+110 | Tobias Snape | - | The father of Severus Snape in the Harry Potter series. | Severus Snape | no article of its own: it redirects to the article on Severus Snape
+114 | Price of Fame | 3 | A Michael Jackson song, once planned as the theme of a Pepsi commercial, released on Bad 25. | Price of Fame (Michael Jackson song) |
+115 | Khashoggi's Ship | - | A song on Queen's 1989 album The Miracle. | The Miracle (album) | no article of its own: it redirects to the article on the album The Miracle
+120 | Johnny Gottselig | 6 | A professional ice hockey left winger who played 16 seasons for the Chicago Black Hawks (1928 to 1945). | Johnny Gottselig |
+124 | Matrixism | 10 | A purported religion inspired by the Matrix film series, conceived in 2004. | Matrixism |
+125 | May 3rd Constitution Day | 8 | A Polish national holiday celebrating the Constitution of 3 May 1791, the first modern constitution in Europe. | 3 May Constitution Day |
+132 | trapiche crystal | 3 | A rare variety of emerald with a six-arm radial pattern of black spokes. | Trapiche emerald |
+136 | Rava idli | 3 | A variation of the South Indian breakfast dish idli, made with rava (semolina). | Rava idli |
+137 | Yosenabe | - | A Japanese hot pot dish (a kind of nabemono). | Nabemono | no article of its own: it redirects to the article on nabemono, Japanese hot pot dishes
+143 | Chola Empire | 12 | A medieval empire based in southern India, often called the Imperial Cholas. | Chola Empire |
+144 | Geneva Convention on Road Traffic | 8 | An international treaty promoting the development and safety of international road traffic. | Geneva Convention on Road Traffic |
+146 | Gullah | 9 | An African American ethnic group of the coastal U.S. South, from North Carolina to Florida. | Gullah |
+147 | Makadi Bay | 10 | A resort town in Egypt, about 30 km south of Hurghada. | Makadi Bay |
+151 | Copley Square | 14 | A public square in Boston's Back Bay neighborhood. | Copley Square |
+153 | Earhart | 7 | A propeller moonlet of Saturn, first seen by the Cassini spacecraft in 2009. | Earhart (moonlet) |
+155 | HexChat | - | An Internet Relay Chat client, a continuation of XChat. | XChat | no article of its own: it redirects to the article on XChat
+160 | Gwayne Hightower | 2 | A fictional character in George R. R. Martin's A Song of Ice and Fire series. | Gwayne Hightower |
+168 | Dakota Luther | 7 | An American swimmer who competed for the University of Georgia and the University of Texas. | Dakota Luther |
+174 | capri | 3 | A deep shade of sky blue, halfway between cyan and azure on the colour wheel. | Capri (color) |
+179 | Coatimundi | 22 | A member of the raccoon family (genera Nasua and Nasuella). | Coati |
+180 | Cencioni | 5 | An oval, petal-shaped type of pasta, whose name means "little rag" in Italian. | Cencioni |
+181 | Knobbed Russet | 2 | A large green and yellow apple with a rough russet and a warty, knobbly surface. | Knobby Russet |
+184 | Gutian dynasty | 16 | A line of kings originating among the Gutian people, who ruled in Mesopotamia. | Gutian rule in Mesopotamia |
+187 | Electric eyelash curler | - | A heated cosmetic wand used to curl eyelashes. | - | no Wikipedia article; described as in the answer list
+189 | Downhill | ? | A 1927 British silent drama film directed by Alfred Hitchcock. | Downhill (1927 film) |
+196 | Togo | ? | The national football team of Togo, which made its World Cup debut in 2006. | Togo national football team |
+197 | Centravanti di manovra | - | An Italian tactical term for a playmaking centre forward. | - | no Wikipedia article; described as in the answer list
+199 | Floating battery | ? | A kind of armed watercraft, often improvised or experimental, with heavy armament but few other qualities of a warship. | Floating battery |
+165 | When You Danced with Me | - | A song on ABBA's 2021 album Voyage. | Voyage (ABBA album) | no article of its own: it redirects to the article on the album Voyage
