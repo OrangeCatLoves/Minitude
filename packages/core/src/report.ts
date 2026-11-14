@@ -2,6 +2,7 @@ import { fmtSize } from './format'
 import { MAX_POINTS_DISPLAY } from './consts'
 import { sizeOfU, PLANCK_POINTS, N_WORLDS, stageOfPoints } from './scoring'
 import { isPerfect, pointsToPlanck, type RunRecord, totalPoints } from './run'
+import { GEM_TIER } from './tiers'
 
 /** [upper bound in metres, sentence]. The first row whose bound is above the size is used; every sentence is true for any size below its bound. */
 const COMPARE: [number, string][] = [
@@ -36,7 +37,11 @@ export interface ReportData {
   worldLine: string
   extraLine: string | null
   perfect: boolean
+  /** gems (SINGULARITY answers) found in this run */
+  gems: number
 }
+
+export const gemsFound = (recs: readonly RunRecord[]): number => recs.filter((r) => !r.miss && r.tier === GEM_TIER).length
 
 export function buildReport(recs: readonly RunRecord[]): ReportData {
   const total = totalPoints(recs)
@@ -50,10 +55,10 @@ export function buildReport(recs: readonly RunRecord[]): ReportData {
   let extraLine: string | null = null
   if (past) extraLine = `${total - PLANCK_POINTS} points past the edge`
   else if (stage.kind === 'unexplored') extraLine = `Planck Foam was ${pointsToPlanck(total)} points away`
-  return { total, bigSize, compare: compareLine(total, size), worldLine, extraLine, perfect: isPerfect(recs) }
+  return { total, bigSize, compare: compareLine(total, size), worldLine, extraLine, perfect: isPerfect(recs), gems: gemsFound(recs) }
 }
 
-const SQUARES = ['⬜', '🟩', '🟦', '🟪', '🟧', '🟥']
+const SQUARES = ['⬜', '🟩', '🟦', '🟪', '🟧', '🟥', '💎']
 
 /** A spoiler-free result for sharing: tier colours only, no answers. Pass the daily number for a daily run. */
 export function shareText(recs: readonly RunRecord[], dailyNumber?: number): string {

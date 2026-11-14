@@ -1,9 +1,9 @@
 /** The interface: top bar, depth rail, scale bar, the question / roll / result block, landing lines, title screen and report. */
-import { CYAN, FAINT, H, LINE, OFF, OKG, SOFT, W, AMBER } from './config'
+import { CYAN, FAINT, GEM_COUNTER, H, LINE, OFF, OKG, SOFT, W, AMBER } from './config'
 import { backOut, clamp01, easeInOut, easeOut, lerp, lerpc, rgb, smooth, ck, type RGB } from './util'
 import { ctxOf, drawText, mkCanvas, PXF, radialAdd, rect, SILF, stext, textWidth, wrapText, type Ctx } from './draw'
 import type { Rec, Timeline, Cam } from './timeline'
-import { N_WORLDS, TIERS, MAX_POINTS_DISPLAY, stageOfPoints, worldOfSlot, worldNoOfSlot, type ReportData, type RunRecord } from '@minitude/core'
+import { GEM_TIER, N_WORLDS, TIERS, MAX_POINTS_DISPLAY, stageOfPoints, worldOfSlot, worldNoOfSlot, type ReportData, type RunRecord } from '@minitude/core'
 import type { Gems } from './celebrate'
 
 export const WARN: RGB = [255, 130, 100]
@@ -28,7 +28,9 @@ export class Groups {
 export const RY0 = 118, RY1 = 592, RX = 1254
 const ry = (u: number) => RY0 + ((RY1 - RY0) * Math.max(0, Math.min(35, u))) / 35
 
-export interface HudState { nsq: number; curOpen: number; sizeTxt: string; dots: (RGB | null)[] }
+/** the gem counter in the top bar: shown once the cabinet holds a gem (null = not shown) */
+export interface HudGem { icon: HTMLCanvasElement; found: number; total: number }
+export interface HudState { nsq: number; curOpen: number; sizeTxt: string; dots: (RGB | null)[]; gem: HudGem | null }
 
 export function hud(c: Ctx, S: HudState, cam: Cam, dy = 0): void {
   const x0 = 640 - Math.trunc((7 * 14 + 6 * 10) / 2), y = 19 + dy
@@ -37,6 +39,11 @@ export function hud(c: Ctx, S: HudState, cam: Cam, dy = 0): void {
     if (k < S.nsq) rect(c, xx, y, 14, 14, S.dots[k] ?? FAINT)
     else if (k === S.curOpen) { rect(c, xx, y, 14, 14, OFF); rect(c, xx + 3, y + 3, 8, 8, [7, 11, 23]) }
     else rect(c, xx, y, 14, 14, [52, 66, 112])
+  }
+  if (S.gem) {
+    const [gx, gy] = GEM_COUNTER
+    c.drawImage(S.gem.icon, Math.round(gx - S.gem.icon.width / 2), Math.round(gy - S.gem.icon.height / 2) + dy)
+    stext(c, `${S.gem.found} / ${S.gem.total}`, gx + 20, gy + 5 + dy, SILF(13), [214, 200, 255], 2, 'l')
   }
   let fs = 34
   while (fs > 18 && textWidth(PXF(fs, 600), S.sizeTxt) > 230) fs--
@@ -228,6 +235,12 @@ export function result(c: Ctx, gems: Gems, t: number, r: Rec, dy = 0): void {
   const fd = PXF(19, 400)
   while (textWidth(fd, desc) > 700 && desc.length > 10) desc = desc.slice(0, -4).trimEnd() + '...'
   stext(c, desc, 640, 676 + dy, fd, SOFT, 0, 'c')
+  if (r.gem) {
+    const g = r.gem, ga = easeOut((tau - 0.9) / 0.4)
+    const line = g.isNew ? `NEW GEM  ·  ${g.category.toUpperCase()}  ·  CABINET ${g.found} / ${g.total}` : `ALREADY IN YOUR CABINET  ·  ${g.found} / ${g.total}`
+    const fitted = fitSmall(line, 1100)
+    stext(c, fitted.text, 640, 706 + dy, fitted.font, lerpc([12, 18, 36], [214, 200, 255], ga), fitted.ls, 'c')
+  }
 }
 
 // ------------------------------------------------------------------ lines after a landing: the "something is close" hint and the post-finale words
@@ -316,6 +329,8 @@ export const REPORT_BUTTONS: ReportButtons = {
 
 /** what the report shows besides the run itself */
 export interface ReportExtras {
+  /** the cabinet, for the gem line and the small gem beside a gem answer (null = no cabinet, nothing shown) */
+  gem: null | { icon: HTMLCanvasElement; found: number; total: number }
   /** the second button: 'PLAY AGAIN' after a solo run, 'SOLO RUN' after the daily */
   againLabel: string
   /** daily runs only. `lines` is empty until the server has answered. */
@@ -354,9 +369,24 @@ export function report(c: Ctx, tr: number, recs: Rec[], data: ReportData, toast:
       return
     }
     rect(c, x, ry_ - 14, 14, 14, lerpc(dark, TIERS[r.ti].edge, ra))
-    stext(c, r.answer, x + 30, ry_, PXF(23, 500), lerpc(dark, OFF, ra))
+    // a long name is made smaller so it never runs into its points
+    let nf = 23
+    while (nf > 14 && textWidth(PXF(nf, 500), r.answer) > 395) nf--
+    stext(c, r.answer, x + 30, ry_, PXF(nf, 500), lerpc(dark, OFF, ra))
+    if (r.ti === GEM_TIER && extras.gem) {
+      c.save()
+      c.globalAlpha = ra
+      c.drawImage(extras.gem.icon, Math.round(x + 456), Math.round(ry_ - 21))   // right of the points, so a long answer never runs into it
+      c.restore()
+    }
     stext(c, String(TIERS[r.ti].points), x + 440, ry_, PXF(21, 600), lerpc(dark, SOFT, ra), 0, 'r')
   })
+  if (extras.gem && (data.gems > 0 || extras.gem.found > 0)) {
+    const la = easeOut((tr - 2.0) / 0.5)
+    const n = data.gems
+    const txt = n > 0 ? `${n} GEM${n === 1 ? '' : 'S'} FOUND IN THIS DIVE  ·  CABINET ${extras.gem.found} / ${extras.gem.total}` : `CABINET ${extras.gem.found} / ${extras.gem.total}`
+    stext(c, txt, x, 628, SILF(12, false), lerpc(dark, [214, 200, 255], la), 3)
+  }
   const ba = easeOut((tr - 2.6) / 0.5)
   if (ba > 0.01) {
     const col = lerpc(dark, OFF, ba)

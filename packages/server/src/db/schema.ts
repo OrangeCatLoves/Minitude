@@ -176,4 +176,17 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX suggestions_status ON suggestions(status, created_at);
   CREATE INDEX suggestions_ip ON suggestions(day, ip_hash);
   `,
+  // 4: SINGULARITY gems. One gem per question: the hand-picked, very obscure answer that scores 120 points (tier 6 in the API).
+  //    It is NOT a stored tier (answers.tier stays 0 to 5, the answer keeps its rarity); the answer checker reports 6 for the question's gem.
+  //    `description` is the one line the player sees when they find it. Removing the answer removes its gem (`gems audit` finds questions without one).
+  `
+  CREATE TABLE gems (
+    question_id TEXT PRIMARY KEY REFERENCES questions(id) ON DELETE CASCADE,
+    answer_norm TEXT NOT NULL,
+    description TEXT,
+    note        TEXT,
+    created_at  INTEGER NOT NULL,
+    FOREIGN KEY (question_id, answer_norm) REFERENCES answers(question_id, norm) ON DELETE CASCADE
+  );
+  `,
 ]

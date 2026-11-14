@@ -11,7 +11,7 @@ const heads: QuestionHead[] = Array.from({ length: 8 }, (_, i) => ({ id: `q${i}`
 const CODES = ['QAAAA', 'QBBBB', 'QCCCC', 'QDDDD', 'QEEEE', 'QFFFF', 'QGGGG', 'QHHHH']
 const NAMES = ['Alice', 'Bob', 'Cara', 'Dan']
 
-/** answers from a script: "common" "rare" "mythic" are valid, "typo" asks "did you mean", "slow" waits for the test, anything else is not an answer */
+/** answers from a script: "common" "rare" "mythic" "gem" are valid ("gem" is the question's SINGULARITY gem, tier 6), "typo" asks "did you mean", "slow" waits for the test, anything else is not an answer */
 class FakeJudge implements Judge {
   readonly kind = 'list' as const
   calls: string[] = []
@@ -19,7 +19,7 @@ class FakeJudge implements Judge {
   async judge(_q: QuestionHead, text: string): Promise<JudgeOutcome> {
     this.calls.push(text)
     if (text === 'slow' && this.gate) await this.gate.promise
-    const tier = text === 'common' ? 0 : text === 'rare' ? 3 : text === 'mythic' || text === 'slow' ? 5 : -1
+    const tier = text === 'common' ? 0 : text === 'rare' ? 3 : text === 'mythic' || text === 'slow' ? 5 : text === 'gem' ? 6 : -1
     if (text === 'typo') return { res: { status: 'confirm', answer: 'Something' }, via: 'typo' }
     if (tier < 0) return { res: { status: 'invalid', message: 'No.' }, via: 'stored' }
     const res: AnswerResponse = { status: 'valid', answer: text.toUpperCase(), description: `About ${text}.`, tier, points: TIERS[tier].points }
@@ -313,6 +313,21 @@ describe('a match', () => {
     expect(end.standings[0].items[0]).toEqual({ miss: false, tier: 5, points: 100, answer: 'MYTHIC' })
     expect(of(2, 'room').pop()!.room.status).toBe('finished')
     expect(of(2, 'roundStart')).toHaveLength(7)
+  })
+
+  it('a gem scores 120 in a room, and the others see its tier only after the finder has watched their reveal', async () => {
+    const t = setup(2)
+    const { hub, code, guests, of, start } = t
+    start()
+    const res = await hub.answer(guests[0], code, 0, 'gem')
+    expect(res).toMatchObject({ status: 'valid', tier: 6, points: 120 })
+    expect(of(1, 'answered')).toHaveLength(0)         // Bob is told nothing until Alice's reveal is over
+    hub.revealed(guests[0], code, 0)
+    expect(of(1, 'answered')[0].answered).toMatchObject({ seat: 0, miss: false, tier: 6, points: 120 })
+    await hub.answer(guests[1], code, 0, 'common'); hub.revealed(guests[1], code, 0)
+    const end = of(0, 'roundEnd')[0].end
+    expect(end.totals).toEqual([{ seat: 0, total: 120 }, { seat: 1, total: 10 }])
+    expect(end.items.find((i) => i.seat === 0)).toMatchObject({ tier: 6, points: 120 })
   })
 
   it('takes everybody back to the room for a rematch, host only, and drops players who left', async () => {

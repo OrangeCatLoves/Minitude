@@ -13,6 +13,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { exportBank } from '../bankio'
+import { normalize } from '../normalize'
 import { Repo } from '../db/repo'
 import type { QuestionBank, QuestionRecord } from '../questions'
 
@@ -30,6 +31,8 @@ interface SheetQuestion {
   source?: string
   /** answers by tier 0..5; each entry is [name, ...other ways to write it] */
   t: string[][][]
+  /** the question's SINGULARITY gem (scores 120 points; the answer keeps its own tier in the lists above) */
+  gem?: { name: string; line: string }
 }
 
 const MAX_ALIASES = 5
@@ -56,7 +59,11 @@ export function buildSheetData(dbFile: string, drafts: { file: string; label: st
     for (const q of all.questions) {
       const s = statusOf.get(q.id)
       const status: Status = s === 'approved' ? 'live' : s === 'rejected' ? 'rejected' : 'draft'
-      questions.push(toSheet(q, status, status === 'live' ? 'Live game' : status === 'draft' ? 'Draft in the database' : 'Rejected'))
+      const sheet = toSheet(q, status, status === 'live' ? 'Live game' : status === 'draft' ? 'Draft in the database' : 'Rejected')
+      const gem = repo.gemOf(q.id)
+      const gemAnswer = gem ? q.answers.find((a) => normalize(a.name) === gem.answerNorm) : undefined
+      if (gem && gemAnswer) sheet.gem = { name: gemAnswer.name, line: gem.description ?? '' }
+      questions.push(sheet)
       have.add(q.id)
     }
   } finally {

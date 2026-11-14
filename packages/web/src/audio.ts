@@ -4,14 +4,14 @@
  * - Every sound is built from a few primitives (tone, bell, band-limited noise, riser, pad) at an absolute time.
  * - When the judge answers, the whole schedule of that question (roll ticks, sting, charge, dive, landing, card) is queued by game time;
  *   each frame the queue releases what is due in the next 0.25 s, so the sound stays locked to the picture.
- * - The six rarity stings are rendered once into buffers (OfflineAudioContext) after the first click.
+ * - The seven rarity stings (the seventh is the gem, SINGULARITY) are rendered once into buffers (OfflineAudioContext) after the first click.
  * - The Planck Foam finale has its own bus that is not ducked or compressed; the normal mix drops away under it.
  * - A quiet drone follows the depth of the camera.
  */
-import { CHARGE, FIN_BEATS, STOP } from './config'
+import { CHARGE, FIN_BEATS, GEM_PULL, GEM_VACUUM, STOP } from './config'
 import { seededRand } from './util'
-import { prof, type Cam, type Rec, type Timeline } from './timeline'
-import { displaySlot, worldOfSlot } from '@minitude/core'
+import { prof, pullStart, type Cam, type Rec, type Timeline } from './timeline'
+import { displaySlot, GEM_TIER, worldOfSlot } from '@minitude/core'
 import type { SoundHook } from './game'
 
 const SR = 44100
@@ -204,7 +204,7 @@ function glide(R: Rig, dst: AudioNode, at: number, f0: number, f1: number, dur: 
   o.connect(g); g.connect(node)
 }
 
-// ------------------------------------------------------------------ the six rarity stings
+// ------------------------------------------------------------------ the seven rarity stings
 function sting(R: Rig, dst: AudioNode, at: number, ti: number): void {
   const rng = seededRand(40 + ti)
   const t = (x: number) => at + x
@@ -235,6 +235,27 @@ function sting(R: Rig, dst: AudioNode, at: number, ti: number): void {
     noiseExp(R, dst, t(0.02), 2.2, 3000, 12500, 0.7, 0.22)
     sparkles(R, dst, t(0), 2.6, 18, [1318.5, 1568, 1976, 2349, 2637, 3136], 0.075, 7, 0.15, 0.55)
     ;[1046.5, 1318.5, 1568, 2093].forEach((f, i) => bell(R, dst, t(0.22 + 0.09 * i), f, 1.5, 0.2, 0.5))
+  } else if (ti === GEM_TIER) {
+    // SINGULARITY, the birth (the pull before it is scheduled separately): a deep boom, a crash of light with glass bells, a rising glass
+    // arpeggio over a pad, thirty-odd sparkles, then a warm chord settling
+    thump(R, dst, t(0), 64, 27, 1.9, 0.85, 0.5)
+    tone(R, dst, t(0), 32, 2.4, 'sine', 0.01, 0.9, 0.4)
+    noiseExp(R, dst, t(0), 1.3, 380, 9000, 0.2, 0.34)
+    bell(R, dst, t(0.01), 783.99, 2.6, 0.2, 0.9, -0.2); bell(R, dst, t(0.01), 2093, 2.2, 0.15, 0.8, 0.25); bell(R, dst, t(0.03), 1568, 2.4, 0.16, 0.8, 0.05)
+    ;[1046.5, 1174.7, 1568, 1760, 2093, 2349.3, 3136].forEach((f, i) => {
+      const at = t(0.14 + i * 0.115), v = 0.13 - i * 0.008, pan = (i % 2 ? 1 : -1) * (0.15 + 0.07 * i)
+      tone(R, dst, at, f, 1.6, 'sine', 0.003, 0.5, v, undefined, pan)
+      tone(R, dst, at, f * 2.001, 1.0, 'tri', 0.003, 0.3, v * 0.3, undefined, pan)
+    })
+    pad(R, dst, t(0.1), [261.6, 392, 659.25], 3.5, 0.2, 0.7, 1.8)
+    // thirty-odd high glints (plain sine tones: a bell's overtones would pass the top of the hearing range)
+    const glint = seededRand(9)
+    for (let k = 0; k < 34; k++) {
+      const x = 0.25 + glint() * 2.6
+      tone(R, dst, t(x), 3000 + glint() * 6200, 0.5, 'sine', 0.002, 0.1 + glint() * 0.15, (0.025 + glint() * 0.04) * (1 - x / 3.2), undefined, glint() * 2 - 1)
+    }
+    ;[523.25, 659.25, 783.99, 987.77, 1174.7].forEach((f, i) => bell(R, dst, t(1.7 + 0.05 * i), f, 2.6, 0.1, 0.9, (i - 2) * 0.25))
+    tone(R, dst, t(1.7), 65.4, 2.4, 'sine', 0.05, 0.9, 0.22)
   } else {
     tone(R, dst, t(0), 95, 3.0, 'sine', 0.004, 1.2, 0.95, 36)
     noiseExp(R, dst, t(0), 0.25, 60, 1200, 0.08, 0.6)
@@ -339,7 +360,7 @@ export class Sfx implements SoundHook {
   private duck!: GainNode      // ducked under the finale
   private fin!: GainNode       // finale stems
   private master!: GainNode
-  private stings: (AudioBuffer | null)[] = [null, null, null, null, null, null]
+  private stings: (AudioBuffer | null)[] = [null, null, null, null, null, null, null]
   private q: Ev[] = []
   private drone: { f: OscillatorNode[]; mult: number[]; air: GainNode; k: number } | null = null
   private cardPads = new Map<number, GainNode>()
@@ -429,7 +450,7 @@ export class Sfx implements SoundHook {
     return b
   }
   private async renderStings(): Promise<void> {
-    for (let ti = 0; ti < 6; ti++) {
+    for (let ti = 0; ti < this.stings.length; ti++) {
       try {
         const off = new OfflineAudioContext(2, Math.ceil(5.4 * SR), SR)
         const R: Rig = { ctx: off, noise: makeNoise(off), waves: new Map() }
@@ -561,6 +582,7 @@ export class Sfx implements SoundHook {
       this.put(r.rev - 1.2, (R, d, at) => riser(R, d, at, 1.2, 120, 1800, 0.22, 0.25))
       for (let k = 0; k < 3; k++) this.put(r.rev - 1.0 + 0.4 * k, (R, d, at) => { thump(R, d, at, 90, 50, 0.2, 0.35, 0.06); thump(R, d, at + 0.17, 80, 45, 0.2, 0.28, 0.06) })
     } else if (ti === 4) this.put(r.rev - 0.7, (R, d, at) => riser(R, d, at, 0.7, 180, 1500, 0.15, 0.15))
+    else if (ti === GEM_TIER) this.scheduleGemPull(r)
     // reveal sting after the hit-stop
     this.push(r.rev + STOP[ti], (at) => {
       const b = this.stings[ti]
@@ -579,6 +601,10 @@ export class Sfx implements SoundHook {
     this.put(r.chg, (R, d, at) => riser(R, d, at, CHARGE, 120, 1300 + 120 * ti, 0.22, 0.25))
     this.put(r.chg + 0.05, (R, d, at) => { thump(R, d, at, 130, 40, 0.5, 0.62, 0.14); noiseExp(R, d, at, 0.12, 800, 6000, 0.03, 0.25) })
     this.put(r.chg + 0.45, (R, d, at) => { bell(R, d, at, 1568 + 100 * ti, 0.6, 0.15, 0.28, 0.1); tone(R, d, at, 300, 0.2, 'sine', 0.002, 0.07, 0.15, 900) })
+    // a gem flying into the counter
+    if (ti === GEM_TIER) {
+      this.put(r.chg + 0.1, (R, d, at) => { swish(R, d, at, 0.3, 0.12, -0.4); for (let k = 0; k < 5; k++) tone(R, d, at + 0.3 + 0.05 * k, 4200 + 600 * k, 0.3, 'sine', 0.002, 0.08, 0.03, undefined, k % 2 ? 0.2 : -0.2) })
+    }
     if (r.fin) {
       this.scheduleFinale(r)
       return
@@ -602,6 +628,23 @@ export class Sfx implements SoundHook {
       bell(R, d, at + 0.02, 880, 0.8, 0.18); bell(R, d, at + 0.12, 1320, 0.8, 0.14, 0.28, 0.2)
     })
     if (r.cardOn) this.scheduleCard(r)
+  }
+
+  /**
+   * A gem: before it is born the world is pulled inward. A rising drone and a rush of air drawn in, a whistle falling away and a heartbeat that
+   * speeds up (the pull); then everything drops out for a heartbeat (the vacuum), and the birth sting follows.
+   */
+  private scheduleGemPull(r: Rec): void {
+    const p0 = pullStart(r), pull = GEM_PULL - GEM_VACUUM
+    this.put(p0, (R, d, at) => {
+      riser(R, d, at, pull, 55, 1400, 0.24, 0.3)
+      tone(R, d, at + 0.05, 2600, 1.1, 'sine', 0.2, 0.5, 0.05, 140, 0.15)
+    })
+    ;[0.18, 0.58, 0.88, 1.06].forEach((x, i) => this.put(p0 + x, (R, d, at) => thump(R, d, at, 78 - 6 * i, 38, 0.22, 0.34 + 0.05 * i, 0.08)))
+    // the vacuum: the ordinary mix drops away, and comes back at the very moment of the birth
+    const sm = (x: number) => x * x * (3 - 2 * x)
+    this.push(r.rev - GEM_VACUUM - 0.1, (at) => { this.duck.gain.cancelScheduledValues(at); this.duck.gain.setValueCurveAtTime(curve(10, (x) => 1 - 0.97 * sm(x)), at, 0.1) })
+    this.push(r.rev - 0.02, (at) => { this.duck.gain.cancelScheduledValues(at); this.duck.gain.setValueCurveAtTime(curve(6, (x) => 0.03 + 0.97 * x), at, 0.02) })
   }
 
   private scheduleCard(r: Rec): void {

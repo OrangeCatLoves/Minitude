@@ -176,3 +176,16 @@ Rooms of 2 to 4 players are in `versus.ts` (rules and clock), `versusRoutes.ts` 
 - No retention rule for `attempts` yet.
 - Daily is guests only: no accounts, history lives in one browser, clearing it gives a new guest.
 - The Dockerfile and `fly.toml` have never been built or deployed (`docs/DEPLOY.md`).
+
+## Gems (SINGULARITY)
+
+Every approved question has one **gem**: a very obscure answer that scores 120 points (tier 6 in the API). It is not a stored tier: `answers.tier` stays 0 to 5.
+
+- **Table** `gems` (migration 4): `question_id` (primary key), `answer_norm` (the canonical answer, a foreign key with `ON DELETE CASCADE`: removing the answer removes its gem and writes a `gem removed` line to `changes`), `description` (the line the player sees), `note` ("owner" in it marks a gem that is not stored Mythic), `created_at`.
+- **Checker:** `PipelineJudge.valid()` returns tier 6, 120 points and the gem's description when the canonical answer is its question's gem. Every route to the canonical answer (name, alias, "another way of writing it", a slip the player said yes to) therefore scores as the gem. A slip is still only asked about (no tier is sent until the player says yes).
+- **Repo:** `gemOf`, `setGem`, `clearGem`, `listGems`, `gemSummary` (counts per category, approved questions only).
+- **API:** `GET /api/gems` returns `{ total, categories: [{ name, total }] }`: counts only, never a prompt, answer or id (tested). Nothing else mentions gems before the player has answered.
+- **Commands:** `gems list`; `gems set <question> "<answer>" ["<line>"] [--note ".."]`; `gems clear <question>`; `gems import [file] [--dry-run]` (default `data/gems.json`; safe to run again; reports skipped entries; exit code 1 if any); `gems audit` (every approved question has a gem; gems of questions that are not approved; gem answers that are not Mythic and have no "owner" note; gems without a description; look-alike answers, informational).
+- **Data:** `packages/server/data/gems.json` (200 gems, owner-approved 14 Nov 2026: `question`, `answer`, `description`, `tier` = the stored rarity it was picked at, `note`).
+- **Importing on the live site** follows the usual steps: a `db backup` first, `gems import --dry-run`, then for real, then `gems audit`. The migration runs by itself when the new code starts.
+- **Multiplayer and the Daily** need no changes: they take the checker's tier and points (`TIERS` has seven entries).

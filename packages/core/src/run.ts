@@ -1,4 +1,4 @@
-import { RUN_LENGTH, TIERS } from './tiers'
+import { MYTHIC_TIER, RUN_LENGTH, TIERS } from './tiers'
 import { PLANCK_POINTS, VOID_START_POINTS, isInVoid, pointsToU, uToSlot, PLANCK_SLOT } from './scoring'
 
 /** What one answered question did to the run. `miss` = the time ran out without a valid answer (0 points, no shrink). */
@@ -29,7 +29,7 @@ export interface RunRecord {
 
 /**
  * Build the record for the next answer from the records so far.
- * tier = 0..5, or null for a miss.
+ * tier = 0..6 (6 = a gem), or null for a miss.
  */
 export function nextRecord(prev: readonly RunRecord[], tier: number | null): RunRecord {
   const last = prev[prev.length - 1]
@@ -58,7 +58,8 @@ export function totalPoints(recs: readonly RunRecord[]): number {
 }
 
 export function isPerfect(recs: readonly RunRecord[]): boolean {
-  return recs.length === RUN_LENGTH && recs.every((r) => !r.miss && r.tier === 5)
+  // the best ordinary run is seven Mythic answers (700); a gem is better still, so it keeps a run perfect
+  return recs.length === RUN_LENGTH && recs.every((r) => !r.miss && r.tier >= MYTHIC_TIER)
 }
 
 /** Points still needed to reach Planck Foam (0 if already there). */

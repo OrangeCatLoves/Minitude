@@ -1,4 +1,4 @@
-import { TIERS, type AnswerResponse } from '@minitude/core'
+import { GEM_TIER, TIERS, type AnswerResponse } from '@minitude/core'
 import type { AnswerRow, Repo } from '../db/repo'
 import { levenshtein, normalize } from '../normalize'
 import type { QuestionHead } from '../questions'
@@ -25,13 +25,6 @@ const NEAREST_SHOWN = 40
 const SUGGESTION_TTL_MS = 10 * 60_000
 const SUGGESTION_MAX = 500
 
-const valid = (a: AnswerRow): AnswerResponse => ({
-  status: 'valid',
-  answer: a.name,
-  ...(a.description ? { description: a.description } : {}),
-  tier: a.tier,
-  points: TIERS[a.tier].points,
-})
 const unresolved = (message: string): JudgeOutcome => ({ res: { status: 'unresolved', message }, via: 'none' })
 
 /**
@@ -69,6 +62,19 @@ export class PipelineJudge implements Judge {
   private suggested = new Map<string, { fix: Fix; via: Via; at: number }>()
   constructor(private repo: Repo, private llm: LlmClient | null, private now: () => number = Date.now) {}
 
+  /**
+   * A valid answer, as the player is told. If it is the question's gem (any way of writing it: the name, an alias, a confirmed
+   * correction all end up on the same canonical answer) it scores as SINGULARITY (tier 6) and carries the gem's own one-line story.
+   * The answer's stored rarity is left alone.
+   */
+  private valid(a: AnswerRow): AnswerResponse {
+    const gem = this.repo.gemOf(a.questionId)
+    const isGem = !!gem && gem.answerNorm === a.norm
+    const description = (isGem && gem!.description) || a.description
+    const tier = isGem ? GEM_TIER : a.tier
+    return { status: 'valid', answer: a.name, ...(description ? { description } : {}), tier, points: TIERS[tier].points }
+  }
+
   get kind(): 'list' | 'llm' { return this.llm ? 'llm' : 'list' }
 
   async judge(q: QuestionHead, text: string, mode: JudgeMode = 'ask'): Promise<JudgeOutcome> {
@@ -101,30 +107,30 @@ export class PipelineJudge implements Judge {
       // a spelling a model or the typo match learned earlier is still a correction: it is asked about, and in literal mode (the
       // player said "no, that is not what I meant") it is ignored. An answer's own name and the question's aliases are not corrections.
       const learned = stored.via === 'typo' || stored.via === 'llm'
-      if (!(learned && literal)) return { out: { res: valid(stored.answer), via: 'stored' }, ...(learned ? { fix: { canon: stored.answer, remember: null } } : {}) }
+      if (!(learned && literal)) return { out: { res: this.valid(stored.answer), via: 'stored' }, ...(learned ? { fix: { canon: stored.answer, remember: null } } : {}) }
     }
 
     // a suggestion made a moment ago, for this player or another, that nobody has answered yet: no second model call
     if (!literal) {
       const s = this.waiting(q.id + '|' + norm)
       const canon = s ? this.repo.getAnswer(q.id, s.fix.canon.norm) : undefined
-      if (s && canon) return { out: { res: valid(canon), via: s.via }, fix: { canon, remember: s.fix.remember } }
+      if (s && canon) return { out: { res: this.valid(canon), via: s.via }, fix: { canon, remember: s.fix.remember } }
     }
 
     const near = this.repo.fuzzy(q.id, norm)
 
     // The same answer written another way (a hyphen, British spelling, a Roman numeral ...) is not a misspelling: no question asked.
-    if (near?.kind === 'one' && near.loose) return { out: { res: valid(near.answer), via: 'loose' } }
+    if (near?.kind === 'one' && near.loose) return { out: { res: this.valid(near.answer), via: 'loose' } }
 
     if (!this.llm) {
       if (literal) return { out: unresolved(MSG.notFound) }
-      if (near?.kind === 'one') return { out: { res: valid(near.answer), via: 'typo' }, fix: { canon: near.answer, remember: { source: 'typo' } } }
+      if (near?.kind === 'one') return { out: { res: this.valid(near.answer), via: 'typo' }, fix: { canon: near.answer, remember: { source: 'typo' } } }
       if (near?.kind === 'ambiguous') {
         // More than one answer fits: lean toward the rarer one, so a real rarer answer is never scored down by mistake. The player is
         // asked "did you mean ...?", so a wrong guess costs one keypress. Equally rare candidates are still not guessed between.
         const top = Math.max(...near.answers.map((a) => a.tier))
         const rarest = near.answers.filter((a) => a.tier === top)
-        if (rarest.length === 1) return { out: { res: valid(rarest[0]), via: 'typo' }, fix: { canon: rarest[0], remember: { source: 'typo' } } }
+        if (rarest.length === 1) return { out: { res: this.valid(rarest[0]), via: 'typo' }, fix: { canon: rarest[0], remember: { source: 'typo' } } }
         return { out: unresolved(MSG.ambiguous) }
       }
       // Not on the list: not counted. The text is logged with the attempt, so the most-typed unknown answers can be reviewed and added.
@@ -176,7 +182,7 @@ export class PipelineJudge implements Judge {
     }
 
     const done = this.repo.tx(() => this.store(q, norm, d!, usedModel, literal))
-    return { out: { res: valid(done.row), via: 'llm' }, ...(done.fix ? { fix: done.fix } : {}) }
+    return { out: { res: this.valid(done.row), via: 'llm' }, ...(done.fix ? { fix: done.fix } : {}) }
   }
 
   /**

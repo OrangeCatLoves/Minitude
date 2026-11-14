@@ -71,3 +71,7 @@ With `?manual=1` the page exposes `window.__mt`:
 `tools/art-source/reference-stills` has a few frames from the video. The browser frames are not pixel-identical (different resampling and text rasteriser) but layout, colours, timing and effects should match. When something looks off, the Python function it came from is named in `docs/ENGINE.md`.
 - `nomodel.test.ts`: the live game never reaches a language model (the start-up code and routes are checked), edit distance (a swapped pair is one slip), the typo budget, and `looseKey` (spacing, British spelling, numerals).
 - `expand.test.ts`: the answer-list builder's merge (new answers, aliases, what a person ruled out), tiers from how well known something is, and the `answers add / alias / unknown / import-expansion` commands.
+
+## Gems
+
+`packages/core/test/gems.test.ts` (the tier, 840, perfect runs, the share square, the cabinet's add / save / damaged input / layout), `packages/server/test/gems.test.ts` (migration 4, the checker, `/api/gems` leaks nothing, a run scored 120, the `gems` commands, the audit), a gem round in `versus.test.ts`, a gem marker in `banksheet.test.ts`, and the gem schedule in `packages/web/test/timeline.test.ts`. `tools/browser-test/gem.cjs` plays a whole run of gems in Chrome against a server whose database has the gems (use a throw-away copy), saves a picture at each stage of the reveal, the report and the cabinet, and checks 840 points and the cabinet's storage.

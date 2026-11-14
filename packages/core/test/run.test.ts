@@ -71,7 +71,7 @@ describe('report', () => {
     expect(rep.total).toBe(70)
     expect(rep.bigSize).toBe('540 µm')
     expect(rep.compare).toBe('Smaller than a grain of rice.')
-    expect(rep.worldLine).toBe('70 / 700 points · world 4 of 21')
+    expect(rep.worldLine).toBe('70 / 840 points · world 4 of 21')
   })
   it('seven Exotic answers miss Planck Foam by 20', () => {
     const rep = buildReport(play([3, 3, 3, 3, 3, 3, 3]))

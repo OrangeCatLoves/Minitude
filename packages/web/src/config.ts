@@ -24,26 +24,33 @@ export const CYAN: RGB = [91, 224, 255]
 export const AMBER: RGB = [255, 200, 87]
 export const WHITE: RGB = [255, 255, 255]
 
-export const GEM = [64, 80, 92, 104, 116, 124]
-export const HOP = [6, 8, 10, 12, 14, 16]
-export const STOP = [0.0, 0.0, 0.0, 0.04, 0.09, 0.13]
-export const SHAKE_K = [0.0, 0.0, 2.5, 4.5, 7.0, 10.0]
-export const VIG_K = [0.0, 0.0, 0.22, 0.34, 0.42, 0.50]
-export const STAMP = [80, 92, 104, 112, 120, 120]
-export const TITLES: Record<number, [string, number]> = { 2: ['RARE!', 72], 3: ['EXOTIC!', 84], 4: ['LEGENDARY!', 90], 5: ['MYTHIC!', 104] }
+// index 0..5 = Common..Mythic, 6 = SINGULARITY (a gem)
+export const GEM = [64, 80, 92, 104, 116, 124, 132]
+export const HOP = [6, 8, 10, 12, 14, 16, 18]
+export const STOP = [0.0, 0.0, 0.0, 0.04, 0.09, 0.13, 0.16]
+export const SHAKE_K = [0.0, 0.0, 2.5, 4.5, 7.0, 10.0, 11.0]
+export const VIG_K = [0.0, 0.0, 0.22, 0.34, 0.42, 0.50, 0.55]
+export const STAMP = [80, 92, 104, 112, 120, 120, 120]
+export const TITLES: Record<number, [string, number]> = { 2: ['RARE!', 72], 3: ['EXOTIC!', 84], 4: ['LEGENDARY!', 90], 5: ['MYTHIC!', 104], 6: ['SINGULARITY!', 74] }
 export const TITLE_COL: Record<number, [RGB, RGB, RGB, RGB]> = {
   2: [[205, 240, 255], [79, 195, 255], [8, 34, 74], [79, 195, 255]],
   3: [[240, 224, 255], [181, 131, 255], [38, 16, 82], [181, 131, 255]],
   4: [[255, 244, 200], [255, 178, 63], [74, 40, 0], [255, 178, 63]],
   5: [[255, 236, 248], [255, 95, 176], [80, 16, 46], [255, 95, 176]],
+  6: [[255, 240, 255], [196, 176, 255], [16, 10, 44], [190, 150, 255]],   // the title itself is drawn in rainbow colours; these are its outline and glow
 }
 
 // ---- timeline constants (seconds)
 export const INTRO = 6.4          // when the first question appears, on the clock that starts at the title screen
 export const PRESS_AT = 4.9       // the PLAY button is pressed at this time on that clock
 export const INTRO_EXIT = 5.15
-export const ROLL_DUR = [1.3, 1.45, 1.6, 1.8, 2.1, 2.5]
-export const REV_HOLD = [1.5, 1.8, 2.1, 2.6, 3.1, 3.9]
+export const ROLL_DUR = [1.3, 1.45, 1.6, 1.8, 2.1, 2.5, 1.7]
+export const REV_HOLD = [1.5, 1.8, 2.1, 2.6, 3.1, 3.9, 4.1]
+/** a gem only: the roll stops on Mythic, then the world is pulled inward (GEM_PULL seconds, the last GEM_VACUUM of them in near silence), then the gem is born */
+export const GEM_PULL = 1.4
+export const GEM_VACUUM = 0.14
+/** where the gem flies to: the counter in the top bar */
+export const GEM_COUNTER: [number, number] = [430, 26]
 export const CHARGE = 0.7
 export const CARD_LEN = 7.0
 export const CARD_GAP = 0.4

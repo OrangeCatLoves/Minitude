@@ -1,0 +1,164 @@
+/**
+ * The gem cabinet: every gem the player has found, kept in this browser only (there are no accounts). It opens from a small button on
+ * the title screen and the end-of-run report. It is ordinary HTML over the game, like the page under the report.
+ *
+ * What is stored for a found gem is what the player was shown when they found it (category, question, answer, one line about it), so the
+ * cabinet can be shown without asking the server anything. Gems that are not found yet are only counted: the questions are not sent to the
+ * browser before they are asked, so a hidden slot shows nothing but its category and a question mark.
+ */
+import { addGem, cabinetView, emptyCabinet, parseCabinet, serializeCabinet, type Cabinet, type GemEntry, type GemSummary } from '@minitude/core'
+import { getGemSummary } from './api'
+
+const KEY = 'minitude.gems'
+
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
+  const e = document.createElement(tag)
+  if (className) e.className = className
+  if (text !== undefined) e.textContent = text
+  return e
+}
+
+export class CabinetUi {
+  private cab: Cabinet
+  /** the cabinet when the browser will not keep it: lasts until the page closes */
+  private memory: Cabinet | null = null
+  private summary: GemSummary | null = null
+  private summaryAt = 0
+  private opener: HTMLElement | null = null
+  private picked: string | null = null
+  private shown = false
+
+  constructor(private readonly root: HTMLElement, private readonly button: HTMLButtonElement, private readonly icon: HTMLCanvasElement | HTMLImageElement) {
+    this.cab = this.load()
+    this.button.addEventListener('click', (e) => { e.stopPropagation(); this.open() })
+    this.root.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.close() } })
+    this.root.addEventListener('click', (e) => { if (e.target === this.root) this.close() })
+    this.paintButton()
+    void this.refreshSummary()
+  }
+
+  // ------------------------------------------------------------------ what the cabinet holds
+  get count(): number { return this.cab.gems.length }
+  /** how many gems there are in all, as far as the browser knows (never less than it holds) */
+  get total(): number { return Math.max(this.summary?.total ?? 0, this.cab.gems.length) }
+  get isOpen(): boolean { return !this.root.hidden }
+
+  /** a gem was found. Returns whether it is new and the counts after it. */
+  add(entry: GemEntry): { isNew: boolean; found: number; total: number } {
+    const r = addGem(this.cab, entry)
+    if (r.isNew) { this.cab = r.cabinet; this.save() }
+    this.paintButton()
+    if (this.isOpen) this.render()
+    return { isNew: r.isNew, found: this.cab.gems.length, total: this.total }
+  }
+
+  private load(): Cabinet {
+    try { return parseCabinet(localStorage.getItem(KEY)) } catch { return this.memory ?? emptyCabinet() }
+  }
+  private save(): void {
+    try { localStorage.setItem(KEY, serializeCabinet(this.cab)); this.memory = null } catch { this.memory = this.cab }
+  }
+
+  /** the counts per category come from the server (counts only: no questions, no answers). Asked again when the cabinet is opened after a while. */
+  async refreshSummary(): Promise<void> {
+    if (Date.now() - this.summaryAt < 60_000 && this.summary) return
+    this.summaryAt = Date.now()
+    try {
+      const s = await getGemSummary()
+      if (s && typeof s.total === 'number' && Array.isArray(s.categories)) { this.summary = s; this.paintButton(); if (this.isOpen) this.render() }
+    } catch { /* the cabinet still shows what is in it */ }
+  }
+
+  // ------------------------------------------------------------------ the button (title screen and report only)
+  setButtonVisible(on: boolean): void {
+    if (on === this.shown) return
+    this.shown = on
+    this.button.hidden = !on
+  }
+  private paintButton(): void {
+    this.button.textContent = `GEM CABINET  ${this.count} / ${this.total || '?'}`
+    this.button.setAttribute('aria-label', `Open your gem cabinet: ${this.count} gems found`)
+  }
+
+  // ------------------------------------------------------------------ the screen
+  open(): void {
+    this.opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    this.picked = null
+    this.root.hidden = false
+    this.render()
+    void this.refreshSummary()
+    this.root.querySelector<HTMLElement>('.cab-close')?.focus()
+  }
+  close(): void {
+    this.root.hidden = true
+    this.root.replaceChildren()
+    this.opener?.blur()
+    this.opener = null
+  }
+
+  private gemCanvas(cls: string): HTMLCanvasElement {
+    const cv = el('canvas', cls)
+    cv.width = cv.height = 32
+    cv.setAttribute('aria-hidden', 'true')
+    const g = cv.getContext('2d')
+    if (g) { g.imageSmoothingEnabled = false; g.drawImage(this.icon, 0, 0, 32, 32) }
+    return cv
+  }
+
+  private render(): void {
+    const view = cabinetView(this.cab, this.summary)
+    const box = el('div', 'cab-box')
+    const head = el('header', 'cab-head')
+    head.append(el('h2', 'cab-title', 'GEM CABINET'), el('span', 'cab-count', `${view.found} / ${view.total || '?'}`))
+    const close = el('button', 'cab-close', 'CLOSE')
+    close.type = 'button'
+    close.addEventListener('click', () => this.close())
+    head.append(close)
+    box.append(head)
+    box.append(el('p', 'cab-intro', 'Every question hides one gem: a very rare answer worth 120 points. Find one and it is kept here, on this device only.'))
+
+    const picked = this.cab.gems.find((g) => g.id === this.picked)
+    if (picked) box.append(this.card(picked))
+
+    if (!view.categories.length) box.append(el('p', 'cab-empty', 'No gems found yet. Answer something nobody thinks of.'))
+    for (const cat of view.categories) {
+      const sec = el('section', 'cab-cat')
+      const h = el('h3', 'cab-cat-h')
+      h.append(document.createTextNode(cat.name), el('span', 'cab-cat-n', cat.found.length === cat.total && cat.total > 0 ? 'COMPLETE' : `${cat.found.length} / ${cat.total}`))
+      sec.append(h)
+      const grid = el('div', 'cab-grid')
+      for (const g of cat.found) {
+        const b = el('button', 'cab-slot' + (g.id === this.picked ? ' on' : ''))
+        b.type = 'button'
+        b.setAttribute('aria-label', `${g.answer}, gem found. Show details.`)
+        b.append(this.gemCanvas('cab-gem'), el('span', 'cab-name', g.answer))
+        b.addEventListener('click', () => { this.picked = g.id === this.picked ? null : g.id; this.render(); this.root.querySelector<HTMLElement>('.cab-slot.on, .cab-close')?.focus() })
+        grid.append(b)
+      }
+      for (let k = 0; k < cat.locked; k++) {
+        const s = el('div', 'cab-slot locked')
+        s.setAttribute('aria-label', 'A gem not found yet')
+        s.append(this.gemCanvas('cab-gem dim'), el('span', 'cab-name', '?'))
+        grid.append(s)
+      }
+      sec.append(grid)
+      box.append(sec)
+    }
+    this.root.replaceChildren(box)
+    this.root.setAttribute('role', 'dialog')
+    this.root.setAttribute('aria-modal', 'true')
+    this.root.setAttribute('aria-label', 'Gem cabinet')
+  }
+
+  private card(g: GemEntry): HTMLElement {
+    const c = el('div', 'cab-card')
+    c.append(this.gemCanvas('cab-big'))
+    const t = el('div', 'cab-card-t')
+    t.append(el('div', 'cab-card-cat', g.category.toUpperCase()), el('div', 'cab-card-name', g.answer))
+    if (g.desc) t.append(el('p', 'cab-card-desc', g.desc))
+    t.append(el('p', 'cab-card-q', g.prompt))
+    if (g.day) t.append(el('p', 'cab-card-day', `Found ${g.day}`))
+    c.append(t)
+    return c
+  }
+}

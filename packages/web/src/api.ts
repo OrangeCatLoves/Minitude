@@ -1,5 +1,5 @@
 /** Talks to the Minitude API. In development Vite proxies /api to the server; in production set VITE_API_BASE if it lives elsewhere. */
-import type { AnswerResponse, DailyState, StartQuestionResponse, StartRunResponse, VEvent, VPublicRoom, VRoom, Visibility } from '@minitude/core'
+import type { AnswerResponse, DailyState, GemSummary, StartQuestionResponse, StartRunResponse, VEvent, VPublicRoom, VRoom, Visibility } from '@minitude/core'
 
 const BASE: string = (import.meta.env.VITE_API_BASE as string | undefined) ?? ''
 
@@ -66,6 +66,8 @@ const guestHeader = (): Record<string, string> => ({ 'x-guest': guestId() })
 
 // ------------------------------------------------------------------ calls
 export const startRun = (): Promise<StartRunResponse> => call('/api/run', {})
+/** how many gems each category holds (counts only: no questions, no answers) */
+export const getGemSummary = (): Promise<GemSummary> => call('/api/gems', undefined, 8000)
 export const getDaily = (): Promise<DailyState> => call('/api/daily', undefined, 8000, guestHeader())
 export const startDaily = (): Promise<StartRunResponse> => call('/api/daily/start', {}, 20000, guestHeader())
 /** tells the server that question `index` is on screen: its clock starts now, and the prompt comes back in the reply */

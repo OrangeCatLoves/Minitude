@@ -26,6 +26,9 @@
     }
     #answer { position: fixed; left: 50%; bottom: 8px; width: 2px; height: 2px; opacity: 0; border: 0; padding: 0; font-size: 16px; }
     #mute { position: fixed; left: calc(10px + env(safe-area-inset-left, 0px)); top: calc(8px + env(safe-area-inset-top, 0px)); display: none; background: rgba(4,7,18,0.55); color: #a3b0d6; border: 1px solid rgba(163,176,214,0.4); padding: 5px 9px; font: 700 10px/1 Silkscreen, monospace; letter-spacing: 0.18em; cursor: pointer; }
+    #cabbtn { position: fixed; left: calc(10px + env(safe-area-inset-left, 0px)); top: calc(40px + env(safe-area-inset-top, 0px)); z-index: 2; background: rgba(4,7,18,0.55); color: #d6c8ff; border: 1px solid rgba(196,176,255,0.5); padding: 5px 9px; font: 700 10px/1 Silkscreen, monospace; letter-spacing: 0.18em; cursor: pointer; }
+    #cabbtn[hidden] { display: none; }
+    #cabbtn:hover, #cabbtn:focus-visible { color: #fff; border-color: #fff; outline: none; }
     #mute:hover, #mute:focus-visible { color: #eef2ff; border-color: #eef2ff; outline: none; }
     #boot { position: fixed; inset: 0; display: grid; place-items: center; color: #a3b0d6; font: 14px/1.4 monospace; letter-spacing: 0.2em; }
   </style>
@@ -33,10 +36,13 @@
 <body>
   <div id="stage"><canvas id="game" width="1280" height="720"></canvas></div>
   <input id="answer" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="80" enterkeyhint="send" aria-label="Your answer" />
+  <button id="cabbtn" type="button" hidden aria-label="Open your gem cabinet">GEM CABINET</button>
   <button id="mute" type="button" aria-label="Turn sound on or off (M)" title="Sound on/off (M)">SOUND ON</button>
   <div id="boot">LOADING</div>
   <!-- opens under the end-of-run report: logbook, rating, ideas, footer (src/afterword.ts, styled in src/site.css) -->
   <div id="after" hidden></div>
+  <!-- the gem cabinet (src/cabinet.ts, styled in src/site.css) -->
+  <div id="cabinet" hidden></div>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

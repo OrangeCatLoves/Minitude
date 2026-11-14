@@ -2,7 +2,7 @@
 import { INK, REV_HOLD, SHAKE_K, STOP, VIG_K, CHARGE, FIN_DUR } from './config'
 import { ck, easeInOut, lerpc, smooth, type RGB } from './util'
 import { finHush, type Cam, type Timeline } from './timeline'
-import { envOf, tc } from './celebrate'
+import { envOf, pullQ, tc } from './celebrate'
 import { TIERS } from '@minitude/core'
 
 export function shakeAmp(tl: Timeline, t: number, c: Cam): number {
@@ -30,9 +30,9 @@ export function shakeAmp(tl: Timeline, t: number, c: Cam): number {
   return a
 }
 
-const FLASH_A0 = [0.0, 0.10, 0.17, 0.30, 0.50, 0.95]
-const FLASH_DUR = [0.1, 0.12, 0.14, 0.18, 0.22, 0.30]
-const FLASH_MIX = [0, 0.5, 0.3, 0.4, 0.45, 0.0]
+const FLASH_A0 = [0.0, 0.10, 0.17, 0.30, 0.50, 0.95, 0.97]
+const FLASH_DUR = [0.1, 0.12, 0.14, 0.18, 0.22, 0.30, 0.34]
+const FLASH_MIX = [0, 0.5, 0.3, 0.4, 0.45, 0.0, 0.0]
 
 export function flashAt(tl: Timeline, t: number): [RGB, number] | null {
   const items: [RGB, number][] = []
@@ -45,6 +45,10 @@ export function flashAt(tl: Timeline, t: number): [RGB, number] | null {
       if (ti === 5) {
         const tau2 = tau - 0.45
         if (tau2 > 0 && tau2 < 1) items.push([[255, 120, 190], 0.42 * Math.exp(-tau2 / 0.2)])
+      } else if (ti === 6) {
+        // a gem: a second wash of colour half a second after the white
+        const tau2 = tau - 0.5
+        if (tau2 > 0 && tau2 < 1) items.push([[190, 160, 255], 0.45 * Math.exp(-tau2 / 0.25)])
       }
     }
     tau = t - r.fs
@@ -77,6 +81,9 @@ export function vignetteAt(tl: Timeline, t: number, c: Cam): [RGB, number] | nul
     const ti = r.ti
     const tau = t - r.rev
     if (tau >= 0 && tau < REV_HOLD[ti] + 0.8 && VIG_K[ti] > 0) items.push([ck(TIERS[ti].bg, 0.5), VIG_K[ti] * envOf(ti, tau)])
+    // a gem: the screen goes dark while the world is pulled in
+    const pq = pullQ(r, t)
+    if (pq > 0) items.push([[3, 2, 14], 0.82 * pq])
     if (r.chg <= t && t < r.fs) items.push([INK, 0.35 * easeInOut((t - r.chg) / CHARGE)])
   }
   if (c.fall !== null) items.push([INK, 0.55 * c.s])

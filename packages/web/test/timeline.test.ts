@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { nextRecord, type RunRecord } from '@minitude/core'
-import { makeMiss, newRec, schedule, Timeline } from '../src/timeline'
+import { makeMiss, newRec, pullStart, schedule, Timeline } from '../src/timeline'
+import { GEM_PULL, ROLL_DUR } from '../src/config'
 
 /** Plays a run through the same steps the game takes: a question appears, then it is answered with a tier (0 to 5) or times out (null). */
 function play(steps: (number | null)[]): { tl: Timeline; core: RunRecord[] } {
@@ -75,5 +76,46 @@ describe('camera over a whole run', () => {
       expect(b).toBeGreaterThan(a)
       expect(tl.cam(r.fe + 0.01).z).toBeCloseTo(r.z1, 5)
     }
+  })
+})
+
+describe('a gem (tier 6)', () => {
+  it('the world is pulled in before the gem is born; the roll stops on Mythic', () => {
+    const { tl } = play([6])
+    const r = tl.recs[0]
+    expect(r.ti).toBe(6)
+    expect(r.pts).toBe(120)
+    // roll, then the pull, then the reveal
+    expect(r.rev).toBeCloseTo(r.roll + ROLL_DUR[6] + GEM_PULL, 6)
+    expect(pullStart(r)).toBeCloseTo(r.roll + ROLL_DUR[6], 6)
+    // the roll ends on the Mythic icon (index 5), never on a seventh one
+    expect(tl.rollPos(r, r.roll + ROLL_DUR[6] + 1) % 6).toBeCloseTo(5, 6)
+    const steps = tl.rollStepTimes(r)
+    expect(steps.length).toBe(17)
+    expect(steps[steps.length - 1]).toBeLessThanOrEqual(pullStart(r) + 1e-9)
+  })
+  it('the reveal fits before the next question and nothing is not-a-number', () => {
+    const { tl } = play([6, 0])
+    const [a, b] = tl.recs
+    for (const k of ['roll', 'rev', 'chg', 'fs', 'fe', 'next', 'dotAt'] as const) expect(Number.isFinite(a[k]), k).toBe(true)
+    expect(a.rev).toBeLessThan(a.chg)
+    expect(a.chg).toBeLessThan(a.fs)
+    expect(a.next).toBeGreaterThan(a.fe)
+    expect(b.start).toBe(a.next)
+    expect(a.stamp).toBe('÷ 1,000,000')
+    const mid = tl.cam(a.fs + a.dur * 0.5)
+    expect(Number.isFinite(mid.u) && Number.isFinite(mid.z)).toBe(true)
+    expect(tl.cam(a.fe + 0.01).z).toBe(a.z1)
+  })
+  it('other tiers keep their schedule (no pull)', () => {
+    const { tl } = play([5])
+    const r = tl.recs[0]
+    expect(r.rev).toBeCloseTo(r.roll + ROLL_DUR[5], 6)
+  })
+  it('a gem can cross the Planck finale like any 120 points', () => {
+    const { tl, core } = play([5, 5, 5, 5, 6])
+    expect(core[4].finale).toBe(true)
+    expect(tl.recs[4].fin).toBe(true)
+    expect(Number.isFinite(tl.recs[4].next)).toBe(true)
   })
 })

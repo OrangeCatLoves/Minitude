@@ -4,7 +4,7 @@ One searchable page with every question and every answer: the live game (what pl
 
 **Link (private, owner only):** https://claude.ai/artifact/89hoELZMxh65CK6HuUBLY1
 
-What it shows: for each question the wording, the rules, where the answers came from (drafts), the answers by rarity (Common to Mythic) with other accepted spellings in grey; a search box that looks through every answer and spelling in every question; filters for Live / Draft / Rejected and category. It is a published page, not a file in the repo: the data is baked into it when it is generated.
+What it shows: for each question the wording, **its SINGULARITY gem (name and one line; the gem answer is marked "◆ gem" in the answer list and in search results)**, the rules, where the answers came from (drafts), the answers by rarity (Common to Mythic) with other accepted spellings in grey; a search box that looks through every answer and spelling in every question; filters for Live / Draft / Rejected and category. It is a published page, not a file in the repo: the data is baked into it when it is generated.
 
 ## Keep it current (a standing rule)
 

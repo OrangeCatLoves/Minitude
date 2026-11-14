@@ -103,3 +103,7 @@ Deploy the new code first, then import the lists straight away: the code alone i
 16. **Conservation status uses its own item set**: endangered is `Q96377276` (not the older `Q11394`), vulnerable `Q278113`, critically endangered `Q219127`, extinct `Q237350`. Using the wrong one found 6 of 14 well-known animals.
 17. **Huge classes time out whatever the band** (all insects, all paintings): pick a narrower class or drop the question; do not spend more than one try on it.
 18. **Check the new ids against REJECTED questions too, not only the approved ones**: `science-element` was a rejected placeholder from the first seed set, so an import would have skipped it as "already there". (`list-build\sheet\idclash.mts` shows every clash.)
+
+## Every new question needs a gem
+
+Since 14 Nov 2026 each approved question has one gem (a very obscure answer, scoring 120). When a batch of questions is approved, pick one very obscure real answer for each (known in few Wikipedia languages; read its Wikipedia article before writing its one-line description), add them to `packages/server/data/gems.json`, then `gems import --dry-run`, `gems import` and `gems audit`. A question without a gem still works (its answers score by their own tier); the audit lists them.

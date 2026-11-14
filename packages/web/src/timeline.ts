@@ -4,10 +4,20 @@
  * Times that are not known yet are Infinity, so every "is it time yet?" test simply says no.
  */
 import {
-  CARD_GAP, CARD_LEN, CHARGE, FIN_CARD_AT, FIN_CARD_LEN, FIN_DUR, FIN_PTS, FINAL_READ, HINT_HOLD, LAND_HOLD, POST_HOLD, REV_HOLD, ROLL_DUR, VOID_HOLD,
+  CARD_GAP, CARD_LEN, CHARGE, FIN_CARD_AT, FIN_CARD_LEN, FIN_DUR, FIN_PTS, FINAL_READ, GEM_PULL, HINT_HOLD, LAND_HOLD, POST_HOLD, REV_HOLD, ROLL_DUR, VOID_HOLD,
 } from './config'
 import { clamp01, smooth } from './util'
-import { diveSeconds, displaySlot, factorLabel, niceBar, RUN_LENGTH, sizeOfU, TIERS, type RunRecord } from '@minitude/core'
+import { diveSeconds, displaySlot, factorLabel, GEM_TIER, niceBar, RUN_LENGTH, sizeOfU, TIERS, type RunRecord } from '@minitude/core'
+
+/** what the game knows about a gem found at this answer (null for every other answer) */
+export interface GemInfo {
+  /** false when this gem was already in the cabinet (it still scores) */
+  isNew: boolean
+  /** gems in the cabinet after this one, and how many there are in all */
+  found: number
+  total: number
+  category: string
+}
 
 export interface Rec {
   i: number
@@ -49,6 +59,8 @@ export interface Rec {
   hintLevel: 0 | 1 | 2
   post: 0 | 1 | 2
   postVariant: number
+  /** set when the answer is the question's gem (tier 6) */
+  gem: GemInfo | null
   core: RunRecord | null
 }
 
@@ -58,7 +70,7 @@ export function newRec(i: number, start: number, c0: number, u0: number, z0: num
   return {
     i, miss: false, known: false, ti: 0, pts: 0, c0, c1: c0, u0, u1: u0, z0, z1: z0, dz: 0, fin: false, cardOn: false,
     start, lock: INF, chk: INF, val: INF, roll: INF, rev: INF, chg: INF, fs: INF, fe: INF, card: INF, clen: CARD_LEN, dur: 0, next: INF,
-    dotAt: INF, missAt: INF, stamp: null, typed: '', answer: '', desc: '', hintLevel: 0, post: 0, postVariant: 0, core: null,
+    dotAt: INF, missAt: INF, stamp: null, typed: '', answer: '', desc: '', hintLevel: 0, post: 0, postVariant: 0, gem: null, core: null,
   }
 }
 
@@ -183,7 +195,8 @@ export function schedule(r: Rec, core: RunRecord, inp: PhaseInput, hold?: { hint
   r.chk = r.lock + 0.2
   r.val = Math.max(r.chk + 0.65, inp.respondedAt)
   r.roll = r.val + 0.4
-  r.rev = r.roll + ROLL_DUR[r.ti]
+  // a gem: the roll stops on Mythic, then the world is pulled inward before the gem is born (see pullStart)
+  r.rev = r.roll + ROLL_DUR[r.ti] + (r.ti === GEM_TIER ? GEM_PULL : 0)
   r.chg = r.rev + REV_HOLD[r.ti]
   r.fs = r.chg + CHARGE
   r.dur = r.fin ? FIN_DUR : r.dz === 0 ? 1.9 : diveSeconds(r.z0, r.z1)
@@ -195,6 +208,10 @@ export function schedule(r: Rec, core: RunRecord, inp: PhaseInput, hold?: { hint
   r.stamp = factorLabel(TIERS[r.ti].factor, r.pts, r.u0, r.u1)
   computeNext(r)
 }
+/** a gem only: when the world starts to be pulled inward (GEM_PULL seconds before the gem is born) */
+export const pullStart = (r: Rec): number => r.rev - GEM_PULL
+/** how many icons the roll steps through: it lands on the answer's own tier, and for a gem on Mythic (the gem itself is not in the roll) */
+const rollSteps = (r: Rec): number => (r.ti === GEM_TIER ? 12 + 5 : 12 + r.ti)
 export function computeNext(r: Rec): void {
   const last = r.i === RUN_LENGTH - 1
   const lines = r.hintLevel > 0 || r.post > 0
@@ -260,12 +277,12 @@ export class Timeline {
   }
 
   rollPos(r: Rec, t: number): number {
-    const S = 12 + r.ti
+    const S = rollSteps(r)
     const tau = clamp01((t - r.roll) / ROLL_DUR[r.ti])
     return S * (1 - (1 - tau) ** 2.8)
   }
   rollStepTimes(r: Rec): number[] {
-    const S = 12 + r.ti, T = ROLL_DUR[r.ti]
+    const S = rollSteps(r), T = ROLL_DUR[r.ti]
     const out: number[] = []
     for (let k = 1; k <= S; k++) out.push(r.roll + T * (1 - (1 - k / S) ** (1 / 2.8)))
     return out

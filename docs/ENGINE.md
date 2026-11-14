@@ -76,3 +76,15 @@ Text is drawn one character at a time (`draw.ts`). The fonts have ligature and k
 - Colours, sizes and every timing constant are in `config.ts` (with the Python name beside most of them).
 - A rarity celebration lives in `celebrate.ts` as three small functions per kind: background, additive effects, front text. Add or change one without touching the timeline.
 - Pictures are PNGs in `packages/web/public/assets/world` (`s*` = at rest, `i*` = with the next world inside). If you redraw a world, redraw both, or the zoom into the next world will show the old picture.
+
+## The gem (tier 6) reveal
+
+A frame is still a pure function of the clock and the records. A gem adds one phase between the roll and the reveal: `rev = roll + ROLL_DUR[6] + GEM_PULL`. `timeline.pullStart(r)` = `rev - GEM_PULL`.
+
+1. **The roll** stops on the Mythic icon (17 steps, not 18: the gem is never in the roll).
+2. **The pull** (`GEM_PULL` 1.4 s, `celebrate.ts`: `inPull`, `pullQ`, `bgPull`, `addPull`, `frontPull`, `pose`): the world is tinted dark, particles and rings are drawn inward, the explorer shrinks and is lifted into a black disc that grows (`PULL_C`), the question block fades, the vignette goes dark.
+3. **The vacuum** (the last `GEM_VACUUM` 0.14 s): everything stays dark and the sound mix is ducked.
+4. **The birth** at `rev`: white flash (`impact.ts`), shake, the explorer pops back, rainbow rays (`bgReveal`), seven coloured rings, rainbow bursts and confetti (`addReveal`), the rainbow title (`bigTitle(..., { rainbow: true })`), "SINGULARITY +120" with the answer and its line, "NEW GEM · CATEGORY · CABINET n / 200" (`ui.result`).
+5. **The flight**: at `chg` the gem flies up to `GEM_COUNTER` in the top bar (the others drop into the explorer) and the counter ticks up once it has landed; then the usual stamp and dive.
+
+`Rec.gem` (`GemInfo`) carries what the reveal says; `Game.recordGem` fills it and adds the gem to the cabinet. Pictures: `tools/browser-test/gem.cjs`.

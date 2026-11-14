@@ -41,7 +41,7 @@ export interface AnswerResponse {
   answer?: string
   /** short description of the answer (one line) */
   description?: string
-  /** 0..5 for Common..Mythic (valid answers only) */
+  /** 0..5 for Common..Mythic, 6 for the question's gem (SINGULARITY) (valid answers only) */
   tier?: number
   /** points for the tier (valid answers only) */
   points?: number

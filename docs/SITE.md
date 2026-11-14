@@ -59,3 +59,7 @@ The privacy text is only true while these are: no cookies, no analytics or other
 ## Where the code is
 
 `packages/web/src/afterword.ts` (the sheet), `site.ts` (contacts and footer), `site.css` (this and the privacy page), `privacy.html` + `privacy.ts`; `index.html` has the empty `#after` element; `game.ts` opens and closes it (`syncAfter`) and records the run (`enterReport`); `packages/core/src/logbook.ts`; `packages/server/src/siteRoutes.ts`. Tests: `core/test/logbook.test.ts`, `server/test/site.test.ts`, `web/test/site.test.ts`, `web/test/private.test.ts`, and the browser test `tools/browser-test/afterword.cjs` (plays real runs to the end, scrolls, rates, sends an idea, swipes over a button, repeats on a phone size).
+
+## The gem cabinet and the privacy page (14 Nov 2026)
+
+The browser now keeps a **fifth** item, `minitude.gems` (the gems found: question, answer, one line, day). The privacy page says "five small items", lists it, explains the cabinet and the new rarity (Singularity 120, the most a run can score is 840); its date stayed 14 November 2026 because it changed that day. It still says nothing about how answers are checked (`packages/web/test/private.test.ts`). The cabinet itself is `packages/web/src/cabinet.ts` (HTML over the game, styled in `site.css`), opened from `#cabbtn` on the title screen and the report.

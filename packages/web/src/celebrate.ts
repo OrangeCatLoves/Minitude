@@ -1,10 +1,25 @@
 /** Rarity celebrations, charge-up, dive juice, landing impact, world title cards, intro title (port of the design tool's tfx3 / minui21 pieces). */
-import { CARD_LEN, CHARGE, FEET, FOC, GEM, HOP, INTRO_EXIT, OX, OY, REV_HOLD, SHAKE_K, STAMP, STOP, TITLE_COL, TITLES, W, H, SCRIM, OFF, SOFT } from './config'
+import { CARD_LEN, CHARGE, FEET, FOC, GEM, GEM_COUNTER, GEM_PULL, GEM_VACUUM, HOP, INTRO_EXIT, OX, OY, REV_HOLD, SHAKE_K, STAMP, STOP, TITLE_COL, TITLES, W, H, SCRIM, OFF, SOFT } from './config'
 import { backOut, ck, clamp01, easeInOut, easeOut, lerpc, rnd, smooth, type RGB } from './util'
 import { addMask, bigTitle, ctxOf, letters, putText, rect, shade, vignette, radialAdd, tint, PXF, SILF, textWidth, type Ctx } from './draw'
 import { AddLayer, burst, confetti, halftoneAdd, inward, lightning, pxstar, ring, sunburstAdd, twinkleStars } from './fx'
-import type { Cam, Rec, Timeline } from './timeline'
-import { TIERS, displaySlot, isVoidSlot, worldOfSlot } from '@minitude/core'
+import { pullStart, type Cam, type Rec, type Timeline } from './timeline'
+import { GEM_TIER, TIERS, displaySlot, isVoidSlot, worldOfSlot } from '@minitude/core'
+
+/** the seven colours of the rainbow, for everything a gem throws off */
+const RAINBOW: RGB[] = [[255, 96, 112], [255, 168, 72], [255, 226, 96], [112, 232, 132], [92, 216, 255], [132, 152, 255], [204, 132, 255]]
+/** the middle of the pull: where the singularity forms, over the explorer */
+const PULL_C: [number, number] = [OX, OY - 70]
+
+/** a gem only: the world is being pulled inward (from GEM_PULL seconds before the gem is born until it is) */
+export function inPull(r: Rec, t: number): boolean {
+  return r.ti === GEM_TIER && r.known && !r.miss && t >= pullStart(r) && t < r.rev
+}
+/** 0..1 how far the pull has gone; it reaches 1 GEM_VACUUM before the birth and stays there (the near-silent beat) */
+export function pullQ(r: Rec, t: number): number {
+  if (!inPull(r, t)) return 0
+  return clamp01((t - pullStart(r)) / (GEM_PULL - GEM_VACUUM))
+}
 
 export const tc = (ti: number): RGB => TIERS[ti].edge
 export const gemCy = (ti: number): number => 296 - HOP[ti] - 8 - GEM[ti] / 2
@@ -27,6 +42,13 @@ export function pose(tl: Timeline, t: number, c: Cam, r: Rec): Pose {
   let sx = 1, sy = 1, dy = 0, dx = 0, aura = 0, glow = 0
   const ti = r.ti
   if (r.lock <= t && t < r.rev) aura = 1
+  if (inPull(r, t)) {
+    // drawn into the singularity: smaller and smaller, lifted toward its centre
+    const q = easeInOut(pullQ(r, t))
+    sx = sy = 1 - 0.82 * q
+    dy = -110 * q
+    aura = 2; glow = 0.4 + 0.6 * q
+  }
   const tau = t - r.rev
   if (r.known && !r.miss && tau >= 0 && tau < r.chg - r.rev + 0.01) {
     const q = clamp01(tau / 0.6)
@@ -65,6 +87,11 @@ export function bgCharge(c: Ctx, r: Rec, t: number): void {
     radialAdd(c, OX, OY + 10, 300, tc(r.ti), 0.45 * q, 2.0)
   }
 }
+/** a gem only: the world drains of light while it is pulled inward */
+export function bgPull(c: Ctx, r: Rec, t: number): void {
+  if (!inPull(r, t)) return
+  tint(c, [2, 2, 10], 0.93 * easeInOut(pullQ(r, t)))
+}
 export function bgReveal(c: Ctx, r: Rec, t: number): void {
   const ti = r.ti, tau = t - r.rev
   if (!r.known || r.miss || tau < 0 || t >= r.chg + 0.7 || ti < 2) return
@@ -75,13 +102,53 @@ export function bgReveal(c: Ctx, r: Rec, t: number): void {
   else if (ti === 4) {
     tint(c, [36, 18, 0], 0.50 * k)
     sunburstAdd(c, OX, OY, 14, 0.30 * tf, 0.45, 980, 0.7, [255, 190, 70], 0.50 * k)
-  } else {
+  } else if (ti === 5) {
     tint(c, [58, 8, 40], 0.86 * k)
     const grow = easeOut(tf / 0.7)
     halftoneAdd(c, OX, OY, grow, [255, 100, 180], 0.46 * k)
     sunburstAdd(c, OX, OY, 18, 0.18 * tf + 0.1, 0.5, 1100, 0.55, [255, 95, 176], 0.66 * k)
     sunburstAdd(c, OX, OY, 18, 0.18 * tf + 0.1 + Math.PI / 18, 0.5, 800, 0.9, [150, 40, 170], 0.40 * k)
+  } else {
+    // a gem: deep indigo, and rays that are the colours of the rainbow (three sets of wedges, side by side)
+    tint(c, [14, 8, 40], 0.84 * k)
+    halftoneAdd(c, OX, OY, easeOut(tf / 0.7), [170, 140, 255], 0.40 * k)
+    const rot = 0.16 * tf + 0.1, period = (2 * Math.PI) / 12
+    sunburstAdd(c, OX, OY, 12, rot, 0.3, 1200, 0.55, [255, 100, 120], 0.34 * k)
+    sunburstAdd(c, OX, OY, 12, rot + period / 3, 0.3, 1200, 0.55, [110, 235, 150], 0.30 * k)
+    sunburstAdd(c, OX, OY, 12, rot + (2 * period) / 3, 0.3, 1200, 0.55, [120, 150, 255], 0.38 * k)
   }
+}
+
+// ------------------------------------------------------------------ a gem: the pull (everything is drawn inward), then the vacuum
+export function addPull(a: AddLayer, r: Rec, t: number): void {
+  if (!inPull(r, t)) return
+  const t0 = pullStart(r), q = pullQ(r, t), end = r.rev - GEM_VACUUM
+  inward(a, t, t0, end, 90, 700 + r.i, PULL_C[0], PULL_C[1], 160, 760, [196, 176, 255], 6)
+  inward(a, t, t0, end, 40, 710 + r.i, PULL_C[0], PULL_C[1], 220, 900, [255, 255, 255], 4)
+  if (t < end) {
+    for (let k = 0; k < 3; k++) {
+      const ph = ((t - t0) / 0.55 + k / 3) % 1
+      const R = 520 * (1 - ph) ** 1.5 + 24
+      ring(a, PULL_C[0], PULL_C[1], R, 3, [196, 176, 255], ph * q * 0.9, R * 0.8)
+    }
+  }
+}
+export function frontPull(c: Ctx, r: Rec, t: number): void {
+  if (!inPull(r, t)) return
+  const e = easeInOut(pullQ(r, t))
+  const R = 6 + 84 * e ** 1.4
+  radialAdd(c, PULL_C[0], PULL_C[1], R * 2.8, [150, 110, 255], 0.55 * e, 2)
+  c.save()
+  c.fillStyle = 'rgb(4,2,12)'
+  c.beginPath()
+  c.arc(PULL_C[0], PULL_C[1], R, 0, Math.PI * 2)
+  c.fill()
+  c.strokeStyle = `rgba(214,200,255,${0.9 * e})`
+  c.lineWidth = 3
+  c.beginPath()
+  c.arc(PULL_C[0], PULL_C[1], R + 1.5, 0, Math.PI * 2)
+  c.stroke()
+  c.restore()
 }
 
 // ------------------------------------------------------------------ additive effects
@@ -128,6 +195,19 @@ export function addReveal(a: AddLayer, r: Rec, t: number): void {
     for (let k = 0; k < 5; k++) {
       const an = tau * 1.6 + (k * 2 * Math.PI) / 5
       pxstar(a.ctx(), OX + Math.cos(an) * 92, gcy + Math.sin(an) * 40, 3, [255, 236, 170])
+    }
+  } else if (ti === GEM_TIER) {
+    RAINBOW.forEach((col, k) => {
+      const q = (tf - 0.07 * k) / 0.95
+      if (q > 0 && q < 1) ring(a, OX, OY, 14 + 1100 * easeOut(q), 9 - 6 * q, col, 1 - q)
+    })
+    const sparkle: RGB[] = [...RAINBOW, [255, 255, 255]]
+    burst(a, tf, 0, 150, 700 + i, OX, gcy, 190, 600, 1.6, 320, 8, sparkle, { drag: 1.3, spread: 0.2 })
+    confetti(a, tf, 0.15, 100, 91, sparkle, 4.2, 40, 1140, -30, 250)
+    twinkleStars(a, tf, 0.0, 44, 99, 640, 340, 40, 560, [[255, 255, 255], [196, 176, 255]], 4.4, 2)
+    for (let k = 0; k < 8; k++) {
+      const an = tau * 2.0 + (k * 2 * Math.PI) / 8
+      pxstar(a.ctx(), OX + Math.cos(an) * 120, gcy + Math.sin(an) * 50, 3, lerpc(RAINBOW[k % 7], [255, 255, 255], 0.5))
     }
   } else {
     ;[0.0, 0.22, 0.44].forEach((dl, k) => {
@@ -264,12 +344,19 @@ export function frontReveal(c: Ctx, gems: Gems, r: Rec, t: number): void {
   const ed = TIERS[ti].edge
   const gs = GEM[ti] * backOut(tau / 0.34)
   let gcy = gemCy(ti) - 4 * Math.sin(2 * Math.PI * 0.8 * Math.max(0, tau - 0.3))
-  const gcx = OX
+  let gcx = OX
   let sizeK = 1
   if (t >= r.chg) {
     const q = easeInOut((t - r.chg) / 0.45)
-    gcy = gcy + (OY - 30 - gcy) * q
-    sizeK = 1 - 0.85 * q
+    if (ti === GEM_TIER) {
+      // a gem flies up into the counter in the top bar; the others drop into the explorer
+      gcx = OX + (GEM_COUNTER[0] - OX) * q
+      gcy = gcy + (GEM_COUNTER[1] - gcy) * q
+      sizeK = 1 - 0.8 * q
+    } else {
+      gcy = gcy + (OY - 30 - gcy) * q
+      sizeK = 1 - 0.85 * q
+    }
   }
   const glowK = (0.5 + 0.15 * ti) * Math.min(1, tau / 0.2) * sizeK
   radialAdd(c, gcx, gcy, GEM[ti] * 1.5, ed, glowK, 2.0)
@@ -287,10 +374,10 @@ export function frontReveal(c: Ctx, gems: Gems, r: Rec, t: number): void {
     if (ti >= 4) { const ss = (tau - 0.55) / 0.9; shine = ss >= 0 && ss <= 1 ? ss : null }
     let split = 0
     if (ti === 3) split = Math.trunc(6 * Math.max(0, 1 - tau / 0.3))
-    if (ti === 5) split = Math.trunc(10 * Math.max(0, 1 - tau / 0.55)) * (Math.trunc(tau * 24) % 3 ? 1 : -1)
+    if (ti >= 5) split = Math.trunc(10 * Math.max(0, 1 - tau / 0.55)) * (Math.trunc(tau * 24) % 3 ? 1 : -1)
     let jit = 0
-    if (ti === 5 && tau < 0.5) jit = Math.trunc(Math.sin(tau * 130) * 6 * (1 - tau / 0.5))
-    bigTitle(c, s, size, OX + jit, base, scale, ctop, cbot, cout, cglow, { glow: ti < 4 ? 0.55 : 0.8, shine, split, ls: 3, alpha: ta * smooth(0, 0.06, tau) })
+    if (ti >= 5 && tau < 0.5) jit = Math.trunc(Math.sin(tau * 130) * 6 * (1 - tau / 0.5))
+    bigTitle(c, s, size, OX + jit, base, scale, ctop, cbot, cout, cglow, { glow: ti < 4 ? 0.55 : 0.8, shine, split, ls: 3, alpha: ta * smooth(0, 0.06, tau), rainbow: ti === GEM_TIER })
   }
 }
 

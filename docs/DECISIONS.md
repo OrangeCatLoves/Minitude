@@ -122,3 +122,17 @@ The binding decisions (21 worlds, 440 points, Unexplored 400-439, edging hints, 
 ## Still open (from the planning notes)
 
 Public domain, multiplayer rules, model choice after the free trial, how long to keep `attempts`, who audits disputed answers, whether the Daily should also be playable signed-in later (history across devices). Nothing in Phases 1 to 3 depends on them.
+
+## SINGULARITY gems (14 November 2026)
+
+Asked for by the owner over several rounds (name, 120 points, one gem per question, a cabinet, a new sound, the picture); built and deployed on 14 Nov 2026. Choices I made:
+
+- **A gem is not a stored tier.** `answers.tier` has `CHECK (tier BETWEEN 0 AND 5)` and SQLite cannot relax a CHECK without rebuilding a 289,198-row table, so the `gems` table (migration 4) points at the question's gem answer and the checker reports tier 6. The answer keeps its own rarity (the bank sheet and `answers list` still show it).
+- **One gem per question, stored with its own one-line description** (`gems.description`), so the answers' descriptions are untouched. The description is what the player sees under the reveal.
+- **Perfect run = every answer Mythic or better** (a gem keeps it perfect); the "/ 840" is the most a run can score.
+- **The cabinet is in the browser only** (`minitude.gems`), like the logbook: no accounts, nothing on the server. A found gem stores the question, the answer and the line it was shown, so the cabinet needs no server. Hidden slots are counts per category from `GET /api/gems`: the prompts of unfound gems are never sent (a standing rule: prompts only arrive when their question starts).
+- **The gem's reveal** is the owner-approved draft one: the roll stops on Mythic, the world is pulled inward (1.4 s) into a black disc, a near-silent beat (0.14 s), then a white flash, a rainbow title "SINGULARITY!", rainbow rays and rings, "+120" and the divide stamp, and the gem flies up into a counter in the top bar. About 1.7 + 1.4 + 4.1 s from the answer to the dive (Mythic: 6.4 s).
+- **The counter** ("◆ 3 / 200") appears in the top bar only once the cabinet holds a gem. The cabinet opens from a small button under the SOUND button on the title screen and on the report (hidden during a run).
+- **A gem found again** (the same question's gem on another run) still scores 120 and plays the full reveal; the line says "ALREADY IN YOUR CABINET".
+- **Multiplayer and the Daily** score gems like any answer (120). In a room the other players see the tier (the Singularity colour) only after the finder's reveal is over, like every tier. The Daily's `items` carry tier 6.
+- **Not done on purpose:** no tone variation per category (offered, not asked for); the gem answers were not re-checked for being the right Wikidata item beyond the audit (`gems audit`).

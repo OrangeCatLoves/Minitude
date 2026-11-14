@@ -190,13 +190,19 @@ export function textMask(s: string, font: string, size: number, ls: number, pad:
   maskCache.set(key, m)
   return m
 }
-/** fill the shape of `mask` with a colour or a top-to-bottom gradient */
-function colouredMask(mask: HTMLCanvasElement, fill: RGB | [RGB, RGB]): HTMLCanvasElement {
+/** the seven colours of the rainbow, left to right, for the SINGULARITY title */
+const RAINBOW: RGB[] = [[255, 96, 112], [255, 168, 72], [255, 226, 96], [112, 232, 132], [92, 216, 255], [132, 152, 255], [204, 132, 255]]
+/** fill the shape of `mask` with a colour, a top-to-bottom gradient, or (for 'rainbow') a left-to-right rainbow */
+function colouredMask(mask: HTMLCanvasElement, fill: RGB | [RGB, RGB] | 'rainbow'): HTMLCanvasElement {
   const cv = mkCanvas(mask.width, mask.height)
   const c = ctxOf(cv)
   c.drawImage(mask, 0, 0)
   c.globalCompositeOperation = 'source-in'
-  if (Array.isArray(fill[0])) {
+  if (fill === 'rainbow') {
+    const g = c.createLinearGradient(0, 0, mask.width, 0)
+    RAINBOW.forEach((col, i) => g.addColorStop(i / (RAINBOW.length - 1), rgb(col)))
+    c.fillStyle = g
+  } else if (Array.isArray(fill[0])) {
     const g = c.createLinearGradient(0, 0, 0, mask.height)
     g.addColorStop(0, rgb(fill[0] as RGB))
     g.addColorStop(1, rgb(fill[1] as RGB))
@@ -230,8 +236,8 @@ export function addMask(c: Ctx, mask: HTMLCanvasElement, x: number, y: number, c
 // ------------------------------------------------------------------ outlined, glowing, gradient titles
 interface TitleSprite { body: HTMLCanvasElement; glow: HTMLCanvasElement; mask: HTMLCanvasElement; px: number; py: number; w: number; h: number; pad: number }
 const titleCache = new Map<string, TitleSprite>()
-function titleSprite(s: string, size: number, w: number, ls: number, top: RGB, bot: RGB, outline: RGB, glowCol: RGB): TitleSprite {
-  const key = [s, size, w, ls, top, bot, outline, glowCol].join('|')
+function titleSprite(s: string, size: number, w: number, ls: number, top: RGB, bot: RGB, outline: RGB, glowCol: RGB, rainbow = false): TitleSprite {
+  const key = [s, size, w, ls, top, bot, outline, glowCol, rainbow].join('|')
   let sp = titleCache.get(key)
   if (sp) return sp
   const font = PXF(size, w)
@@ -246,7 +252,7 @@ function titleSprite(s: string, size: number, w: number, ls: number, top: RGB, b
   bc.drawImage(colouredMask(dil, [0, 0, 0]), 0, 6)
   bc.globalAlpha = 1
   bc.drawImage(colouredMask(dil, outline), 0, 0)
-  bc.drawImage(colouredMask(m.canvas, [top, bot]), 0, 0)
+  bc.drawImage(colouredMask(m.canvas, rainbow ? 'rainbow' : [top, bot]), 0, 0)
   const glow = mkCanvas(m.w, m.h)
   blurInto(ctxOf(glow), colouredMask(dilate(m.canvas, 2), glowCol), 9)
   sp = { body, glow, mask: m.canvas, px: m.px, py: m.py, w: m.w, h: m.h, pad }
@@ -281,10 +287,10 @@ function drawShine(c: Ctx, mask: HTMLCanvasElement, x: number, y: number, scale:
  * scale: pop-in scale. shine: null or 0..1 position of a diagonal light sweep. split: px of colour split (glitch).
  */
 export function bigTitle(c: Ctx, s: string, size: number, cx: number, baseY: number, scale: number, top: RGB, bot: RGB, outline: RGB, glowCol: RGB,
-  opts: { glow?: number; shine?: number | null; split?: number; ls?: number; alpha?: number; w?: number } = {}): void {
-  const { glow = 0.7, shine = null, split = 0, ls = 2, alpha = 1, w = 500 } = opts
+  opts: { glow?: number; shine?: number | null; split?: number; ls?: number; alpha?: number; w?: number; rainbow?: boolean } = {}): void {
+  const { glow = 0.7, shine = null, split = 0, ls = 2, alpha = 1, w = 500, rainbow = false } = opts
   if (scale <= 0.02 || alpha <= 0.01) return
-  const sp = titleSprite(s, size, w, ls, top, bot, outline, glowCol)
+  const sp = titleSprite(s, size, w, ls, top, bot, outline, glowCol, rainbow)
   const x = cx - (sp.w / 2) * scale
   const y = baseY - sp.py * scale
   c.save()

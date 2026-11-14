@@ -9,7 +9,7 @@ export interface Assets {
   scenes: HTMLImageElement[]   // 36 pictures, 320 x 180
   inners: HTMLImageElement[]   // the same with the next world already inside (for the zoom window)
   explorer: HTMLImageElement[] // 3 glow states, native pixels, cropped
-  gems: HTMLImageElement[]     // 6 rarity gems, 32 x 32
+  gems: HTMLImageElement[]     // 7 rarity gems, 32 x 32 (the seventh is SINGULARITY, the rainbow Crescent)
   manifest: Manifest
 }
 
@@ -48,7 +48,7 @@ export async function loadAssets(onProgress?: (done: number, total: number) => v
   for (let k = 0; k < 36; k++) urls.push(`${base}assets/world/s${k}.png`)
   for (let k = 0; k < 36; k++) urls.push(`${base}assets/world/i${k}.png`)
   for (let k = 0; k < 3; k++) urls.push(`${base}assets/explorer${k}.png`)
-  for (let k = 0; k < 6; k++) urls.push(`${base}assets/gem${k}.png`)
+  for (let k = 0; k < 7; k++) urls.push(`${base}assets/gem${k}.png`)
   let done = 0
   const imgs = await Promise.all(
     urls.map(async (u) => {
@@ -62,7 +62,7 @@ export async function loadAssets(onProgress?: (done: number, total: number) => v
     scenes: imgs.slice(0, 36),
     inners: imgs.slice(36, 72),
     explorer: imgs.slice(72, 75),
-    gems: imgs.slice(75, 81),
+    gems: imgs.slice(75, 82),
     manifest,
   }
 }

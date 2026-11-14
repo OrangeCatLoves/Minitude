@@ -1,6 +1,6 @@
 /** The game: state machine (title -> run -> report), input, the server calls, and the frame renderer (port of the design tool's render()). */
 import {
-  buildReport, fmtSize, formatCountdown, isPerfect, nextRecord, pickPostFirst, postLines, shareText, sizeOfU, standingsLines, TIERS, voidHintLine, RUN_LENGTH,
+  buildReport, fmtSize, formatCountdown, GEM_TIER, isPerfect, nextRecord, pickPostFirst, postLines, shareText, sizeOfU, standingsLines, TIERS, utcDay, voidHintLine, RUN_LENGTH,
   type DailyState, type Question, type ReportData, type RunMode, type RunRecord, type StartRunResponse, type VRoundStart,
 } from '@minitude/core'
 import { ApiError, getDaily, sendAbandon, sendAnswer, sendMiss, sendStart, startDaily, startRun } from './api'
@@ -8,14 +8,15 @@ import { drawLobby, drawStandings, drawVersusPanel, itemAt, lobbyItems, type Lob
 import { VersusClient } from './versus'
 import type { Assets } from './assets'
 import type { Afterword } from './afterword'
+import type { CabinetUi } from './cabinet'
 import { H, INK, INTRO, INTRO_EXIT, PRESS_AT, W, FAINT, SOFT } from './config'
-import { addCard, addCharge, addFall, addLand, addReveal, bgCharge, bgReveal, frontIntro, frontReveal, frontStamp, gates, makeGems, pose, titleCard, type Gems } from './celebrate'
+import { addCard, addCharge, addFall, addLand, addPull, addReveal, bgCharge, bgPull, bgReveal, frontIntro, frontPull, frontReveal, frontStamp, gates, makeGems, pose, titleCard, type Gems } from './celebrate'
 import { ctxOf, mkCanvas, shade, SILF, stext, vignette, vscrim, type Ctx } from './draw'
 import { addFinale, bloomPre, dimPre, finRec, finaleCard, poseExtra, uiDim } from './finale'
 import { AddLayer } from './fx'
 import { WorldGL } from './gl'
 import { flashAt, shakeAmp, vignetteAt } from './impact'
-import { makeMiss, newRec, schedule, skipCard, Timeline, type Cam, type Rec } from './timeline'
+import { makeMiss, newRec, pullStart, schedule, skipCard, Timeline, type Cam, type Rec } from './timeline'
 import {
   ask, CONFIRM_BOXES, Groups, hud, hudDotsOnly, introButtons, landingLines, rail, report, REPORT_BUTTONS, roll, result, scalebar, TITLE_BOXES, timeUp,
   type AskView, type HudState, type LandingLine, type PlayBox, type ReportExtras, type TitleView,
@@ -60,6 +61,8 @@ export class Game {
   sound: SoundHook = NULL_SOUND
   /** the page that opens under the report (logbook, rating, ideas, footer); set by main.ts */
   after: Afterword | null = null
+  /** the gem cabinet (what the player has found, kept in this browser); set by main.ts */
+  cabinet: CabinetUi | null = null
 
   private readonly gl: WorldGL
   private readonly gems: Gems
@@ -169,6 +172,8 @@ export class Game {
       if (e.ctrlKey || e.metaKey || e.altKey) return
       // The page under the report has a text box. Its keys are its own: an "h" typed there must not mean HOME, Enter must not start a new run.
       if (e.target instanceof Element && e.target.closest('#after')) return
+      // the same for the gem cabinet (Esc closes it; it must not mean HOME, Enter must not start a run)
+      if (this.cabinet?.isOpen || (e.target instanceof Element && e.target.closest('#cabinet'))) return
       if (this.phase === 'lobby') { this.lobbyKey(e); return }
       if (this.confirm) {
         // "did you mean ...?": Enter or Y is yes, Esc or N is no. Nothing else is typed meanwhile.
@@ -762,6 +767,7 @@ export class Game {
       const core = nextRecord(this.records, resp.tier)
       r.answer = resp.answer ?? text
       r.desc = resp.description ?? ''
+      if (resp.tier === GEM_TIER) this.recordGem(r)
       schedule(r, core, { lock: this.lockT, respondedAt: this.T })
       if (core.post === 1) {
         this.lastPostVariant = pickPostFirst(this.lastPostVariant)
@@ -774,6 +780,13 @@ export class Game {
       return
     }
     this.reject(r, resp.message ?? (resp.status === 'invalid' ? "That doesn't count." : "Couldn't check that. Try another."))
+  }
+  /** the answer is the question's gem: it goes into the cabinet (which says whether it is new) and the reveal will say so */
+  private recordGem(r: Rec): void {
+    const q = this.questions[r.i]
+    if (!q) return
+    const got = this.cabinet?.add({ id: q.id, category: q.category, prompt: q.prompt, answer: r.answer, desc: r.desc, day: utcDay(Date.now()) })
+    r.gem = { isNew: got ? got.isNew : true, found: got ? got.found : 1, total: got ? got.total : 1, category: q.category }
   }
   private onAnswerFailed(r: Rec, err: unknown): void {
     if (r.known) return
@@ -842,6 +855,8 @@ export class Game {
       if (this.inVersus) this.versusStep()
     }
     this.syncAfter()
+    // the cabinet button is on the title screen and the report only (not while a question is being answered)
+    this.cabinet?.setButtonVisible(this.phase === 'title' || this.phase === 'report')
   }
   private syncAfter(): void {
     const a = this.after
@@ -956,7 +971,7 @@ export class Game {
 
     let p: { sx: number; sy: number; dx: number; dy: number; aura: number; glow: number } = { sx: 1, sy: 1, dx: 0, dy: 0, aura: 0, glow: 0 }
     if (!intro && !rep && r) {
-      bgReveal(f, r, T); bgCharge(f, r, T)
+      bgPull(f, r, T); bgReveal(f, r, T); bgCharge(f, r, T)
       p = pose(tl, T, cam, r)
       if (fr) { p = poseExtra(p, fr, T); bloomPre(f, fr, T, cam) }
     } else if (showTitle && this.pressedAt !== null && T - this.pressedAt < 0.7) p.aura = 1
@@ -969,7 +984,7 @@ export class Game {
 
     if (!intro && !rep && r) {
       const ad = this.add
-      addReveal(ad, r, T); addCharge(ad, r, T)
+      addPull(ad, r, T); addReveal(ad, r, T); addCharge(ad, r, T)
       if (r.fin) addFinale(ad, tl, r, T, cam)
       else addFall(ad, tl, r, T, cam)
       addLand(ad, r, T)
@@ -993,7 +1008,7 @@ export class Game {
     // front elements
     if (showTitle) frontIntro(f, T, exitT, this.titleView().label)
     else if (!rep && !intro && r) {
-      frontReveal(f, this.gems, r, T); frontStamp(f, r, T)
+      frontPull(f, r, T); frontReveal(f, this.gems, r, T); frontStamp(f, r, T)
       gates(f, this.accents, tl, r, T)
       titleCard(f, this.accents, r, T)
       for (const rr of tl.recs) if (rr.i !== r.i && rr.cardOn && rr.card <= T && T < rr.card + rr.clen) titleCard(f, this.accents, rr, T)
@@ -1008,7 +1023,11 @@ export class Game {
       const dots = this.dotColours()
       let nsq = 0
       for (const rr of tl.recs) if (T >= rr.dotAt) nsq = rr.i + 1
-      const S: HudState = { nsq: rep ? 7 : nsq, curOpen: rep || nsq >= 7 ? -1 : nsq, sizeTxt: fmtSize(sizeOfU(cam.u)), dots }
+      // the gem counter appears once the cabinet holds a gem; a new gem is counted when it has flown into it
+      const cab = this.cabinet
+      const flying = tl.recs.filter((rr) => rr.gem?.isNew && T < rr.chg + 0.45).length
+      const gemN = cab ? cab.count - flying : 0
+      const S: HudState = { nsq: rep ? 7 : nsq, curOpen: rep || nsq >= 7 ? -1 : nsq, sizeTxt: fmtSize(sizeOfU(cam.u)), dots, gem: cab && gemN > 0 ? { icon: this.gems.canvas(GEM_TIER, 26), found: gemN, total: Math.max(cab.total, gemN) } : null }
       this.groups.draw(f, uiA * dim, (c) => (rep ? hudDotsOnly(c, dots) : hud(c, S, cam)))
       this.groups.draw(f, uiA * dim, (c) => rail(c, tl, T, cam, r ?? this.dummy, rep))
       if (this.inVersus && !rep) this.groups.draw(f, uiA * dim, (c) => drawVersusPanel(c, this.versus, T, this.ownReveal()))
@@ -1073,12 +1092,14 @@ export class Game {
 
   /** what the report shows besides the run: the second button's name and, for a daily, its standing and the countdown */
   private reportExtras(): ReportExtras {
-    if (this.inVersus) return { againLabel: 'BACK TO ROOM', daily: null }
-    if (this.mode !== 'daily') return { againLabel: 'PLAY AGAIN', daily: null }
+    const gem = this.cabinet ? { icon: this.gems.canvas(GEM_TIER, 22), found: this.cabinet.count, total: this.cabinet.total } : null
+    if (this.inVersus) return { againLabel: 'BACK TO ROOM', daily: null, gem }
+    if (this.mode !== 'daily') return { againLabel: 'PLAY AGAIN', daily: null, gem }
     const d = this.reportDaily
     const ms = this.daily ? this.msToReset() : Infinity
     return {
       againLabel: 'SOLO RUN',
+      gem,
       daily: {
         number: d?.number ?? this.run?.number ?? this.daily?.number ?? 0,
         lines: d?.standings ? standingsLines(d.standings) : [],
@@ -1135,7 +1156,8 @@ export class Game {
     if (T < r.rev) {
       const k = clamp01((T - r.roll) / 0.18)
       if (k < 1) this.groups.draw(f, v * (1 - k), (c) => ask(c, T, this.askView(r), dy))
-      this.groups.draw(f, v * k, (c) => roll(c, this.tl, this.gems, T, r, dy))
+      const pull = r.ti === GEM_TIER ? 1 - smooth(pullStart(r), pullStart(r) + 0.5, T) : 1
+      this.groups.draw(f, v * k * pull, (c) => roll(c, this.tl, this.gems, T, r, dy))
       return
     }
     this.groups.draw(f, v, (c) => result(c, this.gems, T, r, dy))

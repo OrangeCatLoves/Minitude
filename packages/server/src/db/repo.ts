@@ -217,12 +217,57 @@ export class Repo {
   invalidateAnswer(questionId: string, norm: string, message: string, reason: string | null, at: number): boolean {
     const a = this.getAnswer(questionId, norm)
     if (!a) return false
+    const wasGem = this.gemOf(questionId)?.answerNorm === norm
     this.tx(() => {
+      if (wasGem) this.logChange(questionId, norm, 'gem removed', norm, null, 'the answer was removed', at)
       this.st('DELETE FROM answers WHERE question_id = ? AND norm = ?').run(questionId, norm)
       this.insertSpelling({ questionId, norm, verdict: 'invalid', message, source: 'admin', at })
       this.logChange(questionId, norm, 'answer removed', `${a.name} (tier ${a.tier})`, null, reason, at)
     })
     return true
+  }
+
+  // ---------------------------------------------------------------- gems (SINGULARITY)
+  /** the question's gem: which canonical answer it is and the line shown when it is found */
+  gemOf(questionId: string): { answerNorm: string; description: string | null } | undefined {
+    const r = this.st('SELECT answer_norm, description FROM gems WHERE question_id = ?').get(questionId) as Row | undefined
+    return r ? { answerNorm: r.answer_norm, description: r.description } : undefined
+  }
+  /** makes this answer the question's gem (replacing the old one); false if the answer does not exist */
+  setGem(questionId: string, answerNorm: string, description: string | null, note: string | null, at: number): boolean {
+    const a = this.getAnswer(questionId, answerNorm)
+    if (!a) return false
+    const before = this.gemOf(questionId)
+    this.tx(() => {
+      this.st(`INSERT INTO gems (question_id, answer_norm, description, note, created_at) VALUES (?,?,?,?,?)
+        ON CONFLICT(question_id) DO UPDATE SET answer_norm = excluded.answer_norm, description = excluded.description, note = excluded.note`).run(questionId, answerNorm, description, note, at)
+      this.logChange(questionId, answerNorm, 'gem', before ? before.answerNorm : null, answerNorm, note, at)
+    })
+    return true
+  }
+  clearGem(questionId: string, at: number): boolean {
+    const before = this.gemOf(questionId)
+    if (!before) return false
+    this.tx(() => {
+      this.st('DELETE FROM gems WHERE question_id = ?').run(questionId)
+      this.logChange(questionId, before.answerNorm, 'gem removed', before.answerNorm, null, null, at)
+    })
+    return true
+  }
+  /** every gem with its question and answer (the review lists and the audit) */
+  listGems(): { question: QuestionRow; answer: AnswerRow; description: string | null; note: string | null }[] {
+    const rows = this.st(`SELECT g.description AS gdesc, g.note AS gnote, g.answer_norm AS gnorm, q.* FROM gems g JOIN questions q ON q.id = g.question_id ORDER BY q.category, q.id`).all() as Row[]
+    return rows.flatMap((r) => {
+      const a = this.getAnswer(r.id, r.gnorm)
+      return a ? [{ question: toQuestion(r), answer: a, description: r.gdesc as string | null, note: r.gnote as string | null }] : []
+    })
+  }
+  /** how many gems each category holds, counting approved questions only: what the cabinet shows. No prompts, no answers. */
+  gemSummary(): { total: number; categories: { name: string; total: number }[] } {
+    const rows = this.st(`SELECT q.category AS name, COUNT(*) AS n FROM gems g JOIN questions q ON q.id = g.question_id
+      WHERE q.status = 'approved' GROUP BY q.category ORDER BY q.category`).all() as Row[]
+    const categories = rows.map((r) => ({ name: r.name as string, total: r.n as number }))
+    return { total: categories.reduce((a, c) => a + c.total, 0), categories }
   }
 
   // ---------------------------------------------------------------- runs

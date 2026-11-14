@@ -9,7 +9,7 @@ import { generateQuestions, MIN_PER_TIER } from '../generate/generate'
 import { CATEGORIES } from '../generate/categories'
 import type { LlmClient } from '../llm/types'
 import { nearForms } from '../expand/lint'
-import { normalize } from '../normalize'
+import { editDistance, normalize, typoBudget } from '../normalize'
 import type { QuestionBank } from '../questions'
 import { parseArgs } from './args'
 
@@ -45,6 +45,12 @@ const HELP = `Minitude command line
   answers ok <question-id> <answer>                    (clear the review flag)
   answers remove <question-id> <answer> [--message "..."]
 
+  gems list                                            (the SINGULARITY gem of every question: the one very obscure answer that scores 120)
+  gems set <question-id> "<answer>" ["<one line shown when it is found>"] [--note "..."]   (make an existing answer the question's gem)
+  gems clear <question-id>
+  gems import [file.json] [--dry-run]                  (the 200 gems, from data/gems.json; safe to run again; a dry run only counts)
+  gems audit                                           (every approved question has a gem; the gem answers are Mythic unless noted; looks for close look-alikes)
+
   daily show [YYYY-MM-DD]                              (the seven questions of a day, default today (UTC), and how many played)
   daily plan [--days 7]                                (choose and save the sets for today and the next days, so you can look at them)
   daily set <YYYY-MM-DD> <id> x7                       (use these seven approved questions on that day; only until somebody has played it)
@@ -57,7 +63,7 @@ const HELP = `Minitude command line
   db stats
   db backup [folder]                                   (a safe copy of the database file)
 
-Tiers: 0 Common, 1 Uncommon, 2 Rare, 3 Exotic, 4 Legendary, 5 Mythic.
+Tiers: 0 Common, 1 Uncommon, 2 Rare, 3 Exotic, 4 Legendary, 5 Mythic. A gem (SINGULARITY, 120 points) is not a stored tier: it is one answer per question, see "gems".
 Run as:  npm run cli -- <command>`
 
 const tierName = (t: number) => TIERS[t]?.name.toLowerCase().replace(/^./, (c) => c.toUpperCase()) ?? String(t)
@@ -357,6 +363,110 @@ export async function runCli(argv: string[], ctx: CliContext): Promise<number> {
       }
     }
     return bad('unknown answers command. Try: help')
+  }
+
+  if (group === 'gems') {
+    const defaultFile = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'data', 'gems.json')
+    const exceptionNote = (note: string | null) => /owner/i.test(note ?? '')
+    switch (verb) {
+      case 'list': {
+        const gems = repo.listGems()
+        for (const g of gems) out(`${g.question.status.padEnd(8)} ${g.question.id.padEnd(34)} ${g.answer.name.padEnd(36)} tier ${g.answer.tier}  ${g.description ?? ''}`)
+        out(`${gems.length} gem${gems.length === 1 ? '' : 's'}.`)
+        return 0
+      }
+      case 'set': {
+        const [qid, text, line] = args
+        const q = qid ? repo.getQuestion(qid) : undefined
+        if (!q || !text) return bad('usage: gems set <question-id> "<answer>" ["<one line>"] [--note "..."]')
+        const row = findAnswer(repo, qid, text)
+        if (!row) return bad('no such answer for that question. See: answers list ' + qid)
+        repo.setGem(qid, row.norm, line?.trim() || null, flag('note') ?? null, ctx.now())
+        out(`${row.name} is now the gem of ${qid} (stored tier ${row.tier}; it scores 120 as a gem).`)
+        return 0
+      }
+      case 'clear': {
+        const [qid] = args
+        if (!qid || !repo.clearGem(qid, ctx.now())) return bad('usage: gems clear <question-id> (that question has a gem)')
+        out(`${qid}: no gem any more. Its answers score by their own tier.`)
+        return 0
+      }
+      case 'import': {
+        const dry = !!a.flags['dry-run']
+        const file = args[0] ?? defaultFile
+        let data: unknown
+        try { data = JSON.parse(readFileSync(file, 'utf8')) } catch { return bad('cannot read ' + file) }
+        const list = Array.isArray(data) ? data : (data as { gems?: unknown })?.gems
+        if (!Array.isArray(list)) return bad('the file must hold a list of gems (or { "gems": [...] })')
+        let added = 0, changed = 0, same = 0
+        const skipped: string[] = []
+        const tierDiffers: string[] = []
+        const at = ctx.now()
+        const run = () => {
+          for (const g of list as { question?: string; answer?: string; description?: string; note?: string; tier?: number }[]) {
+            const qid = g?.question, name = g?.answer
+            if (!qid || !name || typeof qid !== 'string' || typeof name !== 'string') { skipped.push(`${String(qid)}: bad entry`); continue }
+            const q = repo.getQuestion(qid)
+            if (!q) { skipped.push(`${qid}: no such question`); continue }
+            if (q.status !== 'approved') { skipped.push(`${qid}: the question is not approved`); continue }
+            const row = findAnswer(repo, qid, name)
+            if (!row) { skipped.push(`${qid}: "${name}" is not an answer of that question`); continue }
+            if (typeof g.tier === 'number' && g.tier !== row.tier) tierDiffers.push(`${qid}: ${row.name} is tier ${row.tier} here, the file says ${g.tier}`)
+            const line = typeof g.description === 'string' && g.description.trim() ? g.description.trim() : null
+            const before = repo.gemOf(qid)
+            if (!before) added++
+            else if (before.answerNorm !== row.norm || (before.description ?? null) !== line) changed++
+            else { same++; continue }
+            if (!dry) repo.setGem(qid, row.norm, line, typeof g.note === 'string' && g.note ? g.note : null, at)
+          }
+        }
+        if (dry) run(); else repo.tx(run)
+        for (const s of skipped.slice(0, 30)) out('  skipped ' + s)
+        if (skipped.length > 30) out(`  ... and ${skipped.length - 30} more skipped`)
+        for (const s of tierDiffers.slice(0, 15)) out('  note: ' + s)
+        out(`${dry ? 'Would set' : 'Set'} ${added} new gem${added === 1 ? '' : 's'}, ${changed} changed, ${same} already as in the file, ${skipped.length} skipped.`)
+        return skipped.length ? 1 : 0
+      }
+      case 'audit': {
+        let problems = 0
+        const heads = repo.approvedHeads()
+        const gems = repo.listGems()
+        const byQ = new Map(gems.map((g) => [g.question.id, g]))
+        const missing = heads.filter((h) => !byQ.has(h.id))
+        if (missing.length) { problems += missing.length; out(`${missing.length} approved question(s) have no gem:`); for (const m of missing.slice(0, 30)) out('  ' + m.id) }
+        const stale = gems.filter((g) => g.question.status !== 'approved')
+        if (stale.length) { problems += stale.length; out(`${stale.length} gem(s) belong to a question that is not approved:`); for (const g of stale.slice(0, 30)) out('  ' + g.question.id) }
+        const odd = gems.filter((g) => g.answer.tier !== 5 && !exceptionNote(g.note))
+        if (odd.length) { problems += odd.length; out(`${odd.length} gem answer(s) are not Mythic and have no note saying why:`); for (const g of odd.slice(0, 30)) out(`  ${g.question.id}: ${g.answer.name} (tier ${g.answer.tier})`) }
+        const noLine = gems.filter((g) => !g.description && !g.answer.description)
+        if (noLine.length) { problems += noLine.length; out(`${noLine.length} gem(s) have no one-line description:`); for (const g of noLine.slice(0, 30)) out('  ' + g.question.id) }
+        // look-alikes: another answer a slip away from the gem. Not an error (the player is always asked first), but worth a look.
+        let alike = 0
+        for (const g of gems) {
+          // only the gem's own written forms are compared with everything else (a whole-question comparison is far too slow on the big questions)
+          const forms = repo.formsOf(g.question.id)
+          const mine = [...forms].filter(([, canon]) => canon === g.answer.norm).map(([f]) => f)
+          const near: string[] = []
+          for (const f of mine) {
+            const budget = typoBudget(f.length)
+            if (budget === 0) continue
+            for (const [other, canon] of forms) {
+              if (canon === g.answer.norm || Math.abs(other.length - f.length) > budget) continue
+              if (editDistance(f, other, budget) <= budget) near.push('"' + f + '" / "' + other + '"')
+            }
+          }
+          if (!near.length) continue
+          alike++
+          if (alike <= 15) out('  look-alike in ' + g.question.id + ': ' + near.slice(0, 3).join(', '))
+        }
+        if (alike) out(`${alike} gem(s) have a look-alike answer (informational).`)
+        const exceptions = gems.filter((g) => g.answer.tier !== 5 && exceptionNote(g.note))
+        if (exceptions.length) out('Owner exceptions (not Mythic): ' + exceptions.map((g) => g.question.id + ': ' + g.answer.name + ' (tier ' + g.answer.tier + ')').join('; '))
+        out(problems ? `${problems} problem(s).` : `All good: ${gems.length} gems, one for each of the ${heads.length} approved questions.`)
+        return problems ? 1 : 0
+      }
+    }
+    return bad('unknown gems command. Try: help')
   }
 
   if (group === 'daily') {

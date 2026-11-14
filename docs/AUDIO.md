@@ -25,3 +25,11 @@ The video's audio was normalised after mixing. The browser mix was matched to it
 - No music. The video had none.
 - No stereo sound for wide screens, no volume slider (mute only).
 - Sounds are not adjusted for `prefers-reduced-motion`.
+
+## The gem (tier 6)
+
+- A seventh sting (`sting(..., 6)`, rendered with the others): the birth, ported from the owner-approved draft: a deep boom, a crash of light with three glass bells, a rising seven-note glass arpeggio over a pad, thirty-four sine glints, then a warm chord.
+- `Sfx.scheduleGemPull`: before the birth, a rising drone with air drawn inward and a falling whistle, a heartbeat that speeds up, then the ordinary mix is ducked (`duck`, as under the finale) for the vacuum and released at the exact moment of the birth.
+- `chg + 0.1`: a swish and five glints for the gem flying into the counter.
+- Levels (offline render, `node audio-levels.cjs 6`): peak -6 dB against -5 dB for a Mythic, no clipping. **Not yet heard by a person.**
+- Gotcha: `bell()` adds partials at 2.76x and 4.1x its pitch, so a bell above about 5 kHz goes past 22 kHz and the browser warns; high glints are plain sine tones.

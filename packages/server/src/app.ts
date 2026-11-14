@@ -148,6 +148,9 @@ export function createApp(deps: AppDeps) {
   // Public, so it says nothing about how answers are checked (no model, no mock/real, no fallback): that stays on the server.
   app.get('/api/health', (c) => c.json({ ok: true, questions: repo.countByStatus().approved, policy: POLICY_VERSION }))
 
+  /** how many gems each category holds (for the cabinet). Counts only: no prompts, no answers. */
+  app.get('/api/gems', (c) => c.json(repo.gemSummary()))
+
   app.get('/api/daily', (c) => {
     const guest = guestOf(c)
     if (!guest) return fail(c, 400, 'Missing guest id.', 'guest')

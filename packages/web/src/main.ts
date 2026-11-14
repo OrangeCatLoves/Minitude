@@ -2,6 +2,7 @@ import { loadAssets } from './assets'
 import { Game } from './game'
 import { Sfx } from './audio'
 import { Afterword } from './afterword'
+import { CabinetUi } from './cabinet'
 import './site.css'
 
 const boot = document.getElementById('boot') as HTMLElement
@@ -30,6 +31,8 @@ async function main(): Promise<void> {
   setupMute(sfx, game)
   const afterEl = document.getElementById('after')
   if (afterEl) game.after = new Afterword(afterEl)
+  const cabEl = document.getElementById('cabinet'), cabBtn = document.getElementById('cabbtn') as HTMLButtonElement | null
+  if (cabEl && cabBtn) game.cabinet = new CabinetUi(cabEl, cabBtn, assets.gems[6])
 
   const params = new URLSearchParams(location.search)
   // ?debug=1 lets a test script look inside the running game (the clock keeps running, unlike ?manual=1)
@@ -76,7 +79,7 @@ function setupMute(sfx: Sfx, game: Game): void {
   b.addEventListener('click', (e) => { e.stopPropagation(); toggle(); b.blur(); game.refocus() })
   window.addEventListener('keydown', (e) => {
     // not while typing in the page under the report
-    if (e.target instanceof Element && e.target.closest('#after')) return
+    if (e.target instanceof Element && e.target.closest('#after, #cabinet')) return
     if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey && !game.canType()) toggle()
   })
 }

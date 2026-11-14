@@ -102,6 +102,8 @@ h2 { font: 600 24px/1.2 var(--font-head); margin: 12px 0 10px; letter-spacing: -
 .btn { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg); border-radius: 8px; padding: 8px 16px; font-weight: 500; }
 .btn.ghost { background: none; color: var(--accent); }
 mark { background: var(--draft-bg); color: inherit; border-radius: 3px; padding: 0 1px; }
+.gemtag { display: inline-block; margin-left: 8px; padding: 1px 8px; border: 1px solid #8b72f0; border-radius: 99px; color: #6a4fd8; font-size: 12px; font-weight: 600; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { .gemtag { color: #c9b9ff; border-color: #8b72f0; } }
 
 @media (max-width: 860px) {
   .layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
@@ -148,6 +150,8 @@ mark { background: var(--draft-bg); color: inherit; border-radius: 3px; padding:
   function byId(id) { for (var i = 0; i < Q.length; i++) if (Q[i].id === id) return Q[i]; return null; }
   function vis(q) { return st.show[q.status] && (!st.cat || q.category === st.cat); }
   function tag(q) { return '<span class="st st-' + q.status + '" title="' + STATUS_HINT[q.status] + '">' + STATUS[q.status] + '</span>'; }
+  /** the SINGULARITY gem marker, when this answer is the question's gem */
+  function gemTag(q, name) { return q.gem && String(name).toLowerCase() === q.gem.name.toLowerCase() ? '<span class="gemtag" title="scores 120 points as the gem">◆ gem</span>' : ''; }
   function tierTag(t) { return '<span class="tg" style="--tc:var(--t' + t + ')"><i class="dot"></i>' + TIERS[t][0] + '</span>'; }
   /** shows where the typed text sits inside a name */
   function hi(text, term) {
@@ -193,7 +197,7 @@ mark { background: var(--draft-bg); color: inherit; border-radius: 3px; padding:
     if (!q) { mainEl.innerHTML = '<p class="empty">Pick a question on the left, or search for an answer above.</p>'; return; }
     mainEl.innerHTML =
       '<div class="qhead"><div class="chips">' + tag(q) + '<span class="tag">' + esc(q.origin) + '</span><span class="tag">' + esc(q.category) + '</span><code class="qid">' + esc(q.id) + '</code></div>' +
-      '<h2>' + esc(q.prompt) + '</h2><dl class="facts"><dt>What counts</dt><dd>' + esc(q.rules) + '</dd>' + (q.source ? '<dt>Where the answers come from</dt><dd>' + esc(q.source) + '</dd>' : '') + '</dl></div>' +
+      '<h2>' + esc(q.prompt) + '</h2><dl class="facts"><dt>What counts</dt><dd>' + esc(q.rules) + '</dd>' + (q.gem ? '<dt>The gem (SINGULARITY, 120 points)</dt><dd><b>' + esc(q.gem.name) + '</b>' + (q.gem.line ? ': ' + esc(q.gem.line) : '') + '</dd>' : '') + (q.source ? '<dt>Where the answers come from</dt><dd>' + esc(q.source) + '</dd>' : '') + '</dl></div>' +
       '<div class="controls"><div class="tierbar" id="chips" role="group" aria-label="Rarity"></div><label class="flt"><span class="sr">Filter this list</span><input id="flt" type="search" placeholder="Filter this list" autocomplete="off" value="' + esc(st.filter) + '"></label></div>' +
       '<p class="count" id="acount"></p><ol class="alist" id="alist"></ol><div class="more" id="more"></div>';
     renderChips(q); renderAnswers(q);
@@ -216,7 +220,7 @@ mark { background: var(--draft-bg); color: inherit; border-radius: 3px; padding:
     $('acount').textContent = rows.length ? 'Showing ' + num(shown.length) + ' of ' + num(rows.length) + (st.tier === -1 ? ', most common first' : '') : 'Nothing here matches.';
     $('alist').innerHTML = shown.map(function (r) {
       var e = r[1];
-      return '<li><span class="nm">' + hi(e[0], f) + '</span>' + (e.length > 1 ? '<span class="al">also: ' + e.slice(1).map(function (a) { return hi(a, f); }).join(', ') + '</span>' : '') + (st.tier === -1 ? tierTag(r[0]) : '') + '</li>';
+      return '<li><span class="nm">' + hi(e[0], f) + '</span>' + gemTag(q, e[0]) + (e.length > 1 ? '<span class="al">also: ' + e.slice(1).map(function (a) { return hi(a, f); }).join(', ') + '</span>' : '') + (st.tier === -1 ? tierTag(r[0]) : '') + '</li>';
     }).join('');
     $('more').innerHTML = rows.length > shown.length ? '<button type="button" class="btn ghost" id="morebtn">Show ' + Math.min(PAGE, rows.length - shown.length) + ' more</button>' : '';
   }
@@ -246,7 +250,7 @@ mark { background: var(--draft-bg); color: inherit; border-radius: 3px; padding:
     mainEl.innerHTML = head + '<ul class="rlist">' + shown.map(function (h) {
       var alias = '';
       if (h.s === 3) for (var k = 1; k < h.e.length; k++) if (h.e[k].toLowerCase().indexOf(term) >= 0) { alias = h.e[k]; break; }
-      return '<li data-q="' + esc(h.q.id) + '" data-name="' + esc(st.term) + '"><button type="button" class="nm">' + hi(h.e[0], term) + '</button>' + (alias ? '<span class="al">also written: ' + hi(alias, term) + '</span>' : '') + tierTag(h.t) +
+      return '<li data-q="' + esc(h.q.id) + '" data-name="' + esc(st.term) + '"><button type="button" class="nm">' + hi(h.e[0], term) + '</button>' + (alias ? '<span class="al">also written: ' + hi(alias, term) + '</span>' : '') + tierTag(h.t) + gemTag(h.q, h.e[0]) +
         '<span class="rq">' + esc(h.q.prompt) + ' · ' + STATUS[h.q.status] + '</span></li>';
     }).join('') + '</ul>';
   }

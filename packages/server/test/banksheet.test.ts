@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { importBank } from '../src/bankio'
 import { buildSheetData, embed, renderSheet } from '../src/cli/banksheet'
 import { openDb } from '../src/db/open'
+import { normalize } from '../src/normalize'
 import { Repo } from '../src/db/repo'
 import type { QuestionBank } from '../src/questions'
 
@@ -63,5 +64,18 @@ describe('the bank sheet', () => {
     const e = embed({ s: '<b>' + String.fromCharCode(0x2028) })
     expect(e.includes('<')).toBe(false)
     expect(e.includes(String.fromCharCode(0x2028))).toBe(false)
+  })
+
+  it('shows the question gem next to its answers', () => {
+    const db = openDb(dbFile)
+    const repo = new Repo(db)
+    expect(repo.setGem('live-one', normalize('Gamma </script>'), 'A line about the gem.', null, 5)).toBe(true)
+    db.close()
+    const data = buildSheetData(dbFile, [], '1 Jan 2027')
+    expect(data.questions.find((q) => q.id === 'live-one')!.gem).toEqual({ name: 'Gamma </script>', line: 'A line about the gem.' })
+    expect(data.questions.find((q) => q.id === 'draft-one')!.gem).toBeUndefined()
+    // the page still has exactly one real closing script tag even though the gem's name contains one
+    expect(renderSheet(data).split('</script>').length).toBe(renderSheet(buildSheetData(dbFile, [], '1 Jan 2027')).split('</script>').length)
+    expect(renderSheet(data)).toContain('◆ gem')
   })
 })
