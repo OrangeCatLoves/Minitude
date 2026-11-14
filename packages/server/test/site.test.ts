@@ -148,6 +148,8 @@ describe('what a person can do with them', () => {
     expect(await runCli(['suggestions', 'list'], c)).toBe(0)
     expect(c.lines.join('\n')).toContain('name a famous bridge')
     expect(c.lines.join('\n')).toContain('2 shown. In all: 2 new, 0 used, 0 skipped.')
+    // each idea shows when it was sent, to the second, in UTC
+    expect(c.lines.find((l) => l.includes('name a famous bridge'))).toMatch(/^#\d+\s+\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC\s+new\s+name a famous bridge$/)
     const id = repo.listSuggestions('new', 5).find((s) => s.text.includes('cloud'))!.id
     const m = ctx(repo)
     expect(await runCli(['suggestions', 'mark', String(id), 'used'], m)).toBe(0)

@@ -1,17 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { footerLinks, SITE } from '../src/site'
 
-const site = (over: Partial<typeof SITE> = {}) => ({ ...SITE, contactEmail: '', businessEmail: '', instagramUrl: '', ...over })
+const site = (over: Partial<typeof SITE> = {}) => ({ ...SITE, contactEmail: '', instagramUrl: '', ...over })
 
 describe('the footer links', () => {
   it('with no addresses set shows only the privacy page: a link is never shown without somewhere to go', () => {
     expect(footerLinks(site()).map((l) => l.label)).toEqual(['privacy'])
   })
 
-  it('shows each link as soon as its address is set, in the order contact, business, instagram, privacy', () => {
-    const all = footerLinks(site({ contactEmail: 'a@example.com', businessEmail: 'b@example.com', instagramUrl: 'https://www.instagram.com/x' }))
-    expect(all.map((l) => l.label)).toEqual(['contact us', 'business inquiries', 'instagram', 'privacy'])
-    expect(footerLinks(site({ businessEmail: 'b@example.com' })).map((l) => l.label)).toEqual(['business inquiries', 'privacy'])
+  it('shows each link as soon as its address is set, in the order contact, instagram, privacy', () => {
+    const all = footerLinks(site({ contactEmail: 'a@example.com', instagramUrl: 'https://www.instagram.com/x' }))
+    expect(all.map((l) => l.label)).toEqual(['contact us', 'instagram', 'privacy'])
+    expect(footerLinks(site({ instagramUrl: 'https://www.instagram.com/x' })).map((l) => l.label)).toEqual(['instagram', 'privacy'])
+    expect(all.map((l) => l.label)).not.toContain('business inquiries')
   })
 
   it('writes e-mail links with a subject that is safe to put in an address', () => {
@@ -32,11 +33,10 @@ describe('the footer links', () => {
     expect(footerLinks(site(), false)).toEqual([])
   })
 
-  it('ships with real contact details (one address for both, as the owner chose on 13 Nov 2026) and no Instagram link yet', () => {
+  it('ships with real contact details (one address, and no separate business link: the owner chose that on 14 Nov 2026) and no Instagram link yet', () => {
     expect(SITE.contactEmail).toMatch(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)
-    expect(SITE.businessEmail).toBe(SITE.contactEmail)
     expect(SITE.contactEmail).not.toMatch(/example\./)          // never a made-up address
     expect(SITE.instagramUrl).toBe('')
-    expect(footerLinks().map((l) => l.label)).toEqual(['contact us', 'business inquiries', 'privacy'])
+    expect(footerLinks().map((l) => l.label)).toEqual(['contact us', 'privacy'])
   })
 })

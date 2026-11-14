@@ -25,13 +25,10 @@ if (guestLine) {
 // the contact section appears only when there is something in it
 const contact = document.getElementById('contact')
 const lines = document.getElementById('contact-lines')
-// one address for everything: say so once instead of listing it twice
-const oneAddress = !!SITE.contactEmail && SITE.contactEmail === SITE.businessEmail
-const links = footerLinks(SITE, false).filter((l) => !(oneAddress && l.label === 'business inquiries'))
+const links = footerLinks(SITE, false)
 if (contact && lines && links.length) {
   const text: Record<string, string> = {
-    'contact us': oneAddress ? 'Bugs, feedback, business inquiries, or a question about your information: ' : 'Bugs, feedback, or a question about your information: ',
-    'business inquiries': 'Business inquiries: ',
+    'contact us': 'Bugs, feedback, or a question about your information: ',
     instagram: 'Find us on ',
   }
   links.forEach((l, i) => {
@@ -39,7 +36,7 @@ if (contact && lines && links.length) {
     lines.append(document.createTextNode(text[l.label] ?? ''))
     const a = document.createElement('a')
     a.href = l.href
-    a.textContent = l.label === 'contact us' ? (SITE.contactEmail || l.label) : l.label === 'business inquiries' ? (SITE.businessEmail || l.label) : 'Instagram'
+    a.textContent = l.label === 'contact us' ? (SITE.contactEmail || l.label) : 'Instagram'
     if (l.external) { a.target = '_blank'; a.rel = 'noopener noreferrer' }
     lines.append(a)
   })

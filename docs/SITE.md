@@ -9,7 +9,7 @@ Added 13 Nov 2026 at the owner's request ("I want my website to look genuinely p
 1. **logbook**: `streak · played · avg · best` for this browser (see below).
 2. **how was that dive?** `1 = meh · 5 = great`, buttons 1 to 5. Tapping again changes the rating.
 3. **got an idea for a question? tell us what to ask**: a text box (placeholder "name a type of cloud…") and SUBMIT.
-4. **footer**: `found a bug? lost your streak? contact us · business inquiries · instagram · privacy`, then `© 2026 Minitude`.
+4. **footer**: `found a bug? lost your streak? contact us · instagram · privacy`, then `© 2026 Minitude`.
 
 Leaving the report (HOME, PLAY AGAIN, Esc) closes the sheet and scrolls back to the top. While a run is being played there is nothing to scroll to.
 
@@ -33,9 +33,9 @@ Stored only in the browser (`localStorage` key `minitude.logbook`), maths in `pa
 ## Contact details (`packages/web/src/site.ts`)
 
 The footer shows only links that have an address, so nothing points nowhere.
-- **Set on 13 Nov 2026 by the owner:** `contactEmail` and `businessEmail` are the same address (the owner's own Gmail, chosen by the owner; I had suggested `contact@minitude.io` through Cloudflare Email Routing so a personal address is not public). On the privacy page the two purposes are shown as one line. The footer shows "contact us" and "business inquiries" (different subject lines, same address).
+- **Set on 13 Nov 2026 by the owner:** `contactEmail` is the owner's own Gmail (chosen by the owner; I had suggested `contact@minitude.io` through Cloudflare Email Routing so a personal address is not public). **On 14 Nov 2026 the owner removed the separate "business inquiries" link** (it only differed by its subject line), so the footer and the privacy page have one address: "contact us" (the `businessEmail` setting and `VITE_BUSINESS_EMAIL` are gone). The privacy page's "last updated" date was moved to 14 November 2026 for that change.
 - **`instagramUrl` is empty on purpose** ("not for now"): the Instagram link is simply not shown. Set the full address in `site.ts` to show it.
-- The address is visible to anyone, so expect some spam. To change it later, edit one line in `site.ts` and deploy; for a quick look in development the values can also come from `VITE_CONTACT_EMAIL`, `VITE_BUSINESS_EMAIL` and `VITE_INSTAGRAM_URL` (build or dev time).
+- The address is visible to anyone, so expect some spam. To change it later, edit one line in `site.ts` and deploy; for a quick look in development the values can also come from `VITE_CONTACT_EMAIL` and `VITE_INSTAGRAM_URL` (build or dev time).
 
 To deploy, follow `docs/DEPLOY.md`. The deploy runs migration 3 on the live database when the server starts (it only adds two tables); take a `db backup` first as always. The server serves `privacy.html` at `/privacy`; the build now has two pages (`vite.config.ts`).
 
