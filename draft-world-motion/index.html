@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minitude Living Worlds</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style id="fonts"></style>
+<style>
+  [hidden] { display:none !important; }
+  :root { color-scheme:dark; --ink:#070b17; --panel:#0b1122; --line:rgba(110,124,170,.4); --off:#eef2ff; --soft:#a3b0d6; --faint:#8190bb; --cyan:#5be0ff; --pix:'Sil', monospace; --read:'Pix', system-ui, sans-serif; }
+  html, body { margin:0; background:var(--ink); color:var(--off); font:16px/1.5 var(--read); }
+  .wrap { max-width:1320px; margin:0 auto; padding-block:18px 60px; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); }
+  h1 { margin:0; font:700 15px/1.3 var(--pix); letter-spacing:.16em; }
+  .lede { margin:6px 0 14px; color:var(--soft); max-width:92ch; }
+  .lede b { color:var(--off); }
+  .bar { display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin:10px 0; }
+  .bar button, .tab { padding:8px 10px; background:transparent; color:var(--off); border:2px solid var(--line); font:700 11px/1 var(--pix); letter-spacing:.08em; cursor:pointer; }
+  .bar button[aria-pressed="true"], .tab[aria-pressed="true"] { background:var(--cyan); border-color:var(--cyan); color:var(--ink); }
+  .bar label { display:flex; align-items:center; gap:8px; font:700 10px/1 var(--pix); letter-spacing:.12em; color:var(--soft); }
+  .bar input[type=range] { width:150px; accent-color:var(--cyan); }
+  .stage { position:relative; width:100%; max-width:1280px; aspect-ratio:320/165; background:#000; border:1px solid var(--line); user-select:none; }
+  .stage canvas { position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; display:block; }
+  .tag { position:absolute; top:8px; font:700 11px/1 var(--pix); letter-spacing:.14em; background:rgba(4,7,18,.72); padding:6px 8px; pointer-events:none; }
+  .tag.l { left:8px; color:var(--soft); } .tag.r { right:8px; color:var(--cyan); }
+  .wipe { position:absolute; top:0; bottom:0; width:0; border-left:2px solid var(--cyan); pointer-events:none; }
+  .info { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; margin-top:12px; }
+  .info h2 { margin:0 0 4px; font:700 14px/1.3 var(--pix); letter-spacing:.14em; color:var(--off); }
+  .info p { margin:0 0 6px; color:var(--soft); } .info ul { margin:0; padding-left:1.2em; } .info li { margin:0 0 4px; }
+  .note { color:var(--faint); font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:10px; margin-top:8px; }
+  .cell { background:var(--panel); border:1px solid var(--line); padding:6px; cursor:pointer; }
+  .cell canvas { width:100%; aspect-ratio:320/165; image-rendering:pixelated; display:block; background:#000; }
+  .cell span { display:block; margin-top:5px; font:700 10px/1.2 var(--pix); letter-spacing:.1em; color:var(--soft); }
+  h3 { margin:26px 0 0; font:700 12px/1.3 var(--pix); letter-spacing:.16em; color:var(--soft); }
+  @media (max-width:760px) { .info { grid-template-columns:1fr; } }
+</style></head>
+<body><div class="wrap">
+<h1>MINITUDE: LIVING WORLDS (DRAFT)</h1>
+<p class="lede">The worlds are still pictures today. This draft gives every one a little life while keeping the picture the same: <b>twinkling, drifting, swaying, flowing, glowing</b>. Everything is drawn at the picture's own 320 x 180 pixels with whole-pixel moves, so it stays crisp pixel art. <b>From world 7 on, every world has three designs (A, B, C): pick the one you like.</b> Pick a world, drag the line to compare <b>still</b> (left) with <b>alive</b> (right), and use <b>LIFE</b> to turn the amount up or down (1.0 is the draft; 0 is the original picture).</p>
+<div class="bar" id="worlds"></div>
+<div class="bar">
+  <label>LIFE <input id="life" type="range" min="0" max="2" step="0.05" value="1"><span id="lifev">1.0</span></label>
+  <label>SPEED <input id="speed" type="range" min="0.25" max="3" step="0.25" value="1"><span id="speedv">1x</span></label>
+  <button id="play" type="button" aria-pressed="true">PLAYING</button>
+  <button id="expl" type="button" aria-pressed="true">EXPLORER</button>
+  <button id="crop" type="button" aria-pressed="true">AS IN THE GAME (TOP CUT)</button>
+  <label id="slotbox" hidden>VARIANT <input id="slot" type="range" min="20" max="34" step="1" value="20"><span id="slotv">20</span></label>
+</div>
+<div class="bar" id="designs" hidden></div>
+<div class="stage" id="stage"><canvas id="cv" width="320" height="180"></canvas><canvas id="cv2" width="320" height="180"></canvas><div class="wipe" id="wipe"></div><span class="tag l">STILL</span><span class="tag r">ALIVE</span></div>
+<div class="info"><div><h2 id="wname"></h2><p id="wdesc" class="note"></p></div><div><p><b>What moves</b></p><ul id="wmoves"></ul></div></div>
+<p class="note" id="picks"></p>
+<h3>ALL WORLDS AT ONCE (EACH SHOWS THE DESIGN YOU PICKED)</h3>
+<div class="grid" id="grid"></div>
+</div>
+<script src="data/assets.js"></script>
+<script src="src/engine.js"></script>
+<script src="src/fx.js"></script>
+<script src="src/dna.js"></script>
+<script src="src/worlds.js"></script>
+<script src="src/worlds2.js"></script>
+<script src="src/worlds3.js"></script>
+<script src="src/worlds4.js"></script>
+<script src="src/worlds5.js"></script>
+<script src="src/worlds6.js"></script>
+<script src="src/variants.js"></script>
+<script src="src/v1.js"></script>
+<script src="src/v2.js"></script>
+<script src="src/v3.js"></script>
+<script src="src/viewer.js"></script>
+</body></html>
