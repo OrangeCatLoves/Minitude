@@ -4,9 +4,15 @@
  *     (sharp-bilinear sampling keeps the pixels crisp at any zoom; mipmaps keep them calm when zoomed far out)
  *  B  the speed effect (zoom blur + colour fringe) and the darkening reflection in the bottom 60 rows
  * Same maths as the design tool's world_layer3 / zoom_blur / aberrate.
+ *
+ * The world the camera is in can be a LIVING picture (src/life): its pixels are handed over with setLive() and kept in one extra texture layer
+ * (LIVE), which pass A reads in place of that world's still picture. The next world, in the window, is always the still one.
  */
 import { FADE_IN, FEATHER, FX, FY, H, HAND_OFF, ROW0, W, WORLD_ROWS, FOC } from './config'
 import { smooth } from './util'
+
+/** the texture layer of the living picture (after the 36 world pictures and their 36 inner versions) */
+const LIVE = 72
 
 const VERT = `#version 300 es
 in vec2 aPos;
@@ -18,6 +24,7 @@ precision highp sampler2DArray;
 uniform sampler2DArray uTex;
 uniform float uZo, uZi, uK, uFade;
 uniform int uJ;
+uniform int uOuter;  // the layer of the world the camera is in: uJ, or the living picture
 uniform int uInner;
 uniform vec4 uBox;   // left, right, top, bottom of the inner window in buffer pixels
 uniform vec4 uFe;    // feather widths: left, right, top, bottom
@@ -40,7 +47,7 @@ vec3 samp(float layer, vec2 p, float Z){
 }
 void main(){
   vec2 p = vec2(gl_FragCoord.x, (${WORLD_ROWS}.0 - gl_FragCoord.y) + ${ROW0}.0);
-  vec3 c = samp(float(uJ), p, uZo);
+  vec3 c = samp(float(uOuter), p, uZo);
   if (uInner == 1) {
     float dist = min(min((p.x - uBox.x) / uFe.x, (uBox.y - p.x) / uFe.y), min((p.y - uBox.z) / uFe.z, (uBox.w - p.y) / uFe.w));
     float a = clamp(dist, 0.0, 1.0); a = a * a * (3.0 - 2.0 * a); a *= uFade;
@@ -115,6 +122,9 @@ export class WorldGL {
   private ub: Record<string, WebGLUniformLocation | null> = {}
   private failures = 0
   private checks = 0
+  /** the living picture last handed over (RGBA, 320 x 180), and whether the texture still has to receive it */
+  private live: Uint8ClampedArray | null = null
+  private liveDirty = false
 
   constructor(private readonly scenes: HTMLImageElement[], private readonly inners: HTMLImageElement[]) {
     this.build() // throws, as before, when the browser has no WebGL 2
@@ -155,7 +165,7 @@ export class WorldGL {
     this.gl = gl
     this.pa = program(gl, FRAG_A)
     this.pb = program(gl, FRAG_B)
-    for (const n of ['uTex', 'uZo', 'uZi', 'uK', 'uFade', 'uJ', 'uInner', 'uBox', 'uFe', 'uFoc']) this.ua[n] = gl.getUniformLocation(this.pa, n)
+    for (const n of ['uTex', 'uZo', 'uZi', 'uK', 'uFade', 'uJ', 'uOuter', 'uInner', 'uBox', 'uFe', 'uFoc']) this.ua[n] = gl.getUniformLocation(this.pa, n)
     for (const n of ['uW', 'uBlur', 'uAb', 'uFoc']) this.ub[n] = gl.getUniformLocation(this.pb, n)
 
     // full-screen triangle
@@ -165,10 +175,11 @@ export class WorldGL {
     gl.enableVertexAttribArray(0)
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
 
-    // 72 layers: scenes 0..35, inners 36..71
+    // 73 layers: scenes 0..35, inners 36..71, and the living picture (only its full-size level is ever read: the world the camera is in is
+    // never drawn smaller than life size)
     this.tex = gl.createTexture()!
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.tex)
-    gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 9, gl.RGBA8, 320, 180, 72)
+    gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 9, gl.RGBA8, 320, 180, 73)
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
     const all = [...scenes, ...inners]
     all.forEach((im, k) => gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, k, 320, 180, 1, gl.RGBA, gl.UNSIGNED_BYTE, im))
@@ -189,12 +200,20 @@ export class WorldGL {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.fboTex, 0)
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    this.liveDirty = this.live !== null // a rebuilt texture has lost the living picture
     this.ready = true
   }
 
-  /** z = camera position in worlds (integer at rest), pulse = camera punch, blur / ab = speed effect strengths (0 = none).
+  /** Hand over a new frame of the living picture (RGBA, 320 x 180). The array is read at the next draw(), so it may be reused afterwards. */
+  setLive(pixels: Uint8ClampedArray): void {
+    this.live = pixels
+    this.liveDirty = true
+  }
+
+  /** z = camera position in worlds (integer at rest), pulse = camera punch, blur / ab = speed effect strengths (0 = none);
+   *  useLive: show the living picture (see setLive) as the world the camera is in.
    *  Returns false when nothing could be drawn (the graphics context is away): the caller must not use the canvas then. */
-  draw(z: number, pulse: number, blur: number, ab: number): boolean {
+  draw(z: number, pulse: number, blur: number, ab: number, useLive = false): boolean {
     const gl = this.gl
     if (!this.ready) return false
     if (gl.isContextLost()) { this.ready = false; return false }
@@ -214,12 +233,18 @@ export class WorldGL {
     gl.useProgram(this.pa)
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.tex)
+    const live = useLive && this.live !== null
+    if (live && this.liveDirty) {
+      gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, LIVE, 320, 180, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.live)
+      this.liveDirty = false
+    }
     gl.uniform1i(this.ua.uTex, 0)
     gl.uniform1f(this.ua.uZo, Zo)
     gl.uniform1f(this.ua.uZi, Zi)
     gl.uniform1f(this.ua.uK, smooth(HAND_OFF, 1.0, f))
     gl.uniform1f(this.ua.uFade, smooth(0.0, FADE_IN, f))
     gl.uniform1i(this.ua.uJ, j)
+    gl.uniform1i(this.ua.uOuter, live ? LIVE : j)
     gl.uniform1i(this.ua.uInner, inner ? 1 : 0)
     gl.uniform4f(this.ua.uBox, left, right, top, bottom)
     gl.uniform4f(this.ua.uFe, fl, fr, ft, fb)

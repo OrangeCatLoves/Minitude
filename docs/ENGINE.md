@@ -37,7 +37,7 @@ Every time that is not known yet is `Infinity`, so each "has this happened yet?"
 
 The order is the order of `render()` in the Python `minui21.py` and it matters (later things draw over earlier ones):
 
-1. **World** - WebGL2 (`gl.ts`). 72 layers in one texture array: 36 world pictures and 36 "inner" versions with the next world already in the middle. The outer picture is zoomed by 10^f, the inner window by 10^(f-1), cross-faded and feathered at its edge; a second pass adds zoom blur, chromatic aberration (both scale with speed) and the darkening reflection in the bottom 60 rows. The picture is 320 x 180 shown at 4x with a "sharp bilinear" filter so it stays crisp at any zoom.
+1. **World** - WebGL2 (`gl.ts`). 73 layers in one texture array: 36 world pictures, 36 "inner" versions with the next world already in the middle, and one layer for the LIVING picture of the world the camera is in (see "The living worlds" below). The outer picture is zoomed by 10^f, the inner window by 10^(f-1), cross-faded and feathered at its edge; a second pass adds zoom blur, chromatic aberration (both scale with speed) and the darkening reflection in the bottom 60 rows. The picture is 320 x 180 shown at 4x with a "sharp bilinear" filter so it stays crisp at any zoom.
 2. Finale dimming, then the **tier backgrounds** (`bgReveal`, `bgCharge`) and the finale bloom.
 3. **Explorer** sprite (native pixels at 4x, squashed and stretched with feet fixed).
 4. **Additive layer** (`fx.ts` `AddLayer`): all light and particle effects are drawn on a black canvas that is added on top with `lighter` plus a blurred copy for glow.
@@ -75,7 +75,7 @@ Text is drawn one character at a time (`draw.ts`). The fonts have ligature and k
 
 - Colours, sizes and every timing constant are in `config.ts` (with the Python name beside most of them).
 - A rarity celebration lives in `celebrate.ts` as three small functions per kind: background, additive effects, front text. Add or change one without touching the timeline.
-- Pictures are PNGs in `packages/web/public/assets/world` (`s*` = at rest, `i*` = with the next world inside). If you redraw a world, redraw both, or the zoom into the next world will show the old picture.
+- Pictures are PNGs in `packages/web/public/assets/world` (`s*` = at rest, `i*` = with the next world inside). If you redraw a world, redraw both, or the zoom into the next world will show the old picture. A redrawn world also needs its movement looked at again (`src/life/designs.ts` finds things by their colours and places), and new fingerprints for the test (see below).
 
 ## The gem (tier 6) reveal
 
@@ -88,3 +88,16 @@ A frame is still a pure function of the clock and the records. A gem adds one ph
 5. **The flight**: at `chg` the gem flies up to `GEM_COUNTER` in the top bar (the others drop into the explorer) and the counter ticks up once it has landed; then the usual stamp and dive.
 
 `Rec.gem` (`GemInfo`) carries what the reveal says; `Game.recordGem` fills it and adds the gem to the cabinet. Pictures: `tools/browser-test/gem.cjs`.
+
+## The living worlds (`src/life`, since 16 November 2026)
+
+Every world picture moves a little (stars twinkle, dust and bubbles drift, tails wave, the DNA helices turn, the gamma waves roll, the ripples grow, Planck Foam bubbles). The owner reviewed the designs in `draft-world-motion/` and chose one of three for worlds 7 to 20 and Planck Foam; that folder keeps every design that was offered and its review page (`index.html`).
+
+- **A frame is still a pure function of time.** `LifeCore.render(slot, t, k)` draws the picture of a slot at `t` seconds with the amount of life `k`: `k = 0` gives the original picture pixel for pixel, `k = 1` is what was reviewed. Everything is done at the picture's own 320 x 180 pixels with whole-pixel moves, so it stays crisp pixel art and zooms like the still picture.
+- **Only the world the camera is in is alive.** `WorldLife.frame(z, T)` (called from `render()`) keeps a clock that starts when the camera arrives in a slot, lets `k` grow from 0 to 1 over `RAMP` (1.5 s) so nothing jumps at a landing, and hands the pixels to `WorldGL.setLive()`. Pass A of `gl.ts` reads that layer in place of the slot's still picture (`uOuter`). The next world, seen through the zoom window during a dive, is the still picture.
+- **Preparation.** Each picture is cut up once (`setup`: 3 to 80 ms). `WorldLife` does that one picture at a time while the browser is idle, starting when the game has loaded; a world that is not ready yet is simply still until it is.
+- **Slow devices.** The time a frame takes is averaged: above 3 ms the living picture is redrawn 30 times a second, above 10 ms 15 times (the rest of the frame is not affected).
+- **No motion on request.** With the device's "reduce motion" setting on, or `?still=1` in the address, the pictures are still (`WorldLife.enabled`). Nothing is stored for this.
+- **Files.** `life/engine.ts` (the toolkit: cut an object out and draw it elsewhere, bend, brighten, glow), `life/designs.ts` (what moves in each world), `life/artsource.ts` (a port of the Python that painted the pictures, `tools/art-source/art`: with it the DNA helices are drawn at any turning angle and the spheres of world 9 are whole where the bead chain hides them), `life/light.ts` (lines, dots, stars), `life/index.ts` (`LifeCore`, `WorldLife`). The first four are the reviewed JavaScript carried over as it was (`// @ts-nocheck`); the test below is what guards them.
+- **Rules that came out of the review** (keep them when a world is changed): do not rotate or stretch a fine pixel pattern (dither and thin rings crawl, and it hurt the owner's eyes); an object moves as ONE whole piece (a ball whose highlight stays behind shows black spots); things that hang together move together; light changes are smooth and slow. Where the picture was made by code, port that code instead of cutting the picture up.
+- **Changing a world's movement.** Change it in `draft-world-motion/src` first (the review page shows it), carry it over to `life/designs.ts`, then run `node draft-world-motion/tools/golden.cjs` to take new fingerprints and `npm test`.

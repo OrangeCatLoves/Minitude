@@ -83,3 +83,7 @@ With `?manual=1` the page exposes `window.__mt`:
 ## Rank
 
 `packages/core/test/rank.test.ts` (the words), `packages/server/test/rank.test.ts` (ties share a rank, half-played runs are not counted, solo and Daily both count, a score that is not among the runs counts as one more, bad input refused, only two numbers in the reply). `tools/browser-test/rank.cjs` plays a run in Chrome and checks the tile on the page under the report against the server's numbers, on a desktop and a phone-sized screen. `daily-answers.cjs` and `gem.cjs` also check that the panels really use Pixelify Sans.
+
+## The living worlds
+
+`packages/web/test/life.test.ts` reads the 36 world pictures itself (a small PNG reader, no browser) and checks: every picture has a design; with no life (`k = 0`) every frame is the original picture pixel for pixel; the frames are the ones the owner reviewed (fingerprints in `test/life.golden.json`, taken from the review page by `draft-world-motion/tools/golden.cjs`); a frame depends only on the time; every world really moves; the port of the DNA picture gives the original at angle 0. `tools/browser-test/life.cjs` plays a run of gems in Chrome (worlds 1, 7, 13, 19 and Planck Foam), checks that the picture moves in each of them and that `?still=1` keeps it still, and saves pictures (also one in the middle of each dive). It needs a server on a throw-away copy of a database that has the gems. `glloss.cjs` still passes: after the graphics context is rebuilt the living picture is handed over again.

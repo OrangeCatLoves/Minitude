@@ -16,6 +16,7 @@ import { ctxOf, mkCanvas, shade, SILF, stext, vignette, vscrim, type Ctx } from 
 import { addFinale, bloomPre, dimPre, finRec, finaleCard, poseExtra, uiDim } from './finale'
 import { AddLayer } from './fx'
 import { WorldGL } from './gl'
+import { WorldLife } from './life'
 import { flashAt, shakeAmp, vignetteAt } from './impact'
 import { makeMiss, newRec, pullStart, schedule, skipCard, Timeline, type Cam, type Rec } from './timeline'
 import {
@@ -68,6 +69,8 @@ export class Game {
   answers: AnswersUi | null = null
 
   private readonly gl: WorldGL
+  /** the little movement in the world pictures (src/life) */
+  private readonly life: WorldLife
   private readonly gems: Gems
   private readonly groups = new Groups()
   private readonly add = new AddLayer()
@@ -135,6 +138,7 @@ export class Game {
 
   constructor(private readonly canvas: HTMLCanvasElement, private readonly input: HTMLInputElement, private readonly assets: Assets) {
     this.gl = new WorldGL(assets.scenes, assets.inners)
+    this.life = new WorldLife(assets.scenes)
     this.gems = makeGems(assets.gems)
     this.accents = assets.manifest.accents as Record<string, RGB>
     const out = canvas.getContext('2d', { alpha: false })
@@ -968,8 +972,10 @@ export class Game {
     const cam = tl.cam(T)
     const fr = rep ? null : finRec(tl, T)
 
-    // ---- world
-    if (this.gl.draw(cam.z, cam.pulse, 0.05 * cam.s, 0.011 * cam.s)) f.drawImage(this.gl.canvas, 0, 0)
+    // ---- world (the one the camera is in is alive: its picture is drawn again for this moment)
+    const live = this.life.frame(cam.z, T)
+    if (live?.fresh) this.gl.setLive(live.pixels)
+    if (this.gl.draw(cam.z, cam.pulse, 0.05 * cam.s, 0.011 * cam.s, live !== null)) f.drawImage(this.gl.canvas, 0, 0)
     else {
       // the world picture is being rebuilt: clear the frame (the 2D layers below are drawn over it, so old pixels would pile up)
       f.fillStyle = `rgb(${INK[0]},${INK[1]},${INK[2]})`
