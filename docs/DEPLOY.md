@@ -11,10 +11,10 @@ One container, one process: the Node server serves the built game and the API, a
 | Thing | Setting | Where |
 | --- | --- | --- |
 | Region | `sin` (Singapore) | `fly.toml` |
-| Machine | shared-cpu-1x, 256 MB (the server used about 110 MB when measured) | `fly.toml` |
+| Machine | shared-cpu-1x, **512 MB since 16 Nov 2026** (the server uses about 100 MB; a bank import needs about 105 MB more next to it, which did not fit comfortably in 256 MB) | `fly.toml` |
 | Disk | volume `minitude_data`, 1 GB, mounted at `/data` | `fly.toml`, `fly volumes create` |
 | Database | `/data/minitude.db` | `DATABASE_FILE` |
-| Daily copies | `/data/backups/minitude-YYYY-MM-DD.db`, newest 7 kept | `BACKUP_DIR`, `BACKUP_KEEP` |
+| Daily copies | `/data/backups/minitude-YYYY-MM-DD.db`, newest `BACKUP_KEEP` kept (3 on Fly). Copies made by hand (`db backup`, named minitude-YYYYMMDD-HHMMSS.db): the newest 2 kept | `BACKUP_DIR`, `BACKUP_KEEP` |
 | Visitor address | read from the `Fly-Client-IP` header | `CLIENT_IP_HEADER` |
 | Answer-checker model | `LLM_MODEL = "gemini-3.5-flash-lite"` (the model the live trial found fast; the code default `gemini-3.8-flash` allows only 20 requests a day on the free tier). Your local `.env` is not on Fly, so every non-secret setting you rely on locally must be in `fly.toml` | `fly.toml` `[env]` |
 | Gemini key | a Fly **secret**, never in a file | `fly secrets set` |
@@ -91,6 +91,7 @@ Add the records at your domain registrar. Keep the records **DNS-only** (no prox
 ## Backups
 
 - **Daily file copy:** the server writes `/data/backups/minitude-YYYY-MM-DD.db` once a day and keeps the newest 7. They are on the same disk, so they protect against a bad change or a deleted question, **not** against losing the disk.
+- **Safety copy before a release (by hand):** `db backup /data/backups` writes minitude-YYYYMMDD-HHMMSS.db. The nightly job keeps only the newest 2 of these (before 16 Nov 2026 they were never deleted: four of them took 334 MB of the 974 MB volume until they were removed by hand). Still delete the copy yourself once the release has been checked.
 - **Fly volume snapshots:** Fly takes these by itself (`fly volumes list`, `fly volumes snapshots list <volume-id>`); the first 10 GB of snapshots are free. This is the protection against losing the disk.
 - **Copy one to your computer now and then:** `fly ssh sftp shell`, then `get /data/backups/minitude-2026-10-29.db`.
 
@@ -110,7 +111,7 @@ Fly charges for what runs; there is no monthly platform fee.
 
 | Item | Price | For Minitude |
 | --- | --- | --- |
-| Machine, shared-cpu-1x 256 MB, always on | $2.19 a month in the cheapest US regions. The page gives no 256 MB price for Singapore; its 1 GB machine costs $8.50 in Singapore against $6.70 in the US (27% more), which would make the 256 MB one about $2.78 (an assumption) | about $2.8 a month |
+| Machine, shared-cpu-1x 512 MB, always on (since 16 Nov 2026; the 256 MB one was $2.19 in the cheapest US regions, and about $2.8 here by the Singapore estimate below) | $3.69 in the cheapest US regions; by the same 27% estimate about $4.7 in Singapore (an assumption, the first invoice will show it). Old line, for 256 MB: $2.19 a month in the cheapest US regions. The page gives no 256 MB price for Singapore; its 1 GB machine costs $8.50 in Singapore against $6.70 in the US (27% more), which would make the 256 MB one about $2.78 (an assumption) | about $2.8 a month |
 | Volume | $0.15 per GB a month, also while the machine is stopped | 1 GB = $0.15 |
 | Snapshots | $0.08 per GB a month after the first 10 GB (counted by data stored) | $0: the database is tiny |
 | Data out of Singapore | $0.04 per GB (Asia Pacific), no free allowance | each new visitor downloads about 2.2 MB (return visits come mostly from the browser cache): **1,000 new visitors is about 9 cents**, 1,000 new visitors a day is about $2.60 a month, 10,000 a day about $26 |

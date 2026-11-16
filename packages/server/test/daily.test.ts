@@ -420,6 +420,23 @@ describe('daily backups', () => {
       rmSync(d, { recursive: true, force: true })
     }
   })
+
+  it('also keeps only the newest hand-made copies (db backup), and still never touches other files', async () => {
+    const repo = testRepo()
+    const d = dir()
+    try {
+      for (const f of ['minitude-20261113-200101.db', 'minitude-20261114-135445.db', 'minitude-20261114-163355.db', 'minitude-20261115-164441.db']) writeFileSync(join(d, f), 'hand-made')
+      writeFileSync(join(d, 'minitude-20261115.db'), 'not the hand-made pattern')
+      writeFileSync(join(d, 'notes.txt'), 'mine')
+      await backupIfDue(repo.db, d, Date.parse('2026-11-16T01:00:00Z'), 3)
+      expect(readdirSync(d).sort()).toEqual(['minitude-2026-11-16.db', 'minitude-20261114-163355.db', 'minitude-20261115-164441.db', 'minitude-20261115.db', 'notes.txt'])
+      // a second call the same day makes no new copy, and the number kept can be asked for
+      await backupIfDue(repo.db, d, Date.parse('2026-11-16T05:00:00Z'), 3, 1)
+      expect(readdirSync(d).sort()).toEqual(['minitude-2026-11-16.db', 'minitude-20261115-164441.db', 'minitude-20261115.db', 'notes.txt'])
+    } finally {
+      rmSync(d, { recursive: true, force: true })
+    }
+  })
 })
 
 describe('the database upgrade', () => {
