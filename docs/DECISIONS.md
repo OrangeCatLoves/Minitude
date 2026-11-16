@@ -1,6 +1,6 @@
 # Decisions made while building (not yet confirmed by you)
 
-The binding decisions (21 worlds, 440 points, Unexplored 400-439, edging hints, post-finale lines, v5 interface, "WORLD n / 21", tap to skip, no fun facts) are in `docs/PROJECT_CONTEXT.md` and were followed as written. The items below are choices the build had to make. Each is easy to change; tell Claude Code which you want different.
+The binding decisions (21 worlds, Planck Foam at 440 points (555 since 16 Nov 2026), Unexplored 400-439 (400-554 since then), edging hints, post-finale lines, v5 interface, "WORLD n / 21", tap to skip, no fun facts) are in `docs/PROJECT_CONTEXT.md` and were followed as written. The items below are choices the build had to make. Each is easy to change; tell Claude Code which you want different.
 
 ## Product behaviour
 
@@ -16,7 +16,7 @@ The binding decisions (21 worlds, 440 points, Unexplored 400-439, edging hints, 
 | 8 | Hint line: lilac glow pulse. Post-finale lines: pink glow pulse; the small line sits under the main line. Both are one line, one pulse, one sound as agreed, no card. | `ui.ts` `landingLines`, `game.ts` |
 | 9 | The first post-finale line is picked at random and never repeats the one shown last (per browser session). | `game.ts`, core `pickPostFirst` |
 | 10 | Share text: a row of colour squares (grey, green, blue, purple, orange, red; black for a time-out), then "N pts - size - world". No answers. | core `shareText` |
-| 11 | Report headline for a run past 440 points reads "< 1.7 x 10^-35 m" and "Past the point where size means anything." | core `buildReport` |
+| 11 | Report headline for a run past Planck Foam (555 points; 440 until 16 Nov 2026) reads "< 1.7 x 10^-35 m" and "Past the point where size means anything." | core `buildReport` |
 
 ## Technical
 
@@ -208,3 +208,17 @@ Not done (listed with reasons in `docs/SECURITY.md`): a per-network cap on multi
 ## The iPhone keyboard (16 November 2026, second round)
 
 The owner's photo of the live site (iOS Safari on its side, Safari's address bar and tab strip above the page) showed the answer box hidden under the keyboard. That site did not have the keyboard fix yet (it was committed but not deployed). The photo also showed what the first version had not allowed for: on an iPhone on its side only about 70 px of the page stay visible above the keyboard (the page is about 310 px high under Safari's bars), and iOS 26's translucent toolbar (previous / next / done) floats over the page above the keyboard; the browser may or may not shorten the visible area for it. Changes: (1) on an iPhone or iPad the box clears an extra **52 px** above the keyboard (`IOS_TOOLBAR`); `?kbgap=0` or `?kbgap=60` in the address changes it without a release; (2) when the visible area is too short for the whole box, the box goes to the very top of the picture (the lift is at its cap), the only place that is above both the keyboard and the toolbar whichever way the browser reports it; (3) the lobby's cap rose from 110 to 190 so its name field reaches the top on a short screen; (4) `?kbdebug=1` in the address shows a small read-out of what the browser reports (visible height, offset, zoom, the canvas position, the lift), so one screenshot from a real iPhone says why the box is where it is. The browser test has three iPhone profiles built from the photo's numbers (toolbar counted and not counted, and portrait). Still not proved on a real iPhone: the numbers in those profiles are my reading of one photo.
+
+## Planck Foam raised to 555 (16 November 2026)
+
+The owner: "I would like to raise the difficulty of hitting Planck Foam" (after seeing the table of the points each world needs), then "Raise it to 555". The score is one constant, `PLANCK_POINTS` in `packages/core/src/scoring.ts`; the report lines, the finale trigger and the "N points away" line all read it. Worlds 1 to 20 are still 20 points each; Planck Foam is still world 21.
+
+What it means for play: 555 is 66% of the 840-point maximum (63 points a question became 79). Every answer is worth a multiple of 10, so the first total that reaches it is **560**: seven Legendary answers, or four Mythic + two Exotic + a Rare, or six answers of (Mythic x4, Legendary x2). Six Legendary and an Exotic is 540, 15 short; seven Exotic is 420.
+
+Choices made without asking (the owner gave only the number; change freely, but tell them):
+1. **Unexplored is stretched over 400-554** (option B of the three offered: the other two were "keep it 400-440 and add an empty gap" and "start it later", which would have broken "20 points a world"). Its 15 dark pictures now come one every 10.3 points instead of every 2.7, so the dark stretch is a long journey (a Common answer moves about one picture). `VOID_DECADES_PER_POINT` follows the constant by itself.
+2. **The hint rules are unchanged**: the 2nd landing in a row in Unexplored says "Something is getting closer.", the 3rd or later "It is very close." Because the stretch is now 155 points wide, "very close" can show 100 points or more from Planck Foam (for example a run landing at 410, 420, 430). The owner has been asked whether the hints should follow the distance instead (for example "very close" only in the last 40 points).
+3. **The void can no longer be skipped**: from 380 even a gem (120) only reaches 500, so every run that reaches Planck Foam crosses the dark stretch and meets the hints on the way. Without gems the finale comes on answer 6 at the earliest, so at most one answer follows it (with five gems it is answer 5 and two follow).
+4. **The report lines end in 5** ("Planck Foam was 135 points away", "5 points past the edge" at 560) because 555 is not a multiple of 10.
+5. Stored data is untouched: the server never knew the threshold (it stores points per answer); old Dailies, runs and the rank statistic are as they were. A player in the middle of a run when the new script is deployed sees the old thresholds until they reload.
+Tests: the core, timeline and gem tests that pinned 440/439 were rewritten with the new numbers (some now say what changed); `tools/browser-test/run-scenario.cjs w4 4,4,4,4,4,4,4 skip` plays seven Legendary answers through the whole stretch (400, 480, then the finale at 560 with no console errors). `docs/PROJECT_CONTEXT.md` is the original planning note and still says 440.

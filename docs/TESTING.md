@@ -7,7 +7,7 @@ npm test               # core (36 tests), web (24) and server (198)
 npm run typecheck      # all packages
 ```
 
-`packages/core/test` (36 tests) covers the maths that must never drift: depth and size at every boundary (399/400/439/440/700 points), slot and world numbers, dive durations, hint levels, post-finale counting, report and share text. `packages/server/test` (all on a throw-away in-memory database, a fake clock and a **scripted fake model**):
+`packages/core/test` (36 tests) covers the maths that must never drift: depth and size at every boundary (399/400/554/555/700 points), slot and world numbers, dive durations, hint levels, post-finale counting, report and share text. `packages/server/test` (all on a throw-away in-memory database, a fake clock and a **scripted fake model**):
 - `api.test.ts`: the API contract, the server's question clock (start before answer, order, late answers, time spent checking not counted, 12 tries, miss), no answers leaked.
 - `judge.test.ts`: the answer checker: stored decisions, one model call per new answer, typo / "same as", same tier for every spelling, low confidence and failures never stored, simultaneous identical answers, prompt text only as quoted data, mock mode.
 - `db.test.ts`: migrations, seeding, export/import round trip, corrections, runs keep their points, the model budget, choosing the model from environment variables.

@@ -18,7 +18,7 @@ Phase 1 = the playable solo game. Phase 2 = the database, the AI answer checker,
 | Question generator (propose, answer list, audit, automatic checks, drafts only) and review commands (list, show, approve, reject, export, import, answers review/set-tier/ok/remove, db backup) | Done against a fake model | 25 tests |
 | SINGULARITY gems (14 Nov 2026): 7th rarity, 120 points, one gem per question (200 in `data/gems.json`), the rainbow Crescent, the pull / vacuum / birth reveal, the cabinet in the browser, the sound, the report line, the bank sheet marker | Done, deployed; sound not yet heard by a person | `npm test` (core 62, server 280+, web 40), `tools/browser-test/gem.cjs` plays seven gems (840 points) and saves pictures |
 | Game: title, 7 questions, rarity roll and reveal for all 6 tiers, charge-up, dives, world title cards (tap to skip), scale bar, depth rail, report | Done | Headless Chromium plays: all-Mythic run, mixed runs with wrong answers and time-outs, 4 x Mythic then 3 x Common, and the reveal + charge-up + world card for tiers 0 to 4; screenshots compared with the v5 stills. A run of seven Common answers was not played end to end. |
-| Planck Foam finale at 440 points, post-finale lines, "points past the edge" | Done | All-Mythic run (finale on answer 5, lines on answers 6 and 7) |
+| Planck Foam finale at 555 points (440 until 16 Nov 2026), post-finale lines, "points past the edge" | Done | Five gems (finale on answer 5, lines on answers 6 and 7); seven Legendary answers (finale on the last answer, 560); `run-scenario.cjs w4 4,4,4,4,4,4,4 skip` |
 | Unexplored stretch, edging hints (2nd and 3rd landing in a row), "Planck Foam was N points away" | Done | Scripted run 4 x Mythic then 3 x Common |
 | Wrong / unknown answers: message under the field, shake, retry with the remaining time | Done | Scripted |
 | Time-out: 0 points, no shrink, grey dot, "TIME UP" | Done | Scripted |
@@ -52,13 +52,13 @@ Phase 1 = the playable solo game. Phase 2 = the database, the AI answer checker,
 - **Screen readers** get nothing (the game is a canvas). A hidden live region for the question and the result is the obvious fix.
 - **Real GPU performance is unmeasured.** The build environment only has software rendering.
 - `npm audit` reports 6 advisories, all through `vitest` 2.x (a dev-only test tool, not shipped to players). Upgrading vitest is a major-version change; do it when you next touch the tests.
-- The v5 videos were never re-cut for the 440-point scoring; the game is the first thing that shows it.
+- The v5 videos were never re-cut for the 440-point scoring (now 555); the game is the first thing that shows it.
 
 ## Differences from the v5 video, on purpose
 
 - The title screen waits for PLAY instead of pressing it by itself.
 - The title has two buttons: PLAY DAILY (the day's shared run) and SOLO RUN. The video had only "DAILY - 26 OCT". A solo report has PLAY AGAIN; a daily report has a SOLO RUN button, the standings and a countdown to the next daily. Every report (the end of a run, and today's result opened from the title) also has HOME (or Esc, or H), which goes back to the title.
-- The finale card's top line reads "500 POINTS - ANSWER 5 OF 7" (the video said "PERFECT RUN" because only a perfect run reached it; at 440 points that is no longer true). "PERFECT RUN" now appears only on the report of a true seven-Mythic run.
+- The finale card's top line reads "560 POINTS - ANSWER 7 OF 7" (it prints the real total and answer number) (the video said "PERFECT RUN" because only a perfect run reached it; at 555 points that is no longer true). "PERFECT RUN" now appears only on the report of a true seven-Mythic run.
 - A mute button (top-left, also the M key when you are not typing).
 
 ## Next steps, in order

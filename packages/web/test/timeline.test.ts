@@ -112,10 +112,13 @@ describe('a gem (tier 6)', () => {
     const r = tl.recs[0]
     expect(r.rev).toBeCloseTo(r.roll + ROLL_DUR[5], 6)
   })
-  it('a gem can cross the Planck finale like any 120 points', () => {
-    const { tl, core } = play([5, 5, 5, 5, 6])
-    expect(core[4].finale).toBe(true)
-    expect(tl.recs[4].fin).toBe(true)
-    expect(Number.isFinite(tl.recs[4].next)).toBe(true)
+  it('a gem can cross the Planck finale like any 120 points (the first gem lands at 520, inside the unexplored stretch; the second crosses 555)', () => {
+    const { tl, core } = play([5, 5, 5, 5, 6, 6])
+    expect(core[4].finale).toBe(false)
+    expect(tl.recs[4].fin).toBe(false)
+    expect(Number.isFinite(tl.recs[4].next)).toBe(true) // a dive through ten dark pictures still has a schedule
+    expect(core[5].finale).toBe(true)
+    expect(tl.recs[5].fin).toBe(true)
+    expect(Number.isFinite(tl.recs[5].next)).toBe(true)
   })
 })

@@ -7,7 +7,7 @@ export interface RunRecord {
   miss: boolean
   tier: number
   points: number
-  /** total points before / after this answer (not capped: points above 440 still count) */
+  /** total points before / after this answer (not capped: points above PLANCK_POINTS still count) */
   c0: number
   c1: number
   /** depth in powers of ten before / after */
@@ -17,7 +17,7 @@ export interface RunRecord {
   z0: number
   z1: number
   dz: number
-  /** this answer crossed 440 points: the Planck Foam finale */
+  /** this answer crossed PLANCK_POINTS (555): the Planck Foam finale */
   finale: boolean
   /** 1, 2, 3...: how many answers in a row have now ended inside the unexplored stretch (0 = this one did not) */
   voidStreak: number

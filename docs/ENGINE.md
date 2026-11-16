@@ -27,11 +27,11 @@ start -> (typing) -> lock -> chk -> val -> roll -> rev -> chg -> fs -> fe -> car
 
 Every time that is not known yet is `Infinity`, so each "has this happened yet?" test is simply false. `schedule()` fills the times in; `computeNext()` decides how long to hold after the landing (longer when a hint or post-finale line is shown); `skipCard()` shortens a title card when the player taps it; `makeMiss()` closes a question that timed out.
 
-`Timeline.cam(t)` returns the camera (depth `u`, picture position `z`, zoom punch, speed) for any time by walking the records. The dive speed profile is `prof()`. The Planck Foam dive uses `finZ`/`finV`, a monotone cubic through `FIN_PTS` (the same curve scipy's PCHIP gave in Python); a dive of any length (`dz` worlds) is mapped onto it, so the finale works whether the player crosses 440 points from world 5 or from Unexplored.
+`Timeline.cam(t)` returns the camera (depth `u`, picture position `z`, zoom punch, speed) for any time by walking the records. The dive speed profile is `prof()`. The Planck Foam dive uses `finZ`/`finV`, a monotone cubic through `FIN_PTS` (the same curve scipy's PCHIP gave in Python); a dive of any length (`dz` worlds) is mapped onto it, so the finale works whether the player crosses the Planck Foam score (555 points) from world 5 or from Unexplored.
 
 ### Depth, size and pictures (`packages/core`)
 
-`u` = depth in powers of ten. `u = p / 20` up to 400 points, then `20 + (p - 400) * 15 / 40` up to 440, then 35. Size = 1.7 m / 10^u. The picture slot is `floor(u)`: 36 slots (0-19 are worlds 1-20, 20-34 are variants of the Unexplored void, 35 is Planck Foam). Everything about this is in `scoring.ts` and covered by `test/scoring.test.ts`.
+`u` = depth in powers of ten. `u = p / 20` up to 400 points, then `20 + (p - 400) * 15 / 155` up to 555 (`PLANCK_POINTS`; it was 440 and `/ 40` until 16 Nov 2026), then 35. Size = 1.7 m / 10^u. The picture slot is `floor(u)`: 36 slots (0-19 are worlds 1-20, 20-34 are variants of the Unexplored void, 35 is Planck Foam). Everything about this is in `scoring.ts` and covered by `test/scoring.test.ts`.
 
 ## Painting a frame (`game.ts`, `render()`)
 

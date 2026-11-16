@@ -28,11 +28,12 @@ describe('the seventh tier', () => {
   it('a gem can carry a dive over several worlds and the finale still plays exactly once', () => {
     const r = play([5, 5, 5, 5, GEM_TIER, GEM_TIER, 0])
     expect(r[3].c1).toBe(400)
-    expect(r[4].c1).toBe(520)
+    expect(r[4].c1).toBe(520) // still inside the unexplored stretch (it runs to 554): no finale yet
+    expect(r[4].finale).toBe(false)
+    expect(r[5].c1).toBe(640) // the second gem crosses Planck Foam (555)
     expect(r.filter((x) => x.finale).length).toBe(1)
-    expect(r[4].finale).toBe(true)
-    expect(r[5].post).toBe(1)
-    expect(r[6].post).toBe(2)
+    expect(r[5].finale).toBe(true)
+    expect(r[6].post).toBe(1)
   })
   it('seven gems is 840 and the report counts them', () => {
     const recs = play([6, 6, 6, 6, 6, 6, 6])
@@ -41,7 +42,7 @@ describe('the seventh tier', () => {
     expect(rep.gems).toBe(7)
     expect(rep.perfect).toBe(true)
     expect(rep.worldLine).toContain('/ 840 points')
-    expect(rep.extraLine).toBe('400 points past the edge')
+    expect(rep.extraLine).toBe('285 points past the edge') // 840 - 555
   })
   it('a run of Mythic answers and gems is still perfect; one weaker answer or a miss is not', () => {
     expect(isPerfect(play([5, 5, 6, 5, 5, 5, 5]))).toBe(true)

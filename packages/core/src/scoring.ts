@@ -3,16 +3,17 @@
  *
  * Size is always 1.7 m divided by 10^u, where u is the "depth in powers of ten".
  *  - Worlds 1 to 20: u = points / 20 (every 20 points is 10x smaller). World n spans points 20(n-1) .. 20n - 1.
- *  - Unexplored (nothing measured): points 400 .. 439. It crosses 15 powers of ten (from 10^20 to 10^35) in 40 points,
- *    so u = 20 + (points - 400) * 15 / 40, i.e. 3 powers of ten every 8 points.
- *  - Planck Foam (world 21): from 440 points. u = 35, size 1.7 x 10^-35 m (the Planck length). Points above 440 still count for the score.
+ *  - Unexplored (nothing measured): points 400 .. 554. It crosses 15 powers of ten (from 10^20 to 10^35) in 155 points,
+ *    so u = 20 + (points - 400) * 15 / 155, i.e. a little under one power of ten every 10 points (one dark picture every 10.3 points).
+ *    (Until 16 Nov 2026 Planck Foam started at 440 and the stretch was 40 points wide: 3 powers of ten every 8 points.)
+ *  - Planck Foam (world 21): from 555 points. u = 35, size 1.7 x 10^-35 m (the Planck length). Points above 555 still count for the score.
  *
  * The picture is a chain of 36 "slots", one per power of ten: slot j is drawn when floor(u) = j.
  * Slots 0..19 = worlds 1..20, slots 20..34 = the unexplored stretch (15 dark variants), slot 35 = Planck Foam.
  */
 export const START_SIZE_M = 1.7
 export const VOID_START_POINTS = 400
-export const PLANCK_POINTS = 440
+export const PLANCK_POINTS = 555
 export const VOID_FIRST_SLOT = 20
 export const VOID_LAST_SLOT = 34
 export const PLANCK_SLOT = 35
