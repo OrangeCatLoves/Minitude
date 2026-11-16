@@ -3,6 +3,7 @@ import type { Context, Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import type { VEvent } from '@minitude/core'
 import { VersusError, type VersusHub } from './versus'
+import { tidyTyped } from './sanitize'
 
 export interface VersusRouteDeps {
   hub: VersusHub
@@ -65,7 +66,7 @@ export function mountVersus(app: Hono, d: VersusRouteDeps): void {
   app.post('/api/versus/:code/miss', (c) => act(c, (g, b) => { d.hub.miss(g, c.req.param('code'), round(b)) }))
   app.post('/api/versus/:code/revealed', (c) => act(c, (g, b) => { d.hub.revealed(g, c.req.param('code'), round(b)) }))
   app.post('/api/versus/:code/answer', (c) => act(c, async (g, b) => {
-    const text = typeof b.text === 'string' ? b.text.trim() : ''
+    const text = typeof b.text === 'string' ? tidyTyped(b.text) : ''
     if (!text || text.length > 80) throw new VersusError('Answer must be 1 to 80 characters.', 400, 'text')
     const confirm = b.confirm === 'yes' || b.confirm === 'no' ? b.confirm : undefined
     return d.hub.answer(g, c.req.param('code'), round(b), text, confirm)

@@ -1,5 +1,5 @@
 import { Hono, type Context } from 'hono'
-import { cors } from 'hono/cors'
+import { bodyLimit } from 'hono/body-limit'
 import {
   MAX_POINTS, RUN_LENGTH, dayNumber, msToReset, streakOf, utcDay,
   type AnswerListItem, type AnswerListPage, type AnswersSummary, type DailyState, type RankResponse, type StartQuestionResponse, type StartRunResponse,
@@ -7,6 +7,8 @@ import {
 import type { QuestionHead } from './questions'
 import type { Judge, JudgeMode } from './judge/types'
 import { ipFingerprint, isLoopback } from './clientip'
+import { DAILY_MIN_FREE_BYTES, SOLO_MIN_FREE_BYTES } from './diskguard'
+import { tidyTyped } from './sanitize'
 import { normalize } from './normalize'
 import { ensureDailySet, epochDay } from './daily'
 import { POLICY_VERSION, runTotal, type DailyPlayRow, type Repo, type RunQuestionRow } from './db/repo'
@@ -21,6 +23,17 @@ export const STALE_RUN_MS = 120_000
 /** most daily runs one network may start per day (0 = no limit). Shared networks (schools, offices) need room. */
 export const DAILY_PER_IP = 10
 const MAX_ANSWER_CHARS = 80
+/** the biggest request body the API reads. The largest real one is an answer or an idea (a few hundred bytes); a bigger one is an attack:
+ *  the body is read into memory whole, and 80 MB sent to an earlier version of this server took it from 83 MB to 2.3 GB. */
+export const MAX_BODY_BYTES = 8 * 1024
+/** new solo runs the whole server starts in one UTC day. Each one adds about 1 KB to the database once SQLite has merged its journal (measured: 1,079 bytes), and anyone may ask for one. */
+export const MAX_RUNS_PER_DAY = 20_000
+/** new solo runs ONE network may start in a UTC day (0 = no limit), so that one person cannot use up the allowance above for everybody. A school
+ *  or an office shares one address, hence generous: a real run takes minutes, so 300 is a whole classroom playing for hours. */
+export const MAX_RUNS_PER_NETWORK_PER_DAY = 300
+/** the routes that only move a run along (start, miss, abandon) are called a few times a minute by a real player; they get this many times the
+ *  per-minute limit of the answer route, so a class on one address is fine, but a script is not */
+const LIGHT_LIMIT_FACTOR = 3
 /** the browser makes this up once and keeps it: the only "account" there is */
 const GUEST_RE = /^[A-Za-z0-9_-]{16,64}$/
 
@@ -38,6 +51,12 @@ export interface AppDeps {
   clientIp?: (c: Context) => string
   dailyPerIp?: number
   staleRunMs?: number
+  /** free bytes on the database's disk (see diskguard.ts); the default says "plenty" (tests and a database in memory) */
+  freeBytes?: () => number
+  /** new solo runs allowed per UTC day, for the whole server (0 = no limit) */
+  maxRunsPerDay?: number
+  /** new solo runs allowed per UTC day from one network (0 = no limit) */
+  maxRunsPerNetworkPerDay?: number
   /** the multiplayer rooms. The server passes its own so it can move their clock along (`tick`); without one the app makes a private hub. */
   versus?: VersusHub
 }
@@ -76,22 +95,34 @@ export function createApp(deps: AppDeps) {
   const perIp = deps.dailyPerIp ?? DAILY_PER_IP
   const staleMs = deps.staleRunMs ?? STALE_RUN_MS
   const clientIp = deps.clientIp ?? ((c: Context) => (c.req.header('x-forwarded-for') ?? 'local').split(',')[0].trim())
-  const hits = new Map<string, number[]>()
+  const freeBytes = deps.freeBytes ?? (() => Infinity)
+  const maxRunsPerDay = deps.maxRunsPerDay ?? MAX_RUNS_PER_DAY
+  const runsToday = { day: '', n: 0 }
+  const maxRunsPerNetwork = deps.maxRunsPerNetworkPerDay ?? MAX_RUNS_PER_NETWORK_PER_DAY
+  const networkRuns = { day: '', by: new Map<string, number>() }
   const app = new Hono()
-  app.use('/api/*', cors())
+  // No CORS header on purpose: the game is served by this same server, so only its own pages ever call the API. (An earlier version let
+  // every website call it from a visitor's browser.)
+  app.use('/api/*', bodyLimit({ maxSize: MAX_BODY_BYTES, onError: (c) => c.json({ error: 'That request is too big.', code: 'too_big' }, 413) }))
   app.use('/api/*', async (c, next) => {
     await next()
     c.header('cache-control', 'no-store')
   })
 
-  const limited = (ip: string) => {
-    const t = now()
-    const arr = (hits.get(ip) ?? []).filter((x) => t - x < 60_000)
-    arr.push(t)
-    hits.set(ip, arr)
-    if (hits.size > 5000) for (const [k, v] of hits) if (v.every((x) => t - x >= 60_000)) hits.delete(k)
-    return arr.length > limit
+  /** a limiter: true when this network has made more than `perMinute` calls in the last minute (each limiter counts for itself) */
+  const makeLimiter = (perMinute: number) => {
+    const hits = new Map<string, number[]>()
+    return (ip: string): boolean => {
+      const t = now()
+      const arr = (hits.get(ip) ?? []).filter((x) => t - x < 60_000)
+      arr.push(t)
+      hits.set(ip, arr)
+      if (hits.size > 5000) for (const [k, v] of hits) if (v.every((x) => t - x >= 60_000)) hits.delete(k)
+      return arr.length > perMinute
+    }
   }
+  const limited = makeLimiter(limit)
+  const limitedLight = makeLimiter(limit * LIGHT_LIMIT_FACTOR)
   const fail = (c: Context, status: 400 | 403 | 404 | 409 | 429 | 503, error: string, code?: string) => c.json({ error, ...(code ? { code } : {}) }, status)
   /** time the player has in total for this question: the clock, the browser's start delay, a grace period, and the time spent checking */
   const allowedMs = (q: RunQuestionRow) => seconds * 1000 + START_DELAY_MS + GRACE_MS + q.busyMs
@@ -185,6 +216,8 @@ export function createApp(deps: AppDeps) {
     const day = utcDay(t)
     const set = ensureDailySet(repo, day, t)
     if (!set) return fail(c, 503, 'There are not enough questions yet.', 'no_questions')
+    // the Daily is the last thing to be refused when the disk fills up (new solo runs are refused much earlier)
+    if (freeBytes() < DAILY_MIN_FREE_BYTES) return fail(c, 503, 'We are very busy right now. Please try again in a little while.', 'busy')
     const existing = repo.dailyPlay(day, guest)
     if (existing) {
       const play = settle(existing)
@@ -273,9 +306,25 @@ export function createApp(deps: AppDeps) {
 
   // ------------------------------------------------------------------ a run
   app.post('/api/run', (c) => {
-    if (limited(clientIp(c))) return fail(c, 429, 'Too many requests. Slow down.', 'rate')
+    const ip = clientIp(c)
+    if (limited(ip)) return fail(c, 429, 'Too many requests. Slow down.', 'rate')
     const pool = repo.approvedHeads()
     if (pool.length < RUN_LENGTH) return fail(c, 503, 'There are not enough questions yet.', 'no_questions')
+    // Every solo run is a few rows in the database and anyone may ask for one, so there is a limit for the whole server per day, a limit
+    // for each network (so one person cannot spend everybody's allowance), and a stop when the disk is nearly full: otherwise a script
+    // could fill the disk and take the Daily down with it.
+    const day = utcDay(now())
+    if (runsToday.day !== day) { runsToday.day = day; runsToday.n = 0 }
+    if ((maxRunsPerDay > 0 && runsToday.n >= maxRunsPerDay) || freeBytes() < SOLO_MIN_FREE_BYTES) {
+      return fail(c, 503, 'We are very busy right now. Please try again in a little while.', 'busy')
+    }
+    if (maxRunsPerNetwork > 0 && !isLoopback(ip)) {
+      if (networkRuns.day !== day) { networkRuns.day = day; networkRuns.by.clear() }
+      const n = networkRuns.by.get(ip) ?? 0
+      if (n >= maxRunsPerNetwork) return fail(c, 429, 'That is a lot of games from one network today. Please come back tomorrow.', 'ip_limit')
+      if (n > 0 || networkRuns.by.size < 100_000) networkRuns.by.set(ip, n + 1) // the table is bounded: past 100,000 new networks a day it stops counting new ones
+    }
+    runsToday.n++
     const picked = pickRun(pool, rand)
     const run = repo.createRun(picked, judge.kind, now())
     const body: StartRunResponse = { runId: run.id, count: run.questions.length, seconds, mode: 'solo' }
@@ -287,6 +336,7 @@ export function createApp(deps: AppDeps) {
    * Questions must be started in order. Asking again for the same question gives the same prompt and does not restart the clock.
    */
   app.post('/api/run/:id/start', async (c) => {
+    if (limitedLight(clientIp(c))) return fail(c, 429, 'Too many requests. Slow down.', 'rate')
     const run = repo.getRun(c.req.param('id'))
     if (!run) return fail(c, 404, 'Unknown run.')
     let body: { index?: unknown }
@@ -314,7 +364,7 @@ export function createApp(deps: AppDeps) {
     let body: { index?: unknown; text?: unknown; confirm?: unknown }
     try { body = await c.req.json() } catch { return fail(c, 400, 'Bad request.') }
     const index = Number(body.index)
-    const text = typeof body.text === 'string' ? body.text.trim() : ''
+    const text = typeof body.text === 'string' ? tidyTyped(body.text) : '' // no control characters: the owner reads these in a terminal
     // 'yes' / 'no' answer the checker's "did you mean ...?"; without it a correction is only ever suggested, never applied
     const mode: JudgeMode = body.confirm === 'yes' ? 'confirmed' : body.confirm === 'no' ? 'literal' : 'ask'
     if (!Number.isInteger(index) || index < 0 || index >= run.questions.length) return fail(c, 400, 'Bad question number.')
@@ -345,6 +395,7 @@ export function createApp(deps: AppDeps) {
 
   /** The browser says time ran out. Idempotent; a finished question stays as it was. */
   app.post('/api/run/:id/miss', async (c) => {
+    if (limitedLight(clientIp(c))) return fail(c, 429, 'Too many requests. Slow down.', 'rate')
     const run = repo.getRun(c.req.param('id'))
     if (!run) return fail(c, 404, 'Unknown run.')
     let body: { index?: unknown }
@@ -361,6 +412,7 @@ export function createApp(deps: AppDeps) {
    * Solo runs are not tracked, so there is nothing to do. The browser sends this with sendBeacon, which cannot read the reply.
    */
   app.post('/api/run/:id/abandon', (c) => {
+    if (limitedLight(clientIp(c))) return fail(c, 429, 'Too many requests. Slow down.', 'rate')
     const run = repo.getRun(c.req.param('id'))
     if (!run) return fail(c, 404, 'Unknown run.')
     if (run.mode === 'daily' && run.questions.some((q) => !q.result)) {
@@ -382,6 +434,9 @@ export function createApp(deps: AppDeps) {
 
   // ------------------------------------------------------------------ the forms under the end-of-run report (see siteRoutes.ts)
   mountSite(app, { repo, clientIp, now })
+
+  // an address under /api that does not exist (or a method that a route does not take) is an error, not the game's front page
+  app.all('/api/*', (c) => c.json({ error: 'Not found.' }, 404))
 
   return app
 }

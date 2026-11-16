@@ -5,8 +5,9 @@ import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
 import { compress } from 'hono/compress'
-import { secureHeaders } from 'hono/secure-headers'
 import { addDays, utcDay } from '@minitude/core'
+import { freeBytesOf } from './diskguard'
+import { securityHeaders } from './securityHeaders'
 import { createApp, pickRun, QUESTION_SECONDS } from './app'
 import { VersusHub } from './versus'
 import { backupIfDue } from './backup'
@@ -29,11 +30,26 @@ const seeded = seedIfEmpty(repo, loadBank(), Date.now())
 const judge = new PipelineJudge(repo, null)
 
 const clientIpHeader = process.env.CLIENT_IP_HEADER || undefined
-const dailyPerIp = process.env.DAILY_PER_IP !== undefined && process.env.DAILY_PER_IP !== '' ? Number(process.env.DAILY_PER_IP) : undefined
+/** a number from the environment, or undefined when it is not set (or not a number): the code's own default then applies. 0 usually means "no limit". */
+const envNumber = (name: string): number | undefined => {
+  const raw = process.env[name]
+  if (raw === undefined || raw.trim() === '') return undefined
+  const n = Number(raw)
+  return Number.isFinite(n) && n >= 0 ? n : undefined
+}
 const versus = new VersusHub({ judge, heads: () => repo.approvedHeads(), pick: pickRun, now: Date.now, rand: Math.random, seconds: QUESTION_SECONDS })
-const api = createApp({ repo, judge, versus, clientIp: makeClientIp(clientIpHeader), dailyPerIp: Number.isFinite(dailyPerIp) ? dailyPerIp : undefined })
+const dbFolder = dirname(resolve(file))
+const freeBytes = (): number => freeBytesOf(dbFolder)
+// every limit below can be raised (or switched off with 0) on Fly with `fly secrets`-free settings in fly.toml [env]: see docs/SECURITY.md, "When you scale"
+const api = createApp({
+  repo, judge, versus, clientIp: makeClientIp(clientIpHeader), freeBytes,
+  dailyPerIp: envNumber('DAILY_PER_IP'),
+  maxRunsPerDay: envNumber('MAX_RUNS_PER_DAY'),
+  maxRunsPerNetworkPerDay: envNumber('MAX_RUNS_PER_NETWORK_PER_DAY'),
+  rateLimitPerMinute: envNumber('RATE_LIMIT_PER_MINUTE'),
+})
 const root = new Hono()
-root.use('*', secureHeaders())
+root.use('*', securityHeaders())
 root.use('*', compress())
 root.route('/', api)
 
@@ -57,7 +73,11 @@ if (existsSync(join(dist, 'index.html'))) {
   root.get('*', serveStatic({ path: './' + join('..', 'web', 'dist', 'index.html').replace(/\\/g, '/') }))
 }
 
-/** every hour: today's and tomorrow's daily sets exist (so the questions are fixed ahead of time), and today's backup exists */
+/** a solo run left half way this long ago is deleted (a real run takes minutes) */
+const ABANDONED_RUN_MS = 6 * 3_600_000
+/** a solo run with no typed answer and no point, this old, is deleted */
+const EMPTY_RUN_MS = 24 * 3_600_000
+/** every hour: today's and tomorrow's daily sets exist (so the questions are fixed ahead of time), abandoned solo runs are cleared, and today's backup exists */
 const backupDir = process.env.BACKUP_DIR || undefined
 const keepBackups = Number(process.env.BACKUP_KEEP ?? 7)
 async function housekeeping(): Promise<void> {
@@ -66,9 +86,17 @@ async function housekeeping(): Promise<void> {
     ensureDailySet(repo, utcDay(t), t)
     ensureDailySet(repo, addDays(utcDay(t), 1), t)
   } catch (e) { console.error('daily set:', e instanceof Error ? e.message : e) }
+  try {
+    // solo runs that were started and left half way more than 6 hours ago (nobody plays on; the rank statistic does not count them)
+    const gone = repo.purgeAbandonedRuns(t - ABANDONED_RUN_MS)
+    if (gone > 0) console.log(`removed ${gone} abandoned solo runs`)
+    // and solo runs from more than a day ago in which nothing was typed and nothing scored (see Repo.purgeEmptyRuns)
+    const empty = repo.purgeEmptyRuns(t - EMPTY_RUN_MS)
+    if (empty > 0) console.log(`removed ${empty} empty solo runs`)
+  } catch (e) { console.error('run clean-up:', e instanceof Error ? e.message : e) }
   if (backupDir) {
     try {
-      const made = await backupIfDue(repo.db, backupDir, t, Number.isFinite(keepBackups) && keepBackups > 0 ? keepBackups : 7)
+      const made = await backupIfDue(repo.db, backupDir, t, Number.isFinite(keepBackups) && keepBackups > 0 ? keepBackups : 7, undefined, freeBytes)
       if (made) console.log(`backup written: ${made}`)
     } catch (e) { console.error('backup failed:', e instanceof Error ? e.message : e) }
   }

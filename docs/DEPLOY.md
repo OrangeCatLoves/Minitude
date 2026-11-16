@@ -135,6 +135,9 @@ Non-secret settings live in `[env]` in `fly.toml`; change them and run `fly depl
 | `BACKUP_DIR` / `BACKUP_KEEP` | off / 7 | daily copies |
 | `CLIENT_IP_HEADER` | none (uses the connection address) | `fly-client-ip` on Fly |
 | `DAILY_PER_IP` | 10 | Daily runs per network per day; 0 turns the limit off |
+| `MAX_RUNS_PER_DAY` | 20000 | new solo runs per UTC day for the whole server (each adds about 1 KB to the database); over it, new runs get "busy". 0 turns the limit off. Raise it if the game ever gets that popular |
+| `MAX_RUNS_PER_NETWORK_PER_DAY` | 300 | new solo runs per UTC day from one network (an IPv4 address or an IPv6 /64), so one person cannot use up the whole server's allowance; 0 turns it off. Raise it if a big school or office is refused |
+| `RATE_LIMIT_PER_MINUTE` | 90 | requests a minute per network for new runs and answers (start / miss / abandon get 3 times this); raise it for many people behind one address. See `docs/SECURITY.md`, "When you scale" |
 | `LLM_PROVIDER`, `LLM_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_MAX_PER_MINUTE`, `LLM_MAX_PER_DAY` | see `docs/SERVER.md` | the answer checker |
 | `GEMINI_API_KEY` | none | **secret**: `fly secrets set` only |
 

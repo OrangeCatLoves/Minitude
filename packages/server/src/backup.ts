@@ -1,6 +1,7 @@
-import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { addDays, utcDay } from '@minitude/core'
+import { BACKUP_MIN_SPARE_BYTES } from './diskguard'
 import type { Db } from './db/open'
 
 const PREFIX = 'minitude-'
@@ -16,13 +17,17 @@ export const KEEP_MANUAL = 2
  * Does nothing (returns null) when today's copy already exists. The copy is made with SQLite's own backup, so it is
  * consistent even while the game is running. Copies made by hand (`db backup`: minitude-YYYYMMDD-HHMMSS.db) are pruned
  * too, so that only the newest `keepManual` stay (four of them once took 334 MB of a 974 MB volume). Only files named
- * exactly like one of those two patterns are ever deleted.
+ * exactly like one of those two patterns are ever deleted. A copy as big as the database is only started when the disk would still have
+ * `BACKUP_MIN_SPARE_BYTES` free afterwards: a copy that fills the disk would stop the game (it throws instead, and the caller logs it).
  */
-export async function backupIfDue(db: Db, dir: string, now: number, keep = 7, keepManual = KEEP_MANUAL): Promise<string | null> {
+export async function backupIfDue(db: Db, dir: string, now: number, keep = 7, keepManual = KEEP_MANUAL, freeBytes: () => number = () => Infinity): Promise<string | null> {
   mkdirSync(dir, { recursive: true })
   const dest = join(dir, `${PREFIX}${utcDay(now)}${SUFFIX}`)
   let made: string | null = null
   if (!existsSync(dest)) {
+    let dbBytes = 0
+    try { dbBytes = statSync(db.name).size } catch { /* a database in memory has no file */ }
+    if (freeBytes() < dbBytes + BACKUP_MIN_SPARE_BYTES) throw new Error(`not enough free disk to copy the ${Math.round(dbBytes / 1e6)} MB database (${Math.round(freeBytes() / 1e6)} MB free)`)
     await db.backup(dest)
     made = dest
   }

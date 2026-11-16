@@ -362,6 +362,27 @@ export class Repo {
   closeRun(runId: string, at: number): number {
     return this.st("UPDATE run_questions SET result = 'miss', points = 0, finished_at = ? WHERE run_id = ? AND result IS NULL").run(at, runId).changes
   }
+  /**
+   * Deletes solo runs that were created before `olderThan` and never finished (a question without a result): nobody is playing them any
+   * more, and the rank statistic does not count a run that was left half way. Daily runs are never touched (they are closed and kept), and a
+   * rating that points at a deleted run just loses the pointer. Their answers and question rows go with them. Returns how many runs went.
+   * It keeps a flood of empty runs (each about 1 KB) from piling up for ever.
+   */
+  purgeAbandonedRuns(olderThan: number): number {
+    return this.st(`DELETE FROM runs WHERE created_at < ? AND id NOT IN (SELECT run_id FROM daily_plays)
+      AND EXISTS (SELECT 1 FROM run_questions q WHERE q.run_id = runs.id AND q.result IS NULL)`).run(olderThan).changes
+  }
+  /**
+   * Deletes solo runs created before `olderThan` in which nobody typed anything and nothing scored: every question was a time-out (or was marked
+   * as one by a script, which costs a script a handful of requests per run and is how a flood of "finished" junk runs is made). A run with a
+   * typed answer or a valid answer is never touched. Daily runs are never touched. The only visible effect is on the "how you rank" figure:
+   * a zero-point run with no typed answer at all no longer counts as a result after a day. Returns how many runs went.
+   */
+  purgeEmptyRuns(olderThan: number): number {
+    return this.st(`DELETE FROM runs WHERE created_at < ? AND id NOT IN (SELECT run_id FROM daily_plays)
+      AND NOT EXISTS (SELECT 1 FROM attempts a WHERE a.run_id = runs.id)
+      AND NOT EXISTS (SELECT 1 FROM run_questions q WHERE q.run_id = runs.id AND q.result = 'valid')`).run(olderThan).changes
+  }
   /** the latest moment anything happened in a run: it was created, a question started, or a question finished */
   lastActivity(runId: string): number {
     const r = this.st(`SELECT MAX(
