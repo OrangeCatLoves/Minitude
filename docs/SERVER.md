@@ -186,7 +186,7 @@ Every approved question has one **gem**: a very obscure answer that scores 120 p
 - **Repo:** `gemOf`, `setGem`, `clearGem`, `listGems`, `gemSummary` (counts per category, approved questions only).
 - **API:** `GET /api/gems` returns `{ total, categories: [{ name, total }] }`: counts only, never a prompt, answer or id (tested). Nothing else mentions gems before the player has answered.
 - **Commands:** `gems list`; `gems set <question> "<answer>" ["<line>"] [--note ".."]`; `gems clear <question>`; `gems import [file] [--dry-run]` (default `data/gems.json`; safe to run again; reports skipped entries; exit code 1 if any); `gems audit` (every approved question has a gem; gems of questions that are not approved; gem answers that are not Mythic and have no "owner" note; gems without a description; look-alike answers, informational).
-- **Data:** `packages/server/data/gems.json` (200 gems, owner-approved 14 Nov 2026: `question`, `answer`, `description`, `tier` = the stored rarity it was picked at, `note`).
+- **Data:** `packages/server/data/gems.json` (250 gems, 200 owner-approved 14 Nov 2026 and 50 more with Batch 5 on 16 Nov 2026: `question`, `answer`, `description`, `tier` = the stored rarity it was picked at, `note`).
 - **Importing on the live site** follows the usual steps: a `db backup` first, `gems import --dry-run`, then for real, then `gems audit`. The migration runs by itself when the new code starts.
 - **Multiplayer and the Daily** need no changes: they take the checker's tier and points (`TIERS` has seven entries).
 

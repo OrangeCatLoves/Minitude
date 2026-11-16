@@ -166,3 +166,12 @@ Not yet confirmed by you (I chose these when putting it into the game):
 3. People whose device is set to "reduce motion" get the still pictures. There is no switch in the game for it (a switch would have to be remembered in the browser, which the privacy page would have to mention).
 4. On a slow device the pictures move with fewer steps a second (30 or 15 instead of 60) rather than slowing the whole game down.
 5. The title screen's room is alive too.
+
+## Backups of hand-made copies, and the machine size (16 November 2026)
+
+Asked by the owner ("am I hitting the limit of the database?"), after a look at the live disk, memory and answer-check speed. Findings: the database (91 MB, 105 MB with Batch 5) is not the limit; the volume was 75% full because four hand-made safety copies (334 MB) were never deleted; the 256 MB machine had 84 MB free next to the server (97 MB) and a bank import needs about 105 MB; checking a wrong answer on the biggest list (23,000 spellings) takes about 35 ms locally (right answers 0.1 to 6 ms), which is fine.
+
+Chosen by the owner: delete the four old copies by hand (done), prune hand-made copies automatically, and raise the machine to 512 MB. Defaults I took:
+1. The nightly job keeps the newest **2** hand-made copies (`KEEP_MANUAL` in `src/backup.ts`), besides the newest `BACKUP_KEEP` (3) daily ones. It deletes only files named exactly like a daily copy or a hand-made copy.
+2. `fly.toml` says 512 MB, so a later `fly deploy` keeps it (a `fly scale memory` alone would be undone by the next deploy). Cost: about $1.50 a month more in the cheapest regions, about $2 in Singapore (an estimate: the first invoice will show it).
+3. Not done, and only needed if the game gets busy: keep each question's spellings in memory instead of reading them from the database on every wrong guess.
