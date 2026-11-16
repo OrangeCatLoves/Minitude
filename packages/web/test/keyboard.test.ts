@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { easeLift, keyboardMayBeUp, liftNeeded } from '../src/keyboard'
+import { easeLift, extraGap, IOS_TOOLBAR, KEYBOARD_GAP, keyboardMayBeUp, liftNeeded } from '../src/keyboard'
+
+const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
+const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36'
+const DESKTOP = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36'
 
 // a phone on its side: 844 x 390, the picture fills the height (693 wide) so its scale is 390 / 720
 const LANDSCAPE = { top: 0, height: 390 }
@@ -48,6 +52,35 @@ describe('when the keyboard may be up', () => {
   it('ignores a page the player has pinch-zoomed, and works where the browser gives no zoom value', () => {
     expect(keyboardMayBeUp(true, 2.5)).toBe(false)
     expect(keyboardMayBeUp(true, undefined)).toBe(true)
+  })
+})
+
+describe('the extra air above an iPhone keyboard (its toolbar)', () => {
+  it('is added on an iPhone, an iPad and an iPad that calls itself a Mac, and nowhere else', () => {
+    expect(extraGap(IPHONE, 'iPhone', 5, null)).toBe(IOS_TOOLBAR)
+    expect(extraGap(IPHONE.replace('iPhone', 'iPad'), 'iPad', 5, null)).toBe(IOS_TOOLBAR)
+    expect(extraGap(DESKTOP.replace('Windows NT 10.0; Win64; x64', 'Macintosh; Intel Mac OS X 10_15_7'), 'MacIntel', 5, null)).toBe(IOS_TOOLBAR) // iPad in desktop mode
+    expect(extraGap(ANDROID, 'Linux armv81', 5, null)).toBe(0)
+    expect(extraGap(DESKTOP, 'Win32', 0, null)).toBe(0)
+    expect(extraGap(DESKTOP.replace('Windows NT 10.0; Win64; x64', 'Macintosh; Intel Mac OS X 10_15_7'), 'MacIntel', 0, null)).toBe(0) // a real Mac has no touch screen
+  })
+  it('can be set from the address, within sane limits, so it can be tuned on a real phone', () => {
+    expect(extraGap(IPHONE, 'iPhone', 5, '0')).toBe(0)
+    expect(extraGap(IPHONE, 'iPhone', 5, '80')).toBe(80)
+    expect(extraGap(DESKTOP, 'Win32', 0, '30')).toBe(30)
+    for (const bad of ['-5', '900', 'abc', 'NaN', 'Infinity']) expect(extraGap(IPHONE, 'iPhone', 5, bad)).toBe(IOS_TOOLBAR)
+    expect(extraGap(IPHONE, 'iPhone', 5, '')).toBe(IOS_TOOLBAR)
+  })
+  it('puts the lowest line above the toolbar too, and on a short screen lifts the box to the top of the picture instead of losing it', () => {
+    // an iPhone on its side under Safari's bars (the case in the owner's photo): the page is 311 px high and starts 119 px down the screen,
+    // the picture is 517 x 291, and the keyboard leaves only 74 px visible above it
+    const canvas = { top: 0, height: 291 }
+    const visible = { top: 0, bottom: 74 }
+    const lift = liftNeeded(canvas, visible, 311, 720, 550, KEYBOARD_GAP + IOS_TOOLBAR)
+    expect(lift).toBe(550) // the most it may rise: the box sits at the very top of the picture, the only place that is surely above everything
+    // with room to spare (a tall screen) the box clears the keyboard and its toolbar by exactly the gap
+    const tall = liftNeeded({ top: 222, height: 219 }, { top: 0, bottom: 364 }, 664, 720, 550, KEYBOARD_GAP + IOS_TOOLBAR)
+    expect(222 + 219 - tall * (219 / 720)).toBeCloseTo(364 - KEYBOARD_GAP - IOS_TOOLBAR, 5)
   })
 })
 

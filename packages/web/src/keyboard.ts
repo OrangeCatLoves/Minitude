@@ -32,6 +32,23 @@ export function liftNeeded(canvas: CanvasBox, visible: Visible, pageBottom: numb
 }
 
 /**
+ * iOS shows a toolbar (previous / next / done) just above its keyboard. In recent versions it floats over the page, and the browser may
+ * not shorten the visible area for it, so the answer box has to clear it as well. A real iPhone is the only way to learn which it is, so
+ * the allowance can be changed from the address (`?kbgap=0` turns it off, `?kbgap=60` makes it bigger) without a new release.
+ */
+export const IOS_TOOLBAR = 52
+
+/** extra air above the keyboard, in screen pixels: the iOS toolbar on an iPhone or iPad, nothing elsewhere; `override` is the `kbgap` text from the address */
+export function extraGap(userAgent: string, platform: string, touchPoints: number, override: string | null): number {
+  if (override !== null && override.trim() !== '') {
+    const n = Number(override)
+    if (Number.isFinite(n) && n >= 0 && n <= 200) return n
+  }
+  const ios = /iPhone|iPad|iPod/.test(userAgent) || (platform === 'MacIntel' && touchPoints > 1) // an iPad that asks for the desktop site calls itself a Mac
+  return ios ? IOS_TOOLBAR : 0
+}
+
+/**
  * Is the keyboard (probably) up? True when the answer field has the focus and the page is not pinch-zoomed (pinching also makes
  * the visible area smaller, and that must not move the box). The size of the visible area decides how far to lift, not this test.
  */

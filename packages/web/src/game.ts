@@ -18,7 +18,7 @@ import { AddLayer } from './fx'
 import { WorldGL } from './gl'
 import { WorldLife } from './life'
 import { flashAt, shakeAmp, vignetteAt } from './impact'
-import { easeLift, keyboardMayBeUp, liftNeeded } from './keyboard'
+import { easeLift, extraGap, KEYBOARD_GAP, keyboardMayBeUp, liftNeeded } from './keyboard'
 import { makeMiss, newRec, pullStart, schedule, skipCard, Timeline, type Cam, type Rec } from './timeline'
 import {
   ask, CONFIRM_BOXES, Groups, hud, hudDotsOnly, introButtons, landingLines, rail, report, REPORT_BUTTONS, reportRowBox, roll, result, scalebar, TITLE_BOXES, timeUp,
@@ -126,6 +126,10 @@ export class Game {
   private mouse: { x: number; y: number } | null = null
   /** how many picture pixels the answer box (or the lobby's field) is raised so that a phone's on-screen keyboard does not cover it; 0 at rest */
   private kbLift = 0
+  /** extra air above the keyboard on iOS (its toolbar); see keyboard.ts */
+  private kbExtra = 0
+  /** the on-screen read-out of what the browser says about the keyboard (only with ?kbdebug=1 in the address) */
+  private kbDebugEl: HTMLElement | null = null
 
   // title / transitions
   private titleOn = true
@@ -149,6 +153,7 @@ export class Game {
     this.out = out
     this.out.imageSmoothingEnabled = false
     this.bindInput()
+    this.bindKeyboardHelp()
     this.bindLeaving()
     this.bindVersus()
     void this.loadDaily()
@@ -269,15 +274,42 @@ export class Game {
     const vv = typeof window !== 'undefined' ? window.visualViewport : null
     if (want && vv && keyboardMayBeUp(document.activeElement === this.input, vv.scale)) {
       const r = this.canvas.getBoundingClientRect()
-      target = liftNeeded({ top: r.top, height: r.height }, { top: vv.offsetTop, bottom: vv.offsetTop + vv.height }, window.innerHeight, want.keepBottom, want.cap)
+      target = liftNeeded({ top: r.top, height: r.height }, { top: vv.offsetTop, bottom: vv.offsetTop + vv.height }, window.innerHeight, want.keepBottom, want.cap, KEYBOARD_GAP + this.kbExtra)
     }
     this.kbLift = easeLift(this.kbLift, target, dt)
+    if (this.kbDebugEl) this.paintKeyboardDebug(target)
   }
   /** what must stay above the keyboard: the lowest picture row of the typing area and the most it may rise; null where nothing is typed */
   private keyboardWant(): { keepBottom: number; cap: number } | null {
     if (this.phase === 'run') return { keepBottom: H, cap: 550 }
-    if (this.phase === 'lobby' && this.lobbyHasField()) return { keepBottom: 520, cap: 110 } // the field and the button under it (110 keeps the heading in view)
+    // the field and the button under it. 190 lifts the field to the top of the picture on a short screen, where it matters more than the heading
+    if (this.phase === 'lobby' && this.lobbyHasField()) return { keepBottom: 520, cap: 190 }
     return null
+  }
+  /** the iOS toolbar allowance, and (with ?kbdebug=1) a small read-out of what the browser reports, so a screenshot from a real phone shows why the box is where it is */
+  private bindKeyboardHelp(): void {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return
+    const q = new URLSearchParams(window.location.search)
+    this.kbExtra = extraGap(navigator.userAgent, navigator.platform, navigator.maxTouchPoints ?? 0, q.get('kbgap'))
+    if (!q.has('kbdebug')) return
+    const el = document.createElement('pre')
+    el.style.cssText = 'position:fixed;top:2px;right:2px;margin:0;padding:3px 5px;max-width:48vw;z-index:50;pointer-events:none;background:rgba(0,0,0,0.72);color:#9fe8a8;font:10px/1.25 monospace;white-space:pre-wrap;border:1px solid #356'
+    document.body.appendChild(el)
+    this.kbDebugEl = el
+  }
+  private paintKeyboardDebug(target: number): void {
+    const el = this.kbDebugEl
+    if (!el) return
+    const vv = window.visualViewport
+    const r = this.canvas.getBoundingClientRect()
+    const f = (n: number | undefined): string => (n === undefined ? '?' : n.toFixed(0))
+    el.textContent = [
+      `inner ${window.innerWidth}x${window.innerHeight}`,
+      vv ? `vv ${f(vv.width)}x${f(vv.height)} top ${f(vv.offsetTop)} sc ${vv.scale.toFixed(2)}` : 'vv none',
+      `canvas top ${f(r.top)} h ${f(r.height)}`,
+      `focus ${document.activeElement === this.input ? 'yes' : 'no'} phase ${this.phase}`,
+      `gap ${KEYBOARD_GAP}+${this.kbExtra} lift ${f(this.kbLift)}/${f(target)}`,
+    ].join('\n')
   }
   /** a dark band behind the raised answer box, so its text is easy to read over the picture (only while a keyboard is up) */
   private keyboardPlate(f: Ctx, v: number, lift: number): void {

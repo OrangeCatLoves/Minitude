@@ -11,12 +11,20 @@ const BASE = process.env.MINITUDE_URL || 'http://127.0.0.1:5173'
 const OUT = path.join(__dirname, 'out')
 require('fs').mkdirSync(OUT, { recursive: true })
 
-// [name, width, height of the visible area, keyboard height, touch device?]
+const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
+// [name, width, height of the visible area, keyboard height, touch device?, user agent (null = the browser's own), pixels above the keyboard
+//  that something ELSE covers although the browser's visible area includes them (the iOS toolbar, when the browser does not count it)]
 const PROFILES = [
-  ['phone-landscape-844x390', 844, 390, 200, true],
-  ['phone-landscape-small-667x300', 667, 300, 170, true],
-  ['phone-portrait-390x664', 390, 664, 300, true],
-  ['tablet-landscape-1024x700', 1024, 700, 330, true],
+  ['phone-landscape-844x390', 844, 390, 200, true, null, 0],
+  ['phone-landscape-small-667x300', 667, 300, 170, true, null, 0],
+  ['phone-portrait-390x664', 390, 664, 300, true, null, 0],
+  ['tablet-landscape-1024x700', 1024, 700, 330, true, null, 0],
+  // an iPhone on its side under Safari's bars, as in the owner's photo (16 Nov 2026): a page 311 px high, and Safari said nothing about the
+  // toolbar above the keyboard (kb 182: the visible area ends 129 px down, the toolbar covers the lowest 52 of them) ...
+  ['iphone-landscape-932x311-toolbar-not-counted', 932, 311, 182, true, IPHONE, 52],
+  // ... or it did count it (kb 242: the visible area ends 69 px down; only the box's top-of-picture position can fit)
+  ['iphone-landscape-932x311-toolbar-counted', 932, 311, 242, true, IPHONE, 0],
+  ['iphone-portrait-430x700', 430, 700, 330, true, IPHONE, 52],
 ]
 
 const FAKE_VISUAL_VIEWPORT = () => {
@@ -49,8 +57,8 @@ const ok = (c, w, d = '') => { if (!c) bad++; console.log((c ? 'ok       ' : 'PR
     ...(process.env.MINITUDE_CHANNEL ? { channel: process.env.MINITUDE_CHANNEL } : {}),
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'],
   })
-  for (const [name, w, h, kb, touch] of PROFILES) {
-    const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: touch, hasTouch: touch, deviceScaleFactor: 2 })
+  for (const [name, w, h, kb, touch, ua, hidden] of PROFILES) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: touch, hasTouch: touch, deviceScaleFactor: 2, ...(ua ? { userAgent: ua } : {}) })
     await ctx.addInitScript(FAKE_VISUAL_VIEWPORT)
     const page = await ctx.newPage()
     const errors = []
@@ -81,10 +89,18 @@ const ok = (c, w, d = '') => { if (!c) bad++; console.log((c ? 'ok       ' : 'PR
     s = await state()
     const r = await rect()
     const scale = r.height / 720
-    const inkBottomOnScreen = r.bottom - s.kbLift * scale // the lowest line of the box (the timer bar, picture row 718)
+    const capped = s.kbLift >= 549.5
+    // the lowest line of the box: the thin timer bar (picture row 718). On a very short screen the box is at the very top of the picture (the lift is
+    // at its cap) and the timer bar may be a few pixels under the keyboard: the lowest line of TEXT (the message line, row 710) is what must show.
+    const inkBottomOnScreen = r.top + ((capped ? 710 : 718) - s.kbLift) * scale
     const covered = r.bottom > h - kb
     ok(!covered || s.kbLift > 0, `${name}: the box rises when the keyboard covers it`, `lift ${s.kbLift.toFixed(1)} picture px, picture bottom ${r.bottom.toFixed(0)} vs keyboard top ${h - kb}`)
-    ok(inkBottomOnScreen <= h - kb - 8 || !covered, `${name}: the lowest line ends above the keyboard`, `box bottom at y=${inkBottomOnScreen.toFixed(0)}, keyboard starts at y=${h - kb}`)
+    // 8 px of air when there is room; on a very short screen the box can only be flush against the line. 1 px of slack for rounding.
+    const lowest = h - kb - hidden - (capped ? 0 : 8) + 1
+    ok(inkBottomOnScreen <= lowest || !covered, `${name}: the lowest line ends above the keyboard${hidden ? ' and the toolbar over it' : ''}`, `${capped ? 'text' : 'box'} bottom at y=${inkBottomOnScreen.toFixed(0)}, must be at or above y=${lowest.toFixed(0)}${capped ? ' (short screen: box at the top of the picture)' : ''}`)
+    // the typed text itself (picture row 676) must be on screen above everything that covers the page, whatever else is lost
+    const typedY = r.top + (676 - s.kbLift) * scale
+    ok(typedY >= 0 && typedY <= h - kb - hidden, `${name}: the typed text is above the keyboard${hidden ? ' and the toolbar over it' : ''}`, `typed line at y=${typedY.toFixed(0)}, covered from y=${h - kb - hidden}`)
     ok(r.bottom - s.kbLift * scale >= 0 && s.kbLift <= 550, `${name}: the box stays inside the picture`, `lift ${s.kbLift.toFixed(0)} of at most 550`)
     ok(await page.evaluate(() => document.activeElement === document.getElementById('answer')), `${name}: the answer field keeps the focus`)
     ok((await page.evaluate(() => document.getElementById('answer').value)) === 'tiger', `${name}: what was typed is untouched`)
@@ -156,8 +172,10 @@ const ok = (c, w, d = '') => { if (!c) bad++; console.log((c ? 'ok       ' : 'PR
       const fieldBottom = r2.top + (288 + 56 - s.kbLift) * sc2
       const need = r2.top + 344 * sc2 > h - kb // the field would have been covered
       ok(!need || s.kbLift > 0, `${name}: the lobby rises when the keyboard would cover its field`, `lift ${s.kbLift.toFixed(1)}`)
-      ok(fieldBottom <= h - kb - 8, `${name}: the name field is above the keyboard`, `field bottom y=${fieldBottom.toFixed(0)}, keyboard at ${h - kb}`)
-      ok(s.kbLift <= 110.5, `${name}: the lobby rises by at most 110`, `lift ${s.kbLift.toFixed(1)}`)
+      const capped2 = s.kbLift >= 189.5
+      const lowest2 = h - kb - hidden - (capped2 ? 0 : 8) + 1
+      ok(fieldBottom <= lowest2, `${name}: the name field is above the keyboard${hidden ? ' and the toolbar over it' : ''}`, `field bottom y=${fieldBottom.toFixed(0)}, must be at or above y=${lowest2.toFixed(0)}`)
+      ok(s.kbLift <= 190.5, `${name}: the lobby rises by at most 190`, `lift ${s.kbLift.toFixed(1)}`)
       await shot('4-lobby-keyboard-up')
       // tap the CONTINUE button where it is drawn now (raised); it must work
       const cx = r2.left + (go.box.x + go.box.w / 2) * sc2, cy = r2.top + (go.box.y + go.box.h / 2 - s.kbLift) * sc2
