@@ -56,6 +56,17 @@ describe('the bank sheet', () => {
     expect(data.questions.find((q) => q.id === 'live-one')!.status).toBe('live')
   })
 
+  it('shows the proposed gem of a draft question from a gems file (and ignores a gem whose answer is not in the question)', () => {
+    const file = join(dir, 'bank2.json'), gems = join(dir, 'gems.json')
+    const b = bank('gem-draft')
+    b.questions.push(bank('gem-less').questions[0])
+    writeFileSync(file, JSON.stringify(b))
+    writeFileSync(gems, JSON.stringify({ gems: [{ question: 'gem-draft', answer: 'gamma </script>', description: 'A gem line.' }, { question: 'gem-less', answer: 'Not an answer' }] }))
+    const data = buildSheetData(dbFile, [{ file, label: 'Batch 9' }], 'x', [gems])
+    expect(data.questions.find((q) => q.id === 'gem-draft')!.gem).toEqual({ name: 'Gamma </script>', line: 'A gem line.' })
+    expect(data.questions.find((q) => q.id === 'gem-less')!.gem).toBeUndefined()
+  })
+
   it('puts the data in the page without letting it end the script', () => {
     const html = renderSheet(buildSheetData(dbFile, [], 'x'))
     expect(html).not.toContain('/*DATA*/null')

@@ -47,7 +47,7 @@ function toSheet(q: QuestionRecord, status: Status, origin: string, source?: str
   return { id: q.id, category: q.category, prompt: q.prompt, rules: q.rules, status, origin, ...(source ? { source } : {}), t }
 }
 
-export function buildSheetData(dbFile: string, drafts: { file: string; label: string }[], asOf: string) {
+export function buildSheetData(dbFile: string, drafts: { file: string; label: string }[], asOf: string, gemFiles: string[] = []) {
   const questions: SheetQuestion[] = []
   const have = new Set<string>()
 
@@ -70,12 +70,20 @@ export function buildSheetData(dbFile: string, drafts: { file: string; label: st
     db.close()
   }
 
+  // proposed gems of questions that are not in the database yet (the file has the same shape as data/gems.json)
+  const proposed = new Map<string, { answer: string; description?: string }>()
+  for (const g of gemFiles) for (const x of (JSON.parse(readFileSync(g, 'utf8')) as { gems: { question: string; answer: string; description?: string }[] }).gems) proposed.set(x.question, x)
+
   for (const d of drafts) {
     const bank = JSON.parse(readFileSync(d.file, 'utf8')) as QuestionBank
     for (const q of bank.questions) {
       if (have.has(q.id)) continue
       have.add(q.id)
-      questions.push(toSheet(q, 'draft', d.label, bank.sources?.[q.id]))
+      const sheet = toSheet(q, 'draft', d.label, bank.sources?.[q.id])
+      const pg = proposed.get(q.id)
+      const pa = pg ? q.answers.find((a) => normalize(a.name) === normalize(pg.answer)) : undefined
+      if (pg && pa) sheet.gem = { name: pa.name, line: pg.description ?? '' }
+      questions.push(sheet)
     }
   }
 
@@ -103,7 +111,7 @@ function main(): void {
   const dbFile = one('db')
   const out = one('out')
   if (!dbFile || !out) {
-    console.error('usage: banksheet --db <database file> [--drafts <bank.json>[=Label]] ... --out <page.html> [--asof "12 Nov 2026"]')
+    console.error('usage: banksheet --db <database file> [--drafts <bank.json>[=Label]] ... [--gems <gems.json>] ... --out <page.html> [--asof "12 Nov 2026"]')
     process.exit(1)
   }
   const drafts = all('drafts').map((s) => {
@@ -111,7 +119,7 @@ function main(): void {
     return i > 0 ? { file: s.slice(0, i), label: s.slice(i + 1) } : { file: s, label: 'Drafts' }
   })
   const asOf = one('asof') ?? new Date().toISOString().slice(0, 10)
-  const data = buildSheetData(dbFile, drafts, asOf)
+  const data = buildSheetData(dbFile, drafts, asOf, all('gems'))
   writeFileSync(out, renderSheet(data))
   const count = (s: Status) => data.questions.filter((q) => q.status === s)
   const answers = (qs: SheetQuestion[]) => qs.reduce((n, q) => n + q.t.reduce((m, t) => m + t.length, 0), 0)

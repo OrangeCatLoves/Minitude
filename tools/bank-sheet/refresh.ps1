@@ -10,6 +10,8 @@
 param(
   # draft question files from the builder, each "path\bank.json=Label"
   [string[]]$Drafts = @(),
+  # proposed gems of the draft questions (same shape as packages/server/data/gems.json), so the sheet can show them
+  [string[]]$Gems = @(),
   [string]$Out = 'C:\Users\weibi\minitude\list-build\sheet',
   [string]$App = 'minitude-lwb',
   [string]$Fly = 'C:\Users\weibi\.fly\bin\flyctl.exe'
@@ -37,6 +39,7 @@ if (-not (Test-Path $local)) { throw 'the download failed' }
 $asOf = (Get-Date).ToString('d MMM yyyy', [System.Globalization.CultureInfo]'en-US')
 $gen = @('tsx', 'src/cli/banksheet.ts', '--db', $local, '--out', (Join-Path $Out 'bank-sheet.html'), '--asof', $asOf)
 foreach ($d in $Drafts) { $gen += @('--drafts', $d) }
+foreach ($g in $Gems) { $gen += @('--gems', $g) }
 Push-Location (Join-Path $repo 'packages\server')
 try { & npx @gen } finally { Pop-Location }
 Write-Host "Done. Publish $Out\bank-sheet.html (same file, same link) so the page matches."

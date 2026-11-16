@@ -48,7 +48,7 @@ const HELP = `Minitude command line
   gems list                                            (the SINGULARITY gem of every question: the one very obscure answer that scores 120)
   gems set <question-id> "<answer>" ["<one line shown when it is found>"] [--note "..."]   (make an existing answer the question's gem)
   gems clear <question-id>
-  gems import [file.json] [--dry-run]                  (the 200 gems, from data/gems.json; safe to run again; a dry run only counts)
+  gems import [file.json] [--dry-run]                  (the gems of data/gems.json, 250 on 16 Nov 2026; safe to run again; a dry run only counts)
   gems audit                                           (every approved question has a gem; the gem answers are Mythic unless noted; looks for close look-alikes)
 
   daily show [YYYY-MM-DD]                              (the seven questions of a day, default today (UTC), and how many played)

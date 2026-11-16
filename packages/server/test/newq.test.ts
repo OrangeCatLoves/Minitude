@@ -128,6 +128,15 @@ describe('the hand-listed head of a question (mustHave)', () => {
     expect(b.ranked[0].aliases).toContain('Pogona')
     expect(names(b).join('|')).not.toMatch(/jew/i)
   })
+
+  it('slur-like film titles, stage names and old names found in Batch 5 are dropped too, and the thing they name keeps its other names', () => {
+    const items = [cand('The Squaw Man', 60, []), cand('Gayniggers from Outer Space', 55, []), cand('Lift Every Voice and Sing', 50, ['Negro national anthem', 'Black national anthem']), cand('Dave Lee', 45, ['Joey Negro', 'David Lee']), ...filler]
+    const b = buildQuestion(def(), items)
+    expect(names(b)).not.toContain('The Squaw Man')
+    expect(names(b).join('|')).not.toMatch(/nigger/i) // also inside a longer word
+    expect(b.ranked.find((r) => r.name === 'Lift Every Voice and Sing')!.aliases).toEqual(['Black national anthem'])
+    expect(b.ranked.find((r) => r.name === 'Dave Lee')!.aliases).toEqual(['David Lee'])
+  })
 })
 
 describe('a recipe can look at the one-line description (people described as something else are skipped)', () => {

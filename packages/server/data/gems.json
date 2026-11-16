@@ -1,5 +1,5 @@
 {
- "_about": "The 200 SINGULARITY gems: one very obscure answer per question (chosen and approved by the owner, 14 Nov 2026). Import with: npm run cli -- gems import",
+ "_about": "The 250 SINGULARITY gems: one very obscure answer per question (the first 200 chosen and approved by the owner on 14 Nov 2026; 50 more for Batch 5 on 16 Nov 2026). Import with: npm run cli -- gems import",
  "gems": [
   {
    "question": "animals-dog-breed",
@@ -1211,6 +1211,306 @@
    "question": "transport-class-of-naval",
    "answer": "Floating battery",
    "description": "A kind of armed watercraft, often improvised or experimental, with heavy armament but few other qualities of a warship.",
+   "tier": 5
+  },
+  {
+   "question": "animals-parrot",
+   "answer": "Reischek's Parakeet",
+   "description": "Reischek's kakariki, also known as Reischek's parakeet, is a small green parrot found only on Antipodes Island in New Zealand's subantarctic islands.",
+   "tier": 5
+  },
+  {
+   "question": "animals-marsupial",
+   "answer": "Spotted Slender Opossum",
+   "description": "The little spotted slender opossum, also called the spectacled slender opossum, is a marsupial of the genus Marmosops from South America.",
+   "tier": 5
+  },
+  {
+   "question": "animals-rodent",
+   "answer": "Yungas Hocicudo",
+   "description": "The Yungas hocicudo, also called the ravine hocicudo, is a rodent species from South America.",
+   "tier": 5
+  },
+  {
+   "question": "animals-whale-dolphin",
+   "answer": "Tamanend's bottlenose dolphin",
+   "description": "Tamanend's bottlenose dolphin is a species of bottlenose dolphin that inhabits coastal waters in the eastern United States.",
+   "tier": 5
+  },
+  {
+   "question": "animals-cattle-breed",
+   "answer": "Slovenian Cika Cattle",
+   "description": "Cika cattle is an autochthonous breed of cattle, originating in Slovenia.",
+   "tier": 5
+  },
+  {
+   "question": "food-chinese-dish",
+   "answer": "mala xiang guo",
+   "description": "Mala xiang guo, roughly translated as \"spicy stir fry hot pot\", is a Chinese dish prepared by stir-frying.",
+   "tier": 5
+  },
+  {
+   "question": "food-italian-dish",
+   "answer": "Brutti e buoni",
+   "description": "Brutti ma buoni is a type of hazelnut or almond-flavoured biscuit produced in Prato, Tuscany, and many other cities.",
+   "tier": 5
+  },
+  {
+   "question": "food-cake",
+   "answer": "dirt cake",
+   "description": "Dirt cake, also called dirt and worms, is an American cake made from crushed cookies and pudding that looks like soil.",
+   "tier": 5
+  },
+  {
+   "question": "food-cookie",
+   "answer": "Caycay",
+   "description": "Caycay is a Filipino crunchy layered cookie coated in syrup or honey and rolled in coarsely ground toasted peanuts.",
+   "tier": 5
+  },
+  {
+   "question": "history-greek-myth",
+   "answer": "Axioche",
+   "description": "Axioche is a woman or otherwise a nymph in Greek mythology.",
+   "tier": 5
+  },
+  {
+   "question": "history-ancient-city",
+   "answer": "Pheia",
+   "description": "Pheia or Phea was a city of ancient Elis in the Pisatis, situated upon the isthmus connecting the promontory Ichthys with the mainland.",
+   "tier": 5
+  },
+  {
+   "question": "history-military-leader",
+   "answer": "Publius Valerius Comazon",
+   "description": "Publius Valerius Eutychianus Comazon was a Roman general and ally of emperor Elagabalus.",
+   "tier": 5
+  },
+  {
+   "question": "history-pirate",
+   "answer": "Guynemer of Boulogne",
+   "description": "Guynemer was a Boulognese pirate who played a role in the First Crusade.",
+   "tier": 5
+  },
+  {
+   "question": "history-samurai",
+   "answer": "Kita Narikatsu",
+   "description": "Kita Narikatsu was a brother of the famous Mōri Motonari and son of Mōri Hiromoto.",
+   "tier": 5
+  },
+  {
+   "question": "places-mountain-range",
+   "answer": "Growler Mountains",
+   "description": "The Growler Mountains is a 23-mile, long north-south trending mountain range of far western Pima County, Arizona that lies 12 miles west of Ajo, Arizona.",
+   "tier": 5
+  },
+  {
+   "question": "places-peninsula",
+   "answer": "Condor Peninsula",
+   "description": "Condor Peninsula is a mountainous, ice-covered peninsula on the east coast of Palmer Land, Antarctica.",
+   "tier": 5
+  },
+  {
+   "question": "places-strait",
+   "answer": "Ernest Sound",
+   "description": "Ernest Sound is a strait in Southeast Alaska that separates Wrangell and Etolin Islands from the mainland.",
+   "tier": 5
+  },
+  {
+   "question": "places-statue",
+   "answer": "Capuan Venus",
+   "description": "The Venus of Capua is a Roman sculpture made during the reign of Hadrian.",
+   "tier": 5
+  },
+  {
+   "question": "places-zoo",
+   "answer": "Tierpark Cottbus",
+   "description": "The Cottbus Zoo is a zoo in the town Cottbus in the Brandenburg region of Germany.",
+   "tier": 5
+  },
+  {
+   "question": "food-salad",
+   "answer": "Kuluban",
+   "description": "Kuluban is a traditional salad of Central Java.",
+   "tier": 5
+  },
+  {
+   "question": "games-racing",
+   "answer": "MotoGP '08",
+   "description": "MotoGP 08 is a motorcycle racing video game.",
+   "tier": 5
+  },
+  {
+   "question": "games-strategy",
+   "answer": "Pokémon Champions",
+   "description": "Pokémon Champions is a strategy video game developed by The Pokémon Works and published by Nintendo and The Pokémon Company.",
+   "tier": 5
+  },
+  {
+   "question": "games-platformer",
+   "answer": "Clockwork Knight",
+   "description": "Clockwork Knight is a 1994 platform game developed and published by Sega for the Sega Saturn.",
+   "tier": 5
+  },
+  {
+   "question": "games-puzzle",
+   "answer": "Kwirk",
+   "description": "Kwirk, known in Japan as Puzzle Boy, is a puzzle video game developed and published by Atlus in Japan in 1989 for the Game Boy.",
+   "tier": 5
+  },
+  {
+   "question": "games-action-adventure",
+   "answer": "SpongeBob's Atlantis SquarePantis",
+   "description": "SpongeBob's Atlantis SquarePantis is a 2007 video game based on the 2007 TV movie of the same name.",
+   "tier": 5
+  },
+  {
+   "question": "science-chemist",
+   "answer": "Alexander Frumkin",
+   "description": "Alexander Naumovich Frumkin was a Soviet Russian electrochemist and a member of the Russian Academy of Sciences.",
+   "tier": 5
+  },
+  {
+   "question": "science-inventor",
+   "answer": "Jeri Ellsworth",
+   "description": "Jeri Janet Ellsworth is an American entrepreneur, computer chip designer and inventor.",
+   "tier": 5
+  },
+  {
+   "question": "science-file-format",
+   "answer": "Progressive Graphics File",
+   "description": "Progressive Graphics File (PGF) is a wavelet-based bitmapped image format that employs lossless and lossy data compression.",
+   "tier": 5
+  },
+  {
+   "question": "science-cryptocurrency",
+   "answer": "MazaCoin",
+   "description": "MazaCoin is a cryptocurrency launched in 2014 by developer Payu Harris.",
+   "tier": 5
+  },
+  {
+   "question": "movies-scifi-film",
+   "answer": "H. G. Wells' The War of the Worlds",
+   "description": "H. G. Wells' The War of the Worlds is a 2005 American independent science fiction action film directed by Timothy Hines.",
+   "tier": 5
+  },
+  {
+   "question": "movies-action-film",
+   "answer": "Megaforce",
+   "description": "Megaforce is a 1982 action film directed by former stuntman Hal Needham.",
+   "tier": 5
+  },
+  {
+   "question": "movies-comedian",
+   "answer": "Gregg Turkington",
+   "description": "Gregg Turkington is an American comedian, entertainer, actor, musician and writer.",
+   "tier": 5
+  },
+  {
+   "question": "movies-crime-series",
+   "answer": "Jett",
+   "description": "Jett is an American action crime drama television series created by Sebastian Gutierrez.",
+   "tier": 5
+  },
+  {
+   "question": "movies-childrens-tv",
+   "answer": "Nå er det nå!",
+   "description": "Nå er det nå! is a Norwegian children's television programme presented by Thomas Numme and Rebekka Karijord.",
+   "tier": 5
+  },
+  {
+   "question": "music-drummer",
+   "answer": "Takashi Matsumoto",
+   "description": "Takashi Matsumoto is a Japanese lyricist and former musician, the drummer of the band Happy End.",
+   "tier": 5
+  },
+  {
+   "question": "music-dj",
+   "answer": "Kryder",
+   "description": "Christopher Simon Knight, better known by his stage name Kryder, is an English DJ and record producer.",
+   "tier": 5
+  },
+  {
+   "question": "music-stones-song",
+   "answer": "2120 South Michigan Avenue",
+   "description": "An original instrumental by the Rolling Stones, recorded for their second EP Five by Five and released in 1964.",
+   "tier": 5
+  },
+  {
+   "question": "music-christmas-song",
+   "answer": "En stjerne skinner i natt",
+   "description": "\"En stjerne skinner i natt\" is a Christmas song written by Eyvind Skeie and Tore W. Aas.",
+   "tier": 5
+  },
+  {
+   "question": "music-national-anthem",
+   "answer": "Song of Five Races Under One Union",
+   "description": "The Song of Five Races Under One Union is a former national anthem of China.",
+   "tier": 5
+  },
+  {
+   "question": "sports-cyclist",
+   "answer": "Jean-Claude Annaert",
+   "description": "Jean-Claude Annaert was a French racing cyclist.",
+   "tier": 5
+  },
+  {
+   "question": "sports-mma-fighter",
+   "answer": "Daniel Rodriguez",
+   "description": "Daniel Rodriguez is an American mixed martial artist who currently competes in the Welterweight division of the Ultimate Fighting Championship.",
+   "tier": 5
+  },
+  {
+   "question": "sports-chess-player",
+   "answer": "Nataša Bojković",
+   "description": "Nataša Bojković is a Serbian chess player, an International Master and a Woman Grandmaster.",
+   "tier": 5
+  },
+  {
+   "question": "sports-gymnast",
+   "answer": "Albert Bachmann",
+   "description": "Albert Bachmann was a Swiss gymnast who competed in the 1936 Summer Olympics.",
+   "tier": 5
+  },
+  {
+   "question": "transport-tank",
+   "answer": "Spähpanzer SP I.C.",
+   "description": "The Spähpanzer SP I.C. was the experimental model of a West German reconnaissance scout light tank with anti-tank components.",
+   "tier": 5
+  },
+  {
+   "question": "transport-tunnel",
+   "answer": "Markusbierg Tunnel",
+   "description": "The Markusbierg tunnels are a pair of parallel tunnels, which form the most easterly section of the A13 motorway through Luxembourg, near the town of Schengen.",
+   "tier": 5
+  },
+  {
+   "question": "transport-fighter-aircraft",
+   "answer": "Martinsyde F.1",
+   "description": "The Martinsyde F.1 was a British two-seat biplane fighter designed and built by Martinsyde Limited, only two prototypes were built.",
+   "tier": 5
+  },
+  {
+   "question": "misc-poet",
+   "answer": "Robert Pinsky",
+   "description": "Robert Pinsky is an American poet, essayist, literary critic, and translator.",
+   "tier": 5
+  },
+  {
+   "question": "misc-architect",
+   "answer": "Dušan Jurkovič",
+   "description": "Dušan Samo Jurkovič was a Slovak architect, furniture designer, artist and ethnographer.",
+   "tier": 5
+  },
+  {
+   "question": "misc-retail-chain",
+   "answer": "Søstrene Grene",
+   "description": "Søstrene Grene is a family-owned Danish multi-category retail chain.",
+   "tier": 5
+  },
+  {
+   "question": "misc-watch-brand",
+   "answer": "Harry Winston, Inc.",
+   "description": "Harry Winston, Inc. is an American luxury jeweler and producer of Swiss timepieces.",
    "tier": 5
   }
  ]

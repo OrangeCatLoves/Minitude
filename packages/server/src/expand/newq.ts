@@ -85,7 +85,7 @@ const GENERIC = new Set(['dog', 'horse', 'shark', 'cocktail', 'cheese', 'bread',
 /** how well known to an English-speaking global audience: the 10 biggest Wikipedias dominate, an English article adds, all languages break ties; a hand boost wins */
 export const fameScore = (c: Candidate) => (c.boost ?? 0) + (c.big ?? 0) * 100 + (c.en ? 60 : 0) + Math.min(c.signal, 150)
 /** old names that are slurs and that Wikidata keeps as an animal's label or as another way to write a title (the thing itself is listed under its other names): never stored */
-const UNWANTED = /\b(jew lizard|jew cookie|nigger\w*|negro-dutch|squaw poker|kaffir)\b/i
+const UNWANTED = /nigger|\b(jew lizard|jew cookie|negro-dutch|squaw poker|squaw man|kaffir|jewess|coolie|negro national anthem|joey negro|el negro)\b/i
 const okName = (n: string) => n.length >= 2 && n.length <= 60 && /\p{L}/u.test(n) && !/[()\[\]{}<>@#]/.test(n) && !/\blist of\b|disambiguation/i.test(n) && !/^Q\d+$/.test(n) && !UNWANTED.test(n)
 const okAlias = (a: string) => a.length >= 2 && a.length <= 60 && /\p{L}/u.test(a) && !/[()\[\]{}<>@#]/.test(a) && !/^Q\d+$/i.test(a) && !UNWANTED.test(a) // a Wikidata code is not a name
 
