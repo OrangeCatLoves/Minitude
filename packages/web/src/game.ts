@@ -18,6 +18,7 @@ import { AddLayer } from './fx'
 import { WorldGL } from './gl'
 import { WorldLife } from './life'
 import { flashAt, shakeAmp, vignetteAt } from './impact'
+import { easeLift, keyboardMayBeUp, liftNeeded } from './keyboard'
 import { makeMiss, newRec, pullStart, schedule, skipCard, Timeline, type Cam, type Rec } from './timeline'
 import {
   ask, CONFIRM_BOXES, Groups, hud, hudDotsOnly, introButtons, landingLines, rail, report, REPORT_BUTTONS, reportRowBox, roll, result, scalebar, TITLE_BOXES, timeUp,
@@ -123,6 +124,8 @@ export class Game {
   private lobbyAt = 0
   private lobbyScreenSeen = ''
   private mouse: { x: number; y: number } | null = null
+  /** how many picture pixels the answer box (or the lobby's field) is raised so that a phone's on-screen keyboard does not cover it; 0 at rest */
+  private kbLift = 0
 
   // title / transitions
   private titleOn = true
@@ -238,8 +241,9 @@ export class Game {
         return
       }
       if (this.confirm) {
-        if (hit(CONFIRM_BOXES.yes, p)) this.answerConfirm('yes')
-        else if (hit(CONFIRM_BOXES.no, p)) this.answerConfirm('no')
+        const q = { x: p.x, y: p.y + this.kbLift } // the buttons are drawn raised while a keyboard is up
+        if (hit(CONFIRM_BOXES.yes, q)) this.answerConfirm('yes')
+        else if (hit(CONFIRM_BOXES.no, q)) this.answerConfirm('no')
         return
       }
       if (this.skipActiveCard()) return
@@ -253,6 +257,34 @@ export class Game {
   /** gives the answer box keyboard focus when a question is waiting for an answer */
   refocus(): void {
     if (this.canType()) this.input.focus({ preventScroll: true })
+  }
+  /**
+   * A phone's on-screen keyboard covers the lower part of the screen, where the answer box is drawn. While the answer field has the
+   * focus and the browser says the visible area is shorter than the page, the box rises (and eases back down when the keyboard goes
+   * away). Only the box moves, not the picture. Nothing happens on a computer: there the visible area is the whole page.
+   */
+  private stepKeyboard(dt: number): void {
+    let target = 0
+    const want = this.keyboardWant()
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null
+    if (want && vv && keyboardMayBeUp(document.activeElement === this.input, vv.scale)) {
+      const r = this.canvas.getBoundingClientRect()
+      target = liftNeeded({ top: r.top, height: r.height }, { top: vv.offsetTop, bottom: vv.offsetTop + vv.height }, window.innerHeight, want.keepBottom, want.cap)
+    }
+    this.kbLift = easeLift(this.kbLift, target, dt)
+  }
+  /** what must stay above the keyboard: the lowest picture row of the typing area and the most it may rise; null where nothing is typed */
+  private keyboardWant(): { keepBottom: number; cap: number } | null {
+    if (this.phase === 'run') return { keepBottom: H, cap: 550 }
+    if (this.phase === 'lobby' && this.lobbyHasField()) return { keepBottom: 520, cap: 110 } // the field and the button under it (110 keeps the heading in view)
+    return null
+  }
+  /** a dark band behind the raised answer box, so its text is easy to read over the picture (only while a keyboard is up) */
+  private keyboardPlate(f: Ctx, v: number, lift: number): void {
+    const top = 546 - lift
+    const a = 0.8 * v * Math.min(1, lift / 30)
+    vscrim(f, top - 36, top + 12, a, false, [7, 11, 23]) // a soft top edge
+    shade(f, 0, top + 12, W, H, [7, 11, 23], a)
   }
   /** a question is on screen and the player may type */
   canType(): boolean {
@@ -418,7 +450,7 @@ export class Game {
     else if (s !== 'room') { this.versus.go('menu'); this.syncLobbyInput() }
   }
   private lobbyPointer(p: { x: number; y: number }): void {
-    const it = itemAt(lobbyItems(this.versus), p)
+    const it = itemAt(lobbyItems(this.versus), { x: p.x, y: p.y + this.kbLift }) // the lobby is drawn raised while a keyboard is up
     if (it) { this.sound.key(); this.lobbyAction(it); return }
     if (this.lobbyHasField()) this.input.focus({ preventScroll: true })
   }
@@ -852,6 +884,7 @@ export class Game {
   update(dt: number): void {
     this.T += dt
     const T = this.T
+    this.stepKeyboard(dt)
     if (this.phase === 'title' && this.daily && this.msToReset() <= 0 && performance.now() - this.lastDailyTry > 3000) void this.loadDaily()
     if (this.phase === 'lobby') this.syncLobbyInput()
     if (this.phase === 'run') {
@@ -1071,7 +1104,13 @@ export class Game {
     // ---- the multiplayer lobby
     if (this.phase === 'lobby') {
       shade(f, 0, 0, W, H, [4, 7, 18], 0.86 * easeOut((T - this.lobbyAt) / 0.4))
-      this.groups.draw(f, easeOut((T - this.lobbyAt) / 0.4), (c) => drawLobby(c, this.versus, T, this.mouse))
+      const lift = this.kbLift
+      this.groups.draw(f, easeOut((T - this.lobbyAt) / 0.4), (c) => {
+        c.save()
+        c.translate(0, -Math.round(lift))
+        drawLobby(c, this.versus, T, this.mouse ? { x: this.mouse.x, y: this.mouse.y + lift } : null)
+        c.restore()
+      })
     }
 
     // ---- title button, report
@@ -1191,7 +1230,9 @@ export class Game {
   }
   private bottomBlock(f: Ctx, r: Rec, v: number): void {
     const T = this.T
-    const dy = (1 - v) * 18
+    const lift = Math.round(this.kbLift)
+    if (lift > 0) this.keyboardPlate(f, v, lift)
+    const dy = (1 - v) * 18 - lift // raised while a phone's keyboard is up, so the player can see what they type
     if (r.miss) { this.groups.draw(f, v, (c) => timeUp(c, this.askView(r), dy)); return }
     if (T < r.roll) { this.groups.draw(f, v, (c) => ask(c, T, this.askView(r), dy)); return }
     if (T < r.rev) {
@@ -1222,7 +1263,7 @@ export class Game {
   debugState(): Record<string, unknown> {
     const r = this.tl.last()
     return {
-      T: this.T, phase: this.phase, pending: this.pending, canType: this.canType(), confirm: this.confirm ? this.confirm.suggestion : null, records: this.records.length,
+      T: this.T, phase: this.phase, kbLift: this.kbLift, pending: this.pending, canType: this.canType(), confirm: this.confirm ? this.confirm.suggestion : null, records: this.records.length,
       rec: r ? { i: r.i, known: r.known, miss: r.miss, start: r.start, next: r.next, card: r.card, clen: r.clen, fs: r.fs, fe: r.fe, rev: r.rev, roll: r.roll, val: r.val, chg: r.chg, chk: r.chk, dur: r.dur, ti: r.ti, cardOn: r.cardOn, dz: r.dz, fin: r.fin } : null,
       total: this.records.length ? this.records[this.records.length - 1].c1 : 0,
       q: r ? this.questions[r.i] ?? null : null,

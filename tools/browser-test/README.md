@@ -16,6 +16,7 @@ node daily.cjs             # the Daily Challenge (uses new guests; best run agai
 node realtime.cjs
 node audio-levels.cjs 5,5,5,5,5,5,5
 node focus.cjs             # typing still works after Tab, clicks elsewhere, the sound button, switching tabs (submits nothing)
+node keyboard.cjs          # a phone's on-screen keyboard (FAKED): the answer box and the lobby field rise above it and come back, taps on raised YES / NO work; pictures in out/keyboard-*.png (submits nothing). Needs MINITUDE_URL=http://localhost:5173 on Windows (Vite listens on IPv6 there)
 node home.cjs              # the HOME button on every report (plays a solo run, today's Daily and "today's result"; answers nothing)
 node afterword.cjs         # the page under the report: logbook, rating, idea box, footer, scrolling, a swipe over a button, a phone size (docs/SITE.md; use a throw-away database)
 node gem.cjs gem 7         # SINGULARITY gems: plays seven gems (840 points), pictures of the pull / vacuum / birth, the report and the cabinet (needs a database with the gems: use a throw-away copy)

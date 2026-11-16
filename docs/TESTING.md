@@ -39,6 +39,7 @@ node realtime.cjs                 # real clock, real keyboard (waits real second
 node home.cjs                     # the HOME button on every report (plays a solo run, today's Daily and "today's result"; answers nothing)
 node glloss.cjs                   # the world picture (WebGL) rebuilds itself after the browser takes the graphics context away (submits nothing)
 node focus.cjs                    # typing still works after the Tab key, a click on the page or the game, the sound button, another tab (submits nothing)
+node keyboard.cjs                 # a phone's on-screen keyboard, FAKED (headless Chrome has none): the answer box rises above it, comes back, ignores pinch-zoom, YES / NO taps land on the raised buttons (submits nothing). Only a real phone can confirm how a real browser reports its keyboard
 node audio-levels.cjs 5,5,5,5,5,5,5          # renders the sound offline and prints levels
 ```
 

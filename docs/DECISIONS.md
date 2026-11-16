@@ -175,3 +175,18 @@ Chosen by the owner: delete the four old copies by hand (done), prune hand-made 
 1. The nightly job keeps the newest **2** hand-made copies (`KEEP_MANUAL` in `src/backup.ts`), besides the newest `BACKUP_KEEP` (3) daily ones. It deletes only files named exactly like a daily copy or a hand-made copy.
 2. `fly.toml` says 512 MB, so a later `fly deploy` keeps it (a `fly scale memory` alone would be undone by the next deploy). Cost: about $1.50 a month more in the cheapest regions, about $2 in Singapore (an estimate: the first invoice will show it).
 3. Not done, and only needed if the game gets busy: keep each question's spellings in memory instead of reading them from the database on every wrong guess.
+
+## The phone keyboard (16 November 2026)
+
+Asked by the owner: on a phone the on-screen keyboard hides the answer box, so the player cannot see what they type. Their idea: move only the box up while the keyboard is up, and put everything back when it goes away.
+
+What was built (`packages/web/src/keyboard.ts`, `Game.stepKeyboard`):
+1. While the answer field has the focus and the browser's "visual viewport" (the part of the page that is really visible) is at least 60 px shorter than the page, the question block (category, question, typed text, YES / NO, timer line) is drawn higher, by exactly enough to end 12 px above the keyboard. It eases up and down in about a tenth of a second; at rest the lift is exactly 0, so nothing is different without a keyboard. Only the block moves, not the picture. A dark band with a soft top edge is drawn behind it while it is raised, so the text stays readable over the picture.
+2. The multiplayer lobby's name and room-code fields rise the same way (at most 110 picture pixels, so the heading stays in view). On a small phone on its side the CONTINUE / JOIN button can still be under the keyboard; the keyboard's own send key does the same.
+3. Taps on the raised YES / NO and lobby buttons are matched where the buttons are drawn.
+4. A page the player has pinch-zoomed is left alone (zooming also makes the visible area smaller). A computer is unaffected: there the visible area is the whole page.
+5. On touch screens (`pointer: coarse`) the invisible answer field sits at the top instead of the bottom, so the browser has no reason to scroll or pan the page to reveal it. Computers keep it at the bottom (where their input-method pop-ups for Chinese or Japanese have always shown).
+
+Not proved: headless Chrome has no on-screen keyboard, so `tools/browser-test/keyboard.cjs` fakes what a real one does (the visual viewport gets shorter). It proves the game's reaction to that number, not how a real iPhone or Android browser reports it. The first look on a real phone is the real test. Other choices considered and not taken: shrinking the whole game to fit above the keyboard (`interactive-widget=resizes-content`, works on Android Chrome only, makes the picture tiny on a phone on its side); letting the browser pan the page (hides the world picture and the top of the screen).
+
+Not covered: the text boxes under the end-of-run report (idea box and so on) and the search box of the "everything that counted" panel are ordinary page elements, so the browser handles their keyboard itself; they have not been tried on a phone.
