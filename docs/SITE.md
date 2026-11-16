@@ -67,3 +67,7 @@ The browser now keeps a **fifth** item, `minitude.gems` (the gems found: questio
 ## Rank and the reading font (14 Nov 2026)
 
 The logbook card has a fifth statistic, **rank** ("#3" big in cyan, "of 14 dives · top 21%" under it), from `GET /api/rank`; `afterword.ts` asks for it when a run ends and shows it when the answer arrives (nothing is shown if it fails). The panels over the game (`#answers`, `#cabinet`) now read in Pixelify Sans (`--read` in `site.css`); the page under the report and the privacy page keep the plain document font.
+
+## The tab icon (16 November 2026)
+
+The icon is the pixel **M over the game's scale bar** on a dark tile (the owner chose it from six drafts, kept in `draft-favicon/`). `node tools/make-icons.cjs` writes it into `packages/web/public`: `favicon.ico` (16, 32 and 48 pixels; browsers ask for this address by themselves), `icon.svg`, `icon-32.png` and `apple-touch-icon.png` (180 x 180, a full square: the phone rounds the corners). Both pages (`index.html`, `privacy.html`) link them. They are plain files on the same address as the game: nothing extra is loaded from anywhere else and nothing is stored, so the privacy page needed no change. The server gives them the one-day cache of pictures, so a changed icon can take a day to show for people who visited before.
