@@ -43,6 +43,9 @@ export async function sparql(query: string, tries = 5): Promise<Row[]> {
     } catch (e) {
       last = e
       if (e instanceof Error && /http 4\d\d/.test(e.message) && !/429/.test(e.message)) throw e
+      // an answer cut off in the middle (the service hit its 60 s limit while sending): asking the same thing again is cut off in the same place.
+      // Fail at once so that the caller can ask for a smaller part (idsInBands splits the band in two).
+      if (e instanceof SyntaxError) throw e
       await sleep(3000 * (i + 1))
     }
   }

@@ -127,6 +127,12 @@ export async function addScientificNames(fetched: Candidate[], cacheFile: string
 export function buildQuestion(q: NewQuestion, input: Candidate[]): Built {
   // work on copies: the head (boost, rename) changes candidates, and building the same data twice must give the same question
   const fetched = input.map((c) => ({ ...c, aliases: [...c.aliases] }))
+  // Wikidata sometimes keeps several common names in ONE value ("hen-of-the-woods; ram's head; sheep's head"): the first is the name, the others are other ways to write it
+  for (const c of fetched) {
+    if (!c.name.includes(';')) continue
+    const parts = c.name.split(/\s*;\s*/).filter(Boolean)
+    if (parts.length > 1) { c.aliases = [...new Set([...parts.slice(1), ...c.aliases])].filter((a) => a !== parts[0]); c.name = parts[0] }
+  }
   const dropped: Record<string, number> = { 'no usable name': 0, 'generic word': 0, 'skipped by the recipe': 0, 'same name as a better-known one': 0 }
   const seen = new Set<string>()
   const kept: Candidate[] = []
@@ -196,7 +202,10 @@ export function buildQuestion(q: NewQuestion, input: Candidate[]): Built {
   if (odd) flags.push(`${odd} answers look like Wikidata codes (no English name): look at them`)
   if (addedByHand.length) flags.push(`ADDED BY HAND because the class lacked them: ${addedByHand.join(', ')}`)
   if (landed.length) flags.push(`LISTED NAME LANDED ON AN ITEM WITH ANOTHER NAME (check each is the same thing; if not, add the listed name as an extra, if it is, add it to rename): ${landed.join('; ')}`)
-  const record: QuestionRecord = { id: q.id, category: q.category, prompt: q.prompt, rules: q.rules, answers: ranked.map((r) => ({ name: r.name, tier: r.tier, ...(r.aliases.length ? { aliases: r.aliases } : {}) })) }
+  // Wikidata writes many common nouns in lower case ("biceps brachii", "quicksort"): a name that starts lower case and has no capital letter at all
+  // is shown with a capital first letter ("iPhone", "van Gogh" and "e.e. cummings"-style names with a capital somewhere are left alone). Matching ignores case.
+  const cap = (n: string) => (/^[a-zà-ÿ]/.test(n) && !/[A-ZÀ-Þ]/.test(n) ? n[0].toUpperCase() + n.slice(1) : n)
+  const record: QuestionRecord = { id: q.id, category: q.category, prompt: q.prompt, rules: q.rules, answers: ranked.map((r) => ({ name: cap(r.name), tier: r.tier, ...(r.aliases.length ? { aliases: r.aliases } : {}) })) }
   return { record, stats: { fetched: fetched.length, kept: kept.length, tierCounts, withAliases, aliases, dropped }, ranked, flags, addedByHand }
 }
 

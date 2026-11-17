@@ -132,8 +132,17 @@ mark { background: var(--draft-bg); color: inherit; border-radius: 3px; padding:
 </main>
 
 <script>
-(function () {
-  var DATA = /*DATA*/null;
+(async function () {
+  // The data is either the object itself (small pages, tests) or a base64 string of the gzipped JSON (the published page: 400,000 answers
+  // are 40 MB as text and a page may not be over 16 MB). DecompressionStream is in Chrome 80+, Safari 16.4+ and Firefox 113+.
+  async function unpack(p) {
+    if (p === null || typeof p !== 'string') return p;
+    var bin = atob(p), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
+  }
+  var DATA = null;
+  try { DATA = await unpack(/*DATA*/null); } catch (e) { document.getElementById('main').innerHTML = '<p class="empty">This browser cannot open the packed list (it needs a recent Chrome, Safari or Firefox).</p>'; return; }
   var mainEl = document.getElementById('main');
   if (!DATA) { mainEl.innerHTML = '<p class="empty">This page is made by the bank sheet generator (docs/BANK_SHEET.md); open the published copy.</p>'; return; }
 

@@ -27,6 +27,20 @@ export const heldPosition = (q: string) => `?item wdt:P39 ?pos . ?pos wdt:P279* 
 
 export const NOT_EXTINCT = 'FILTER NOT EXISTS { ?item wdt:P141 wd:Q237350 }'
 
+/**
+ * Dishes of a cuisine: filed under the cuisine (P2012), part of it (P361: regional cuisines are parts or subclasses of it) or from its country
+ * (P495), and ONLY if the item is a dish (ingredients, techniques and products leaked in without that: Batch 5, lesson 20).
+ */
+export const cuisineDishes = (cuisine: string, country: string) =>
+  `{ { ?item wdt:P2012 ?cu . ?cu (wdt:P279|wdt:P361)* wd:${cuisine} } UNION { ?item wdt:P361 wd:${cuisine} } UNION { ?item wdt:P495 wd:${country} } } . { ?item wdt:P31/wdt:P279* wd:Q746549 } UNION { ?item wdt:P279+ wd:Q746549 } .`
+
+/** works of a franchise or series: the item is a (fictional) character that appears in it (P1441, "present in work"), or belongs to its universe (P1080) */
+export const characterIn = (...works: string[]) =>
+  `{ ${works.map((w) => `{ ?item wdt:P1441 wd:${w} } UNION { ?item wdt:P1080 wd:${w} } UNION { ?gx wdt:P179 wd:${w} . ?item wdt:P1441 ?gx }`).join(' UNION ')} } . ?item wdt:P31/wdt:P279* wd:Q95074 .`
+
+/** a song or other musical work by an artist (performer P175 or author P86) */
+export const songsBy = (artist: string) => `{ ?item wdt:P175 wd:${artist} } UNION { ?item wdt:P86 wd:${artist} } ?item wdt:P31/wdt:P279* wd:Q105543609 .`
+
 /** people: only humans (Wikidata also gives an "occupation" to fictional characters: Wonder Woman is an "astronaut") */
 export const HUMAN = ' ?item wdt:P31 wd:Q5 .'
 

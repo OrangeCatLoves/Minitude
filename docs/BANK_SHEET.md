@@ -20,6 +20,8 @@ Regenerate and republish it whenever the questions or answers change: a new batc
 - A draft that is already in the database (imported) is shown from the database; the draft file for it can stay in the list, it is skipped.
 - To build from any other database file (for example the local `packages/server/data/minitude.db`, which is OLD: it lacks the Wikidata answers imported on Fly): `npx tsx src/cli/banksheet.ts --db <file> --drafts "<bank.json>=Label" --out <page.html> --asof "12 Nov 2026"` from `packages/server`. The database is only read.
 - A question's "where the answers come from" sentence is shown for drafts made by the builder (`expand/newq.ts` writes it into `bank.json` as `sources`); live questions have none.
+- **The page packs its data** (since 17 Nov 2026): the question data is compressed (gzip, then base64) inside the page and unpacked by the browser (`DecompressionStream`), because a published page may be at most 16 MB and the plain page had reached 14.3 MB with 250 live questions and 50 drafts. With 250 live and 100 draft questions the packed page is 7.2 MB. `--no-pack` writes the plain page. After building it, open it once in Chrome: `MINITUDE_CHANNEL=chrome node tools/browser-test/banksheet.cjs` (checks the counts, a search and the browser console).
+- If `refresh.ps1` says "the live copy was not made" (the `flyctl ssh console` call stalled), run its steps by hand: the `db backup /data/sheet-snapshot` command on Fly, `flyctl ssh sftp get <that file> <local live-snapshot.db>`, `rm -r /data/sheet-snapshot` on Fly, then `banksheet.ts` as above. Delete the copy on Fly in any case.
 
 ## Where the code is
 

@@ -1,5 +1,5 @@
 {
- "_about": "The 250 SINGULARITY gems: one very obscure answer per question (the first 200 chosen and approved by the owner on 14 Nov 2026; 50 more for Batch 5 on 16 Nov 2026). Import with: npm run cli -- gems import",
+ "_about": "The 350 SINGULARITY gems: one very obscure answer per question (the first 200 chosen and approved by the owner on 14 Nov 2026; 50 more for Batch 5 on 16 Nov 2026; 100 more for Batches 6 and 7 on 17 Nov 2026). Import with: npm run cli -- gems import",
  "gems": [
   {
    "question": "animals-dog-breed",
@@ -1511,6 +1511,606 @@
    "question": "misc-watch-brand",
    "answer": "Harry Winston, Inc.",
    "description": "Harry Winston, Inc. is an American luxury jeweler and producer of Swiss timepieces.",
+   "tier": 5
+  },
+  {
+   "question": "animals-butterfly-moth",
+   "answer": "Mallow",
+   "description": "Larentia clavaria, the mallow, is a moth of the family Geometridae.",
+   "tier": 5
+  },
+  {
+   "question": "animals-spider",
+   "answer": "California Trapdoor Spider",
+   "description": "The California trapdoor spider is a species of spider in the family Halonoproctidae.",
+   "tier": 5
+  },
+  {
+   "question": "animals-goat-breed",
+   "answer": "Lariana",
+   "description": "The Lariana or Capra di Livo is an indigenous breed of domestic goat from the province of Como, in Lombardy in northern Italy.",
+   "tier": 5
+  },
+  {
+   "question": "animals-mushroom",
+   "answer": "Handsome club",
+   "description": "The handsome club is a bright yellow-orange, club-shaped fungus.",
+   "tier": 5
+  },
+  {
+   "question": "animals-bat",
+   "answer": "Brock’s Yellow-eared Bat",
+   "description": "Brock's yellow-eared bat is a species of bat in the family Phyllostomidae, the leaf-nosed bats.",
+   "tier": 5
+  },
+  {
+   "question": "animals-wild-cat",
+   "answer": "Barbary lion",
+   "description": "A population of lions that lived in North Africa and is now extinct in the wild.",
+   "tier": 5
+  },
+  {
+   "question": "animals-owl",
+   "answer": "Santa Marta Screech Owl",
+   "description": "The Santa Marta screech owl is a species of owl in the family Strigidae.",
+   "tier": 5
+  },
+  {
+   "question": "animals-chicken-breed",
+   "answer": "Belgian d'Everberg",
+   "description": "The Barbu d'Everberg is a Belgian breed of bantam chicken.",
+   "tier": 5
+  },
+  {
+   "question": "animals-sheep-breed",
+   "answer": "St. Croix sheep",
+   "description": "The St Croix is a breed of domestic sheep native to the U.S. Virgin Islands and named for the island of Saint Croix.",
+   "tier": 5
+  },
+  {
+   "question": "food-mexican-dish",
+   "answer": "Huevos a la mexicana",
+   "description": "Huevos a la mexicana is a dish in Mexican cuisine.",
+   "tier": 5
+  },
+  {
+   "question": "food-french-dish",
+   "answer": "Awara broth",
+   "description": "Awara broth is a Guianan Creole stew from French Guiana, made with the pulp of the fruit of the awara palm.",
+   "tier": 5
+  },
+  {
+   "question": "food-thai-dish",
+   "answer": "Khanom tom",
+   "description": "Khanom tom and khanom kho are closely related traditional Thai desserts.",
+   "tier": 5
+  },
+  {
+   "question": "food-spanish-dish",
+   "answer": "Guiso",
+   "description": "Guiso is a Spanish meat dish prepared by roasting or frying combined with braising.",
+   "tier": 5
+  },
+  {
+   "question": "food-greek-dish",
+   "answer": "Bouyiourdi",
+   "description": "Bouyiourdi or bouyourdi is a Greek meze.",
+   "tier": 5
+  },
+  {
+   "question": "food-turkish-dish",
+   "answer": "Glasswort salad",
+   "description": "Glasswort salad or samphire salad is a salad in Turkish cuisine.",
+   "tier": 5
+  },
+  {
+   "question": "food-german-dish",
+   "answer": "Pfefferpotthast",
+   "description": "Pfefferpotthast is a traditional German stew.",
+   "tier": 5
+  },
+  {
+   "question": "food-sausage",
+   "answer": "Ryynimakkara",
+   "description": "Ryynimakkara is a type of sausage in Finnish cuisine containing groats.",
+   "tier": 5
+  },
+  {
+   "question": "food-breakfast-cereal",
+   "answer": "Kaboom",
+   "description": "A sweetened corn and oat breakfast cereal made by General Mills.",
+   "tier": 5
+  },
+  {
+   "question": "food-noodle-dish",
+   "answer": "Caluk noodles",
+   "description": "Mi caluk is a traditional noodle dish from Aceh, Indonesia, found in markets and food courts in Pidie Regency.",
+   "tier": 5
+  },
+  {
+   "question": "games-playstation-game",
+   "answer": "Crisis Core: Final Fantasy VII",
+   "description": "A 2007 action role-playing game for the PlayStation Portable, a prequel to Final Fantasy VII that follows the soldier Zack Fair.",
+   "tier": 5
+  },
+  {
+   "question": "games-xbox-game",
+   "answer": "Scarface: The World Is Yours",
+   "description": "Scarface: The World Is Yours is a 2006 action-adventure video game based on the film Scarface, released for the PlayStation 2, Xbox and Windows.",
+   "tier": 5
+  },
+  {
+   "question": "games-sega-game",
+   "answer": "Cyber Police ESWAT",
+   "description": "Cyber Police ESWAT is a 1989 run and gun video game developed and published by Sega for arcades.",
+   "tier": 5
+  },
+  {
+   "question": "games-gameboy-game",
+   "answer": "Cool Spot",
+   "description": "Cool Spot is a 1993 platform game starring Spot, the mascot of the 7 Up soft drink, released for the Game Boy and several other systems.",
+   "tier": 5
+  },
+  {
+   "question": "games-simulation-game",
+   "answer": "Uplink",
+   "description": "Uplink is a 2001 hacking simulation game developed by Introversion Software.",
+   "tier": 5
+  },
+  {
+   "question": "games-sports-video-game",
+   "answer": "All-Star Baseball",
+   "description": "All-Star Baseball is a series of baseball video games that was developed and published by Acclaim Entertainment.",
+   "tier": 5
+  },
+  {
+   "question": "games-horror-game",
+   "answer": "Fear & Hunger",
+   "description": "Fear & Hunger is a 2018 survival horror role-playing video game developed by Miro Haverinen and published by Happy Paintings.",
+   "tier": 5
+  },
+  {
+   "question": "games-switch-game",
+   "answer": "Thimbleweed Park",
+   "description": "Thimbleweed Park is a point-and-click adventure game by Terrible Toybox, released for Nintendo Switch and other systems.",
+   "tier": 5
+  },
+  {
+   "question": "games-wii-game",
+   "answer": "Cursed Mountain",
+   "description": "Cursed Mountain is a 2009 video game co-developed for the Wii by Sproing Interactive and Deep Silver Vienna, and published by Deep Silver.",
+   "tier": 5
+  },
+  {
+   "question": "games-snes-game",
+   "answer": "Addams Family Values",
+   "description": "Addams Family Values is a 1995 action-adventure game based on the 1993 film, released for the Super NES and Mega Drive.",
+   "tier": 5
+  },
+  {
+   "question": "history-norse-figure",
+   "answer": "Mökkurkálfi",
+   "description": "A giant made of clay in Norse mythology, built to help the giant Hrungnir in his duel with Thor.",
+   "tier": 5
+  },
+  {
+   "question": "history-roman-god",
+   "answer": "Palatua",
+   "description": "Palatua was a Roman goddess who was provided an official priest or flamen, the Flamen Palatualis.",
+   "tier": 5
+  },
+  {
+   "question": "history-historian",
+   "answer": "Ibn Bibi",
+   "description": "Ibn Bibi was a Persian historiographer and the author of the primary source for the history of the Seljuq Sultanate of Rum during the 13th century.",
+   "tier": 5
+  },
+  {
+   "question": "history-civil-rights-activist",
+   "answer": "Radhabai Subbarayan",
+   "description": "Radhabai Subbarayan was an Indian politician, women's rights activist and social reformer.",
+   "tier": 5
+  },
+  {
+   "question": "history-civil-war-general",
+   "answer": "Alfred Mouton",
+   "description": "Jean-Jacques-Alfred-Alexandre \"Alfred\" Mouton was a Confederate general in the American Civil War.",
+   "tier": 5
+  },
+  {
+   "question": "history-native-american-tribe",
+   "answer": "Tolowa Dee-ni' Nation",
+   "description": "The Tolowa Dee-niʼ Nation, previously known as Smith River Rancheria, is a federally recognized tribe of Tolowa people in Del Norte County, California.",
+   "tier": 5
+  },
+  {
+   "question": "history-military-operation",
+   "answer": "Operation Cockpit",
+   "description": "Operation Cockpit was an Allied attack against the Japanese-held island of Sabang on 19 April 1944.",
+   "tier": 5
+  },
+  {
+   "question": "history-siege",
+   "answer": "Siege of Cannanore",
+   "description": "The siege of Cannanore was a four-month siege in 1507 in which troops of the local ruler, supported by the Zamorin of Calicut, besieged the Portuguese garrison.",
+   "tier": 5
+  },
+  {
+   "question": "history-spy",
+   "answer": "Shabtai Kalmanovich",
+   "description": "Shabtai Kalmanovich was a KGB spy who later became a businessman, concert promoter and basketball sponsor in Russia.",
+   "tier": 5
+  },
+  {
+   "question": "history-revolutionary",
+   "answer": "Matija Gubec",
+   "description": "Matija Gubec, also known as Ambroz Gubec, was a Croatian revolutionary, and a leader of the Croatian–Slovene Peasant Revolt of 1573.",
+   "tier": 5
+  },
+  {
+   "question": "misc-martial-art",
+   "answer": "Sunmudo",
+   "description": "Sunmudo is a Korean Buddhist martial art based on Seon, which was revived during the 1970s and 1980s.",
+   "tier": 5
+  },
+  {
+   "question": "misc-furniture",
+   "answer": "Washstand",
+   "description": "A washstand, or basin stand, is a small table or cabinet, usually on three or four legs, made for holding a wash basin.",
+   "tier": 5
+  },
+  {
+   "question": "misc-shoe",
+   "answer": "Duckbill shoe",
+   "description": "A duckbill shoe, also known as a bearpaw shoe or cow's mouth shoe, was a style of shoe with a broad toe which was fashionable in the 15th and 16th centuries.",
+   "tier": 5
+  },
+  {
+   "question": "misc-fabric",
+   "answer": "Grenadine",
+   "description": "Grenadine is a weave characterised by its light, open, gauze-like feel, and is produced on jacquard looms.",
+   "tier": 5
+  },
+  {
+   "question": "misc-architectural-style",
+   "answer": "Coptic architecture",
+   "description": "Coptic architecture is the architecture of the Coptic Christians, who form the majority of Christians in Egypt.",
+   "tier": 5
+  },
+  {
+   "question": "misc-bank",
+   "answer": "Central Bank of The Gambia",
+   "description": "The Central Bank of The Gambia is the central bank of The Gambia.",
+   "tier": 5
+  },
+  {
+   "question": "misc-political-ideology",
+   "answer": "Ethnocacerism",
+   "description": "The ethnocacerist movement is a Peruvian ethnic nationalist movement based on Indigenous communities that espouses an ideology called ethnocacerism.",
+   "tier": 5
+  },
+  {
+   "question": "misc-clothing-item",
+   "answer": "Izaar",
+   "description": "An izaar, also izar or ʾizār, also known as maʿawaz, futah, wizar, maqtab is a traditional lower garment that is frequently used by men in Somalia, Oman, United Arab Emirates and Yemen.",
+   "tier": 5
+  },
+  {
+   "question": "music-record-label",
+   "answer": "Tommy Boy Records",
+   "description": "Tommy Boy Records is an American independent record label and multimedia brand founded in 1981 by Tom Silverman.",
+   "tier": 5
+  },
+  {
+   "question": "animals-insect",
+   "answer": "Glorious Scarab",
+   "description": "Chrysina gloriosa is a species of scarab whose common names are glorious beetle and glorious scarab.",
+   "tier": 5
+  },
+  {
+   "question": "movies-romcom",
+   "answer": "Picture Perfect",
+   "description": "Picture Perfect is a 1997 American romantic comedy film directed by Glenn Gordon Caron, written by Arleen Sorkin, and starring Jennifer Aniston, Jay Mohr, Kevin Bacon, Illeana Douglas, Olympia Dukakis, and Anne Twomey.",
+   "tier": 5
+  },
+  {
+   "question": "movies-fantasy-film",
+   "answer": "Harry and the Hendersons",
+   "description": "Harry and the Hendersons is a 1987 American fantasy comedy film directed by William Dear and starring John Lithgow.",
+   "tier": 5
+  },
+  {
+   "question": "movies-war-film",
+   "answer": "The Forty-First",
+   "description": "The Forty-First is a 1956 Soviet war romance film based on the eponymous novel by Boris Lavrenyov.",
+   "tier": 5
+  },
+  {
+   "question": "movies-western-film",
+   "answer": "The Stalking Moon",
+   "description": "The Stalking Moon is a 1968 American Western film in Technicolor directed by Robert Mulligan and starring Gregory Peck and Eva Marie Saint.",
+   "tier": 5
+  },
+  {
+   "question": "movies-musical-film",
+   "answer": "Babes in Toyland",
+   "description": "Babes in Toyland is a Laurel and Hardy musical Christmas film released on November 30, 1934.",
+   "tier": 5
+  },
+  {
+   "question": "movies-bollywood-film",
+   "answer": "Jeewan Jyoti",
+   "description": "Jeewan Jyoti is a 1953 Indian Hindi-language romance drama film directed by Mahesh Kaul.",
+   "tier": 5
+  },
+  {
+   "question": "movies-netflix-series",
+   "answer": "Tidying Up with Marie Kondo",
+   "description": "Tidying Up with Marie Kondo is a reality television series developed for Netflix and released on January 1, 2019.",
+   "tier": 5
+  },
+  {
+   "question": "movies-middle-earth-character",
+   "answer": "Háma",
+   "description": "Háma is the doorward of King Théoden's hall in Edoras in The Lord of the Rings.",
+   "tier": 5
+  },
+  {
+   "question": "movies-mcu-character",
+   "answer": "Grant Ward",
+   "description": "Grant Douglas Ward is a fictional character that originated in the Marvel Cinematic Universe before appearing in Marvel Comics.",
+   "tier": 5
+  },
+  {
+   "question": "music-madonna-song",
+   "answer": "Shanti/Ashtangi",
+   "description": "A track on Madonna's 1998 album Ray of Light, sung in Sanskrit over a yoga invocation.",
+   "tier": 5
+  },
+  {
+   "question": "music-elvis-presley-song",
+   "answer": "There Is So Much World to See",
+   "description": "\"There Is So Much World to See\" is a film song by Elvis Presley.",
+   "tier": 5
+  },
+  {
+   "question": "music-david-bowie-song",
+   "answer": "Shadow Man",
+   "description": "\"Shadow Man\" is a song written by the English singer-songwriter David Bowie.",
+   "tier": 5
+  },
+  {
+   "question": "music-led-zeppelin-song",
+   "answer": "Hots On for Nowhere",
+   "description": "A track on Led Zeppelin's 1976 album Presence.",
+   "tier": 5
+  },
+  {
+   "question": "music-pink-floyd-song",
+   "answer": "Two Suns in the Sunset",
+   "description": "\"Two Suns in the Sunset\" is the closing track on Pink Floyd's twelfth studio album The Final Cut, and Roger Waters' final chronological contribution to the band, before leaving in 1985.",
+   "tier": 5
+  },
+  {
+   "question": "music-eminem-song",
+   "answer": "My Mom",
+   "description": "A track on Eminem's 2009 album Relapse.",
+   "tier": 5
+  },
+  {
+   "question": "music-jazz-musician",
+   "answer": "Kyle Eastwood",
+   "description": "Kyle Eastwood is an American jazz bassist, film composer and actor.",
+   "tier": 5
+  },
+  {
+   "question": "music-pianist",
+   "answer": "Enrico Pieranunzi",
+   "description": "Enrico Pieranunzi is an Italian jazz pianist.",
+   "tier": 5
+  },
+  {
+   "question": "music-violinist",
+   "answer": "Giovanni Maria Bononcini",
+   "description": "Giovanni Maria Bononcini was an Italian violinist, theorist, composer, and the father of a musical dynasty.",
+   "tier": 5
+  },
+  {
+   "question": "music-country-singer",
+   "answer": "Slim Dusty",
+   "description": "Slim Dusty, AO MBE was an Australian country music singer-songwriter, guitarist and producer.",
+   "tier": 5
+  },
+  {
+   "question": "places-glacier",
+   "answer": "Iskar Glacier",
+   "description": "Iskar Glacier is a glacier in Livingston Island, South Shetland Islands in Antarctica situated southeast of lower Huron Glacier, west-southwest of Sopot Ice Piedmont, and north of Dobrudzha and Magura Glaciers.",
+   "tier": 5
+  },
+  {
+   "question": "places-cave",
+   "answer": "Sistema Sac Actun",
+   "description": "Sistema Sac Actun is an underwater cave system situated along the Caribbean coast of the Yucatán Peninsula with passages to the north and west of the city of Tulum.",
+   "tier": 5
+  },
+  {
+   "question": "places-dam",
+   "answer": "Imboulou Dam",
+   "description": "The Imboulou Dam is a dam on the Léfini River, on the border between Djoué-Léfini Department and Plateaux Department in the Republic of the Congo, about 300 kilometers north of Brazzaville.",
+   "tier": 5
+  },
+  {
+   "question": "places-lighthouse",
+   "answer": "Grip Lighthouse",
+   "description": "The Grip Lighthouse is located in the Grip archipelago in Kristiansund Municipality in Møre og Romsdal county, Norway.",
+   "tier": 5
+  },
+  {
+   "question": "places-ski-resort",
+   "answer": "Big White",
+   "description": "Big White Ski Resort, simply known as Big White, is a ski resort located 56 km southeast of Kelowna in the Southern Interior of British Columbia.",
+   "tier": 5
+  },
+  {
+   "question": "places-mosque",
+   "answer": "Ebu Beker Mosque",
+   "description": "The Ebu Bekër Mosque, also known as the New Fushë Çela Mosque and sometimes referred to simply as Xhamia e Madhe, is a Sunni mosque in Shkodër City, Shkodër County, Albania.",
+   "tier": 5
+  },
+  {
+   "question": "places-temple",
+   "answer": "Jade Buddha Temple",
+   "description": "The Jade Buddha Temple is a Buddhist temple in Shanghai.",
+   "tier": 5
+  },
+  {
+   "question": "places-beach",
+   "answer": "Kappad",
+   "description": "Kappad is a beach and village near Koyilandy, in the Kozhikode district, Kerala, India.",
+   "tier": 5
+  },
+  {
+   "question": "places-valley-canyon",
+   "answer": "Charyn Canyon",
+   "description": "A canyon along the Charyn River in Kazakhstan, known for its red rock formations.",
+   "tier": 5
+  },
+  {
+   "question": "science-comet",
+   "answer": "66P/du Toit",
+   "description": "A periodic comet of the Solar System, named after its discoverer, Daniel du Toit.",
+   "tier": 5
+  },
+  {
+   "question": "science-muscle",
+   "answer": "Sternalis muscle",
+   "description": "A variable muscle on the front of the chest, lying over the breastbone, that only some people have.",
+   "tier": 5
+  },
+  {
+   "question": "science-theorem",
+   "answer": "Hensel's lemma",
+   "description": "Hensel's lemma is a result in modular arithmetic, named after Kurt Hensel, about lifting simple roots of polynomials modulo a prime.",
+   "tier": 5
+  },
+  {
+   "question": "science-computer-scientist",
+   "answer": "Rosalind Picard",
+   "description": "Rosalind Wright Picard is an American electrical engineer and computer scientist who is the Grover M. Hermann Professor of Health Sciences and Technology at the Massachusetts Institute of Technology.",
+   "tier": 5
+  },
+  {
+   "question": "science-biologist",
+   "answer": "Ana Colovic Lesoska",
+   "description": "Ana Čolović Lešoska is a Macedonian biologist who has campaigned against the construction of dams in the Mavrovo National Park.",
+   "tier": 5
+  },
+  {
+   "question": "science-astronomer",
+   "answer": "Heather Couper",
+   "description": "Heather Anita Couper, was a British astronomer, broadcaster and science populariser.",
+   "tier": 5
+  },
+  {
+   "question": "science-bacterium",
+   "answer": "Paenibacillus",
+   "description": "Paenibacillus is a genus of facultative anaerobic or aerobic, endospore-forming bacteria, originally included within the genus Bacillus, and then reclassified as a separate genus in 1993.",
+   "tier": 5
+  },
+  {
+   "question": "science-observatory",
+   "answer": "Berlin Observatory",
+   "description": "The Berlin Observatory is a German astronomical institution with a series of observatories and related organizations in and around the city of Berlin in Germany, starting from the 18th century.",
+   "tier": 5
+  },
+  {
+   "question": "sports-alpine-skier",
+   "answer": "María Belén Simari Birkner",
+   "description": "María Belén Simari Birkner is a female skier from Argentina.",
+   "tier": 5
+  },
+  {
+   "question": "sports-figure-skater",
+   "answer": "Serafima Sakhanovich",
+   "description": "Serafima \"Sima\" Andreyevna Sakhanovich is a retired Russian figure skater.",
+   "tier": 5
+  },
+  {
+   "question": "sports-snooker-player",
+   "answer": "David John",
+   "description": "David \"Dai\" John is a Welsh former professional snooker player.",
+   "tier": 5
+  },
+  {
+   "question": "sports-darts-player",
+   "answer": "Niels Zonneveld",
+   "description": "Niels Zonneveld is a Dutch professional darts player who competes in Professional Darts Corporation events.",
+   "tier": 5
+  },
+  {
+   "question": "sports-table-tennis-player",
+   "answer": "Gu Yuting",
+   "description": "Gu Yuting is a Chinese table tennis player.",
+   "tier": 5
+  },
+  {
+   "question": "sports-badminton-player",
+   "answer": "Hariamanto Kartono",
+   "description": "Hariamanto Kartono is a retired Chinese Indonesian badminton player.",
+   "tier": 5
+  },
+  {
+   "question": "sports-volleyball-player",
+   "answer": "Avital Selinger",
+   "description": "Avital Haim Selinger is a volleyball coach and former volleyball player.",
+   "tier": 5
+  },
+  {
+   "question": "sports-jockey",
+   "answer": "Johnny Loftus",
+   "description": "John Patrick Loftus was an American thoroughbred horse racing Hall of Fame jockey.",
+   "tier": 5
+  },
+  {
+   "question": "sports-motorcycle-racer",
+   "answer": "Angelo Bergamonti",
+   "description": "Angelo Bergamonti was an Italian Grand Prix motorcycle road racer.",
+   "tier": 5
+  },
+  {
+   "question": "sports-rower",
+   "answer": "Mark Andrews",
+   "description": "Mark David Andrews was a University Boat Race and Great Britain international rower, and distinguished lawyer.",
+   "tier": 5
+  },
+  {
+   "question": "sports-basketball-team",
+   "answer": "KK Sloboda Tuzla",
+   "description": "A men's professional basketball club based in Tuzla, Bosnia and Herzegovina.",
+   "tier": 5
+  },
+  {
+   "question": "transport-bomber",
+   "answer": "Gotha G.II",
+   "description": "A twin-engined German bomber aircraft of the First World War.",
+   "tier": 5
+  },
+  {
+   "question": "transport-aircraft-carrier",
+   "answer": "HNLMS Karel Doorman",
+   "description": "HNLMS Karel Doorman was a Colossus-class aircraft carrier of the Royal Netherlands Navy.",
+   "tier": 5
+  },
+  {
+   "question": "transport-bicycle-brand",
+   "answer": "Koga",
+   "description": "KOGA is a Dutch bicycle manufacturer based in Heerenveen, Netherlands.",
+   "tier": 5
+  },
+  {
+   "question": "transport-race-circuit",
+   "answer": "Balaton Park Circuit",
+   "description": "Balaton Park Circuit is a 4.115 km motor racing circuit located near Balatonfőkajár, Hungary, 85 km southwest of Budapest.",
    "tier": 5
   }
  ]

@@ -3,7 +3,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { importBank } from '../src/bankio'
-import { buildSheetData, embed, renderSheet } from '../src/cli/banksheet'
+import { gunzipSync } from 'node:zlib'
+import { buildSheetData, embed, packData, renderSheet } from '../src/cli/banksheet'
 import { openDb } from '../src/db/open'
 import { normalize } from '../src/normalize'
 import { Repo } from '../src/db/repo'
@@ -75,6 +76,21 @@ describe('the bank sheet', () => {
     const e = embed({ s: '<b>' + String.fromCharCode(0x2028) })
     expect(e.includes('<')).toBe(false)
     expect(e.includes(String.fromCharCode(0x2028))).toBe(false)
+  })
+
+  it('can carry its data packed (gzip + base64), which comes back exactly and keeps the page to one script ending', () => {
+    const data = buildSheetData(dbFile, [], '1 Jan 2027')
+    const packed = packData(data)
+    expect(JSON.parse(gunzipSync(Buffer.from(packed, 'base64')).toString('utf8'))).toEqual(JSON.parse(JSON.stringify(data)))
+    const html = renderSheet(data, true)
+    expect(html).not.toContain('/*DATA*/null')
+    expect(html).not.toContain('"live-one"') // the names are inside the compressed text, not in the page
+    expect(html).toContain('DecompressionStream')
+    expect(html).toContain(JSON.stringify(packed))
+    expect(html.match(/<\/script>/g)).toHaveLength(1)
+    // a big list is much smaller packed
+    const many = { ...data, questions: Array.from({ length: 40 }, (_, i) => ({ ...data.questions[0], id: 'q' + i, t: [Array.from({ length: 300 }, (_, k) => ['Answer number ' + k + ' of question ' + i, 'other spelling ' + k])] })) }
+    expect(renderSheet(many, true).length).toBeLessThan(renderSheet(many, false).length / 3)
   })
 
   it('shows the question gem next to its answers', () => {

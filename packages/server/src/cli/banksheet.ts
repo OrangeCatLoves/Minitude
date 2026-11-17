@@ -11,6 +11,7 @@
 import Database from 'better-sqlite3'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { gzipSync } from 'node:zlib'
 import { fileURLToPath } from 'node:url'
 import { exportBank } from '../bankio'
 import { normalize } from '../normalize'
@@ -98,10 +99,16 @@ export function embed(data: unknown): string {
   return JSON.stringify(data).split('<').join('\\u003c').split(String.fromCharCode(0x2028)).join('\\u2028').split(String.fromCharCode(0x2029)).join('\\u2029')
 }
 
-export function renderSheet(data: unknown): string {
+/** the data as a base64 string of its gzipped JSON (the page unpacks it with DecompressionStream): about a tenth of the size */
+export function packData(data: unknown): string {
+  return gzipSync(Buffer.from(JSON.stringify(data), 'utf8'), { level: 9 }).toString('base64')
+}
+
+/** `pack` puts the data in the page compressed (the published page); without it the page holds plain JSON (tests, small pages) */
+export function renderSheet(data: unknown, pack = false): string {
   const template = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'banksheet.template.html'), 'utf8')
   if (!template.includes('/*DATA*/null')) throw new Error('banksheet.template.html has lost its /*DATA*/null placeholder')
-  return template.replace('/*DATA*/null', () => embed(data))
+  return template.replace('/*DATA*/null', () => (pack ? JSON.stringify(packData(data)) : embed(data)))
 }
 
 function main(): void {
@@ -111,7 +118,7 @@ function main(): void {
   const dbFile = one('db')
   const out = one('out')
   if (!dbFile || !out) {
-    console.error('usage: banksheet --db <database file> [--drafts <bank.json>[=Label]] ... [--gems <gems.json>] ... --out <page.html> [--asof "12 Nov 2026"]')
+    console.error('usage: banksheet --db <database file> [--drafts <bank.json>[=Label]] ... [--gems <gems.json>] ... [--no-pack] --out <page.html> [--asof "12 Nov 2026"]')
     process.exit(1)
   }
   const drafts = all('drafts').map((s) => {
@@ -120,7 +127,7 @@ function main(): void {
   })
   const asOf = one('asof') ?? new Date().toISOString().slice(0, 10)
   const data = buildSheetData(dbFile, drafts, asOf, all('gems'))
-  writeFileSync(out, renderSheet(data))
+  writeFileSync(out, renderSheet(data, !args.includes('--no-pack'))) // packed (gzip + base64) unless --no-pack: the live sheet would be over the 16 MB page limit as plain text
   const count = (s: Status) => data.questions.filter((q) => q.status === s)
   const answers = (qs: SheetQuestion[]) => qs.reduce((n, q) => n + q.t.reduce((m, t) => m + t.length, 0), 0)
   for (const s of ['live', 'draft', 'rejected'] as Status[]) console.log(`${s.padEnd(9)} ${String(count(s).length).padStart(3)} questions, ${String(answers(count(s))).padStart(6)} answers`)
