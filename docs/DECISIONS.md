@@ -257,3 +257,17 @@ What it means, and choices made without asking (change freely, but tell the owne
 3. The text pages (how to play, about) each have one ad place, between two sections with no links or buttons (at least 100 px from any, checked in a browser); none on the privacy page.
 4. AdSense verification (Phase A) is a meta tag in the head of the four pages and `public/ads.txt`: no script, no cookie, nothing about the privacy page changes. The publisher id is public.
 5. Committed, pushed and deployed on the owner's word ("Deploy it"). The ads themselves stay switched off; only the verification tag, ads.txt and the hidden ad places went live.
+
+## Batches 8 to 13: 150 more questions (18 November 2026, LIVE)
+
+The owner: "generate another 150 questions to be added to the question bank", later "You can commit, push and deploy the new batch of 150. Continue with steps 2 and 3." Choices made without asking (change freely, but tell the owner):
+1. The topics (about 230 tried, 150 kept) were chosen without asking; lists with fewer than about 75 answers, or with a tier of fewer than 4, were dropped (the dropped ideas and why are in `docs/ANSWER_LISTS.md`).
+2. PlayStation 2 and 4 games, Nintendo 64, DS, 3DS, Game Boy Advance and GameCube games sit next to "PlayStation game", "Nintendo game" and "Game Boy game", as the Switch, Wii and Super Nintendo games already do; a palm tree next to "tree", a Hindu god next to "god or goddess from any mythology".
+3. A "Malaysian or Singaporean dish" question was made (one question for both), because the owner is in Singapore and the two cuisines overlap; Wikidata has too little for Singaporean dishes alone.
+4. Very long tails were cut by a higher language floor (asteroids at 40 languages, archaeological sites at 25, football managers at 50 and so on) to keep the database and the bank sheet small; the list is then the well-known part of the class.
+5. Sensitive items were left out on purpose: concentration and extermination camps in "famous prison", "massacre", "terrorist attack" and "air crash" questions were never made, and the slur guard in `newq.ts` still runs on every answer. A homophobia-type word is not accepted as a "phobia".
+6. Songs: only artists with a catalogue of about 80 songs or more on Wikidata (Beyoncé 83, Springsteen 84, Lady Gaga 78, Elton John 98, U2 122, Sinatra 133, Dylan 205).
+7. The 150 gems were picked from the Mythic tier with a keyword check and read one by one; 26 were replaced by hand. Gems for the largest classes are not "very obscure" in the Wikipedia-language sense (see lesson 41).
+8. Dailies: as for Batches 5, 6 and 7 the unplayed days (18 to 24 Nov) were cleared and planned again with `daily plan --days 8` so the new questions are spread across the coming days (20 of 49 slots); today's set, which one player had finished, was left alone.
+9. Backups: the owner agreed to delete the older hand-made copies after the release; the safety copy of the release (`minitude-20261117-165804.db`) and the three automatic daily copies are kept. The nightly job keeps only the newest two hand-made copies anyway.
+10. Spirit Airlines counts as an airline that no longer exists (owner's decision, 18 Nov 2026); Ukraine International Airlines and Air Moldova are skipped until they have clearly ended.
