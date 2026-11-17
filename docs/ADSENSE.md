@@ -43,7 +43,7 @@ The site is a general-audience game (the privacy page says it is not directed at
 
 ## 7. The plan
 
-**Update, 17 Nov 2026 (later):** the owner created the account (publisher id `ca-pub-8003325864730114`) and decided: do not risk a violation notice (every ad 150 px from the game), and ads on the how-to-play and about pages too. Phase A is BUILT (meta tag in the four page heads, `public/ads.txt`, tests) but not yet deployed; the layout was reworked to the 150 px rule and the text-page ad places added (`docs/ADS.md`). Decision points 1 and 2 below are settled; point 3 is solved by keeping the buttons and links inside the game's part of the window (150 px from the ads).
+**Update, 17 Nov 2026 (later):** the owner created the account (publisher id `ca-pub-8003325864730114`) and decided: do not risk a violation notice (every ad 150 px from the game), and ads on the how-to-play and about pages too. Phase A is LIVE since 17 Nov 2026, 07:40 UTC (commit c851250, Fly machine version 21: meta tag in the four page heads and `https://minitude.io/ads.txt`, checked from outside); the layout was reworked to the 150 px rule and the text-page ad places added (`docs/ADS.md`). Decision points 1 and 2 below are settled; point 3 is solved by keeping the buttons and links inside the game's part of the window (150 px from the ads).
 
 **Phase A: apply (needs the owner, then about 10 minutes of work from me).**
 1. The owner creates the AdSense account (Google account, site `https://minitude.io`, country Singapore, account type individual, real name as on the bank account and ID) and gives me the publisher id (`ca-pub-...`, it is public, not a secret).
