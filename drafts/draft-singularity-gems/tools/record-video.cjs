@@ -1,0 +1,22 @@
+// Draft helper: record the guided tour (picture + the synthesised sound) into video/singularity-walkthrough.mp4, using only Chrome.
+const { chromium } = require('../../../tools/browser-test/node_modules/playwright')
+const fs = require('fs'), path = require('path')
+;(async () => {
+  const root = path.join(__dirname, '..')
+  fs.mkdirSync(path.join(root, 'video'), { recursive: true })
+  const browser = await chromium.launch({ channel: 'chrome', args: ['--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-renderer-backgrounding'] })
+  const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } })
+  page.setDefaultTimeout(0)
+  const logs = []; page.on('pageerror', (e) => logs.push('PAGEERROR: ' + e.message)); page.on('console', (m) => { if (m.type() === 'error') logs.push(m.text()) })
+  await page.goto('file:///' + path.join(root, 'index.html').replace(/\\/g, '/') + '?movie=1')
+  await page.waitForFunction(() => document.body.classList.contains('ready'))
+  const total = await page.evaluate(() => __draft.TOTAL)
+  console.log('recording the tour, about', Math.round(total), 'seconds ...')
+  const t0 = Date.now()
+  const res = await page.evaluate(() => __draft.record())
+  const ext = res.mime.startsWith('video/mp4') ? 'mp4' : 'webm'
+  const out = path.join(root, 'video', 'singularity-walkthrough.' + ext)
+  fs.writeFileSync(out, Buffer.from(res.b64, 'base64'))
+  console.log('saved', path.relative(root, out), (fs.statSync(out).size / 1048576).toFixed(1) + ' MB', 'in', ((Date.now() - t0) / 1000).toFixed(0) + 's', '| errors:', logs.length ? logs.join(' | ') : 'none')
+  await browser.close()
+})().catch((e) => { console.error('FAIL', e.message); process.exit(1) })

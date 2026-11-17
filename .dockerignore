@@ -3,7 +3,7 @@
 **/dist
 **/out
 tools
-sound-lab
+drafts
 docs
 *.md
 *.db
@@ -16,4 +16,3 @@ packages/server/data/backups
 coverage
 *.log
 .DS_Store
-draft-world-motion

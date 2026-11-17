@@ -1,5 +1,5 @@
 // @ts-nocheck
-/* What moves in each world. Carried over as the owner reviewed and chose it in draft-world-motion/ (16 Nov 2026): plain JavaScript, so it is
+/* What moves in each world. Carried over as the owner reviewed and chose it in drafts/draft-world-motion/ (16 Nov 2026): plain JavaScript, so it is
  * not type-checked; test/life.test.ts compares every world's frames with the reviewed ones.
  *
  * Each world has setup(L) (cut objects out of the picture, once) and draw(L, t, K) (draw one frame at time t seconds; K is the amount of

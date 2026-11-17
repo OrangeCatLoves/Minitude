@@ -1,0 +1,10 @@
+const { chromium } = require('../../../tools/browser-test/node_modules/playwright')
+const path = require('path'), { pathToFileURL } = require('url')
+;(async () => {
+  const b = await chromium.launch({ channel: 'chrome' }); const p = await b.newPage()
+  p.on('pageerror', (e) => console.log('PAGEERROR', e.message, (e.stack || '').split('\n').slice(0, 3).join(' | '))); p.on('console', (m) => console.log('console', m.type(), m.text()))
+  await p.goto(pathToFileURL(path.join(__dirname, '..', 'index.html')).href + '?w=0&manual=1')
+  await p.waitForTimeout(3000)
+  console.log('Lab:', await p.evaluate(() => typeof window.Lab))
+  await b.close()
+})()

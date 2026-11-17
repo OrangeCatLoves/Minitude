@@ -157,7 +157,7 @@ Asked for by the owner: click the answer you gave on a Daily question and see AL
 
 ## The living worlds (16 November 2026)
 
-Yours: every world should have some movement, "but not too much", with the design kept almost the same; no turning or stretching effects that are hard on the eyes; balls move whole; the ripples of world 19 themselves grow outward; Planck Foam is the special one; one design of three for each world from 7 on (7A, 8A, 9C, 10B, 11C, 12A, 13C, 14C, 15B, 16A, 17A, 18C, 19C, 20A, Planck Foam A; the names are in `draft-world-motion/README.md`); put it live.
+Yours: every world should have some movement, "but not too much", with the design kept almost the same; no turning or stretching effects that are hard on the eyes; balls move whole; the ripples of world 19 themselves grow outward; Planck Foam is the special one; one design of three for each world from 7 on (7A, 8A, 9C, 10B, 11C, 12A, 13C, 14C, 15B, 16A, 17A, 18C, 19C, 20A, Planck Foam A; the names are in `drafts/draft-world-motion/README.md`); put it live.
 
 Not yet confirmed by you (I chose these when putting it into the game):
 

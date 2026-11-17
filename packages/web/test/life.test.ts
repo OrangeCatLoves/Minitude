@@ -35,7 +35,7 @@ function readPng(file: string): Uint8ClampedArray {
   if (w !== LIFE_W || h !== LIFE_H) throw new Error('unexpected picture size: ' + file)
   return out
 }
-/** FNV-1a of the RGB bytes (the same fingerprint draft-world-motion/tools/golden.cjs takes of the reviewed frames) */
+/** FNV-1a of the RGB bytes (the same fingerprint drafts/draft-world-motion/tools/golden.cjs takes of the reviewed frames) */
 function fnv(a: Uint8ClampedArray): string {
   let h = 0x811c9dc5
   for (let i = 0; i < a.length; i += 4) { h = Math.imul(h ^ a[i], 0x01000193); h = Math.imul(h ^ a[i + 1], 0x01000193); h = Math.imul(h ^ a[i + 2], 0x01000193) }

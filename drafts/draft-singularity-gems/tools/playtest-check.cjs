@@ -1,0 +1,32 @@
+// Draft helper: drive the prototype's PLAYTEST like a person would, and save screenshots.
+const { chromium } = require('../../../tools/browser-test/node_modules/playwright')
+const path = require('path')
+;(async () => {
+  const root = path.join(__dirname, '..')
+  const browser = await chromium.launch({ channel: 'chrome', args: ['--autoplay-policy=no-user-gesture-required'] })
+  const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } })
+  const logs = []; page.on('pageerror', (e) => logs.push('PAGEERROR: ' + e.message)); page.on('console', (m) => { if (m.type() === 'error') logs.push(m.text()) })
+  await page.goto('file:///' + path.join(root, 'index.html').replace(/\\/g, '/') + '?mode=play')
+  await page.waitForFunction(() => document.body.classList.contains('ready'))
+  const shot = (n) => page.screenshot({ path: path.join(root, 'gem-art', n + '.png'), clip: { x: 56, y: 88, width: 1288, height: 782 } })
+  await page.click('#startbtn'); await page.waitForTimeout(500)
+  const q0 = await page.evaluate(() => ({ prompt: __draft.PL.q[0].prompt, gem: __draft.PL.q[0].gem, id: __draft.PL.q[0].id }))
+  console.log('question 1:', q0.prompt, '| gem:', q0.gem)
+  // a wrong answer first
+  await page.fill('#ans', 'zzzz not a thing'); await page.press('#ans', 'Enter'); await page.waitForTimeout(300); await shot('_play-1-question')
+  // a near miss: ask "did you mean"
+  await page.fill('#ans', q0.gem.slice(0, -1) + 'x'); await page.press('#ans', 'Enter'); await page.waitForTimeout(300)
+  const msg = await page.evaluate(() => __draft.PL.msg); console.log('after a typo:', msg); await shot('_play-2-didyoumean')
+  await page.keyboard.press('y')
+  const t0 = Date.now()
+  await page.waitForTimeout(2900); await shot('_play-3-reveal-2.9s')
+  await page.waitForTimeout(2600); await shot('_play-4-reveal-5.5s')
+  await page.waitForTimeout(1700)
+  const st = await page.evaluate(() => ({ phase: __draft.PL.phase, i: __draft.PL.i, pts: __draft.PL.pts, found: JSON.parse(localStorage.getItem('singularity-gems-found') || '[]').length }))
+  console.log('after the gem:', JSON.stringify(st), 'elapsed', ((Date.now() - t0) / 1000).toFixed(1) + 's')
+  // an ordinary answer on question 2: take the first listed answer
+  const a2 = await page.evaluate(() => __draft.PL.q[1].answers[0][0])
+  await page.fill('#ans', a2); await page.press('#ans', 'Enter'); await page.waitForTimeout(1300); await shot('_play-5-simple-reveal')
+  console.log('errors:', logs.length ? logs.join(' | ') : 'none')
+  await browser.close()
+})().catch((e) => { console.error('FAIL', e.message); process.exit(1) })

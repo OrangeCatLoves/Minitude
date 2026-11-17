@@ -70,7 +70,7 @@ The logbook card has a fifth statistic, **rank** ("#3" big in cyan, "of 14 dives
 
 ## The tab icon (16 November 2026)
 
-The icon is the pixel **M over the game's scale bar** on a dark tile (the owner chose it from six drafts, kept in `draft-favicon/`). `node tools/make-icons.cjs` writes it into `packages/web/public`: `favicon.ico` (16, 32 and 48 pixels; browsers ask for this address by themselves), `icon.svg`, `icon-32.png` and `apple-touch-icon.png` (180 x 180, a full square: the phone rounds the corners). Both pages (`index.html`, `privacy.html`) link them. They are plain files on the same address as the game: nothing extra is loaded from anywhere else and nothing is stored, so the privacy page needed no change. The server gives them the one-day cache of pictures, so a changed icon can take a day to show for people who visited before.
+The icon is the pixel **M over the game's scale bar** on a dark tile (the owner chose it from six drafts, kept in `drafts/draft-favicon/`). `node tools/make-icons.cjs` writes it into `packages/web/public`: `favicon.ico` (16, 32 and 48 pixels; browsers ask for this address by themselves), `icon.svg`, `icon-32.png` and `apple-touch-icon.png` (180 x 180, a full square: the phone rounds the corners). Both pages (`index.html`, `privacy.html`) link them. They are plain files on the same address as the game: nothing extra is loaded from anywhere else and nothing is stored, so the privacy page needed no change. The server gives them the one-day cache of pictures, so a changed icon can take a day to show for people who visited before.
 
 ## The plain pages: how to play, about (17 November 2026)
 

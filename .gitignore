@@ -12,3 +12,7 @@ packages/*/dist
 *.db-shm
 *.db-wal
 packages/server/data/backups/
+
+# large local experiments that were never committed (the sound lab and the gem walkthrough video)
+drafts/sound-lab/
+drafts/draft-singularity-gems/video/

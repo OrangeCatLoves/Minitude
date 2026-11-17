@@ -31,7 +31,7 @@ You need a Fly account with a payment method on it. **Learned on the first deplo
    read -rs KEY; fly secrets set GEMINI_API_KEY="$KEY"; unset KEY
    ```
    Paste the key, press Enter (nothing shows while you paste). That form works in Mac, Linux and Git Bash. On plain Windows PowerShell, run `fly secrets set GEMINI_API_KEY=your-key` once and clear the history afterwards. **Learned on the first deploy:** do not use `fly secrets import` on Windows PowerShell with flyctl 0.5.4: it sends an invisible byte-order mark and Fly refuses the name (`"\ufeffGEMINI_API_KEY" is not a valid secret name`). `fly secrets set` works. Every non-secret setting your local `.env` has (such as `LLM_MODEL`) must also be in `fly.toml`, because Fly never sees that file.
-5. **Deploy:** `fly deploy --ha=false`. The first build took about a minute on Fly's builder. If Fly warns that the "build context" is large, add the big folder to `.dockerignore` (`sound-lab` is listed for that reason).
+5. **Deploy:** `fly deploy --ha=false`. The first build took about a minute on Fly's builder. If Fly warns that the "build context" is large, add the big folder to `.dockerignore` (`drafts` is listed for that reason: it holds every design draft and the 212 MB sound lab).
 6. **Check it:** `fly status`, then open `https://<your-app>.fly.dev/api/health` (should show `"ok":true`) and `https://<your-app>.fly.dev`.
 
 Every later deploy is the same command, `fly deploy --ha=false`. With one machine and one disk, a deploy stops the old machine before the new one starts, so the site is down for a short moment each time.
