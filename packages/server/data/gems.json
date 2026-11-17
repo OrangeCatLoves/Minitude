@@ -1,5 +1,5 @@
 {
- "_about": "The 350 SINGULARITY gems: one very obscure answer per question (the first 200 chosen and approved by the owner on 14 Nov 2026; 50 more for Batch 5 on 16 Nov 2026; 100 more for Batches 6 and 7 on 17 Nov 2026). Import with: npm run cli -- gems import",
+ "_about": "The 500 SINGULARITY gems: one very obscure answer per question (the first 200 chosen and approved by the owner on 14 Nov 2026; 50 more for Batch 5 on 16 Nov 2026; 100 more for Batches 6 and 7 on 17 Nov 2026; 150 more for Batches 8 to 13 on 18 Nov 2026). Import with: npm run cli -- gems import",
  "gems": [
   {
    "question": "animals-dog-breed",
@@ -2111,6 +2111,906 @@
    "question": "transport-race-circuit",
    "answer": "Balaton Park Circuit",
    "description": "Balaton Park Circuit is a 4.115 km motor racing circuit located near Balatonfőkajár, Hungary, 85 km southwest of Budapest.",
+   "tier": 5
+  },
+  {
+   "question": "animals-crustacean",
+   "answer": "Sea slater",
+   "description": "A kind of isopod crustacean, commonly known as the sea slater, that lives on rocky seashores.",
+   "tier": 5
+  },
+  {
+   "question": "animals-duck-goose-swan",
+   "answer": "Black Scoter",
+   "description": "The black scoter or American scoter is a large sea duck, 43 to 49 cm in length.",
+   "tier": 5
+  },
+  {
+   "question": "animals-pig-breed",
+   "answer": "Minnesota Miniature",
+   "description": "The Minnesota Miniature is an extinct American breed of miniature pig.",
+   "tier": 5
+  },
+  {
+   "question": "animals-rabbit-breed",
+   "answer": "Giant Chinchilla",
+   "description": "A large breed of domestic rabbit with a silvery chinchilla-type coat.",
+   "tier": 5
+  },
+  {
+   "question": "animals-snake",
+   "answer": "Iwasaki’s snail-eater",
+   "description": "Iwasaki's snail-eater is a species of snake in the family Pareidae.",
+   "tier": 5
+  },
+  {
+   "question": "animals-mollusc",
+   "answer": "Copse Snail",
+   "description": "Arianta arbustorum, sometimes known as the copse snail, is a medium-sized species of pulmonate land snail in the family Helicidae.",
+   "tier": 5
+  },
+  {
+   "question": "animals-cactus",
+   "answer": "Los Cabos nipple cactus",
+   "description": "Cochemiea armillata is an uncommon species of cactus in the genus Cochemiea commonly known as the Los Cabos nipple cactus.",
+   "tier": 5
+  },
+  {
+   "question": "animals-palm",
+   "answer": "Kumaon Fan Palm",
+   "description": "Trachycarpus takil, the Kumaon palm, is a fan palm that is endemic to the foothills of the Himalaya in southern Asia.",
+   "tier": 5
+  },
+  {
+   "question": "nature-hurricane",
+   "answer": "Typhoon Omar",
+   "description": "Typhoon Omar, named Lusing by PAGASA, was the strongest and costliest typhoon to strike Guam since Typhoon Pamela in 1976.",
+   "tier": 5
+  },
+  {
+   "question": "nature-earthquake",
+   "answer": "226 BC Rhodes earthquake",
+   "description": "The Rhodes earthquake of 226 BC, which affected the island of Rhodes, Greece, is famous for having toppled the large statue known as the Colossus of Rhodes.",
+   "tier": 5
+  },
+  {
+   "question": "food-malaysian-singaporean-dish",
+   "answer": "Yam ring",
+   "description": "Yam ring, also known as yam basket, taro basket or prosperity basket, is a Singaporean dish consisting of a deep-fried ring of mashed taro filled with separately stir-fried ingredients.",
+   "tier": 5
+  },
+  {
+   "question": "food-indonesian-dish",
+   "answer": "Es puter",
+   "description": "Es puter, Es dung dung or Es podeng is a dessert dish from Indonesia similar to ice cream made from coconut milk instead of milk.",
+   "tier": 5
+  },
+  {
+   "question": "food-filipino-dish",
+   "answer": "Ginataang mais",
+   "description": "Ginataang mais is a Filipino sweet corn and rice gruel.",
+   "tier": 5
+  },
+  {
+   "question": "food-british-dish",
+   "answer": "Fat rascal",
+   "description": "A type of cake, similar to a scone or rock cake, closely related to the historical turf cake.",
+   "tier": 5
+  },
+  {
+   "question": "food-american-dish",
+   "answer": "Cudighi",
+   "description": "Cudighi is an Italian-American dish consisting of a spicy Italian sausage seasoned with sweet spices that can be bought in links or served as a sandwich on a long, hard roll, often with mozzarella cheese and tomato sauce.",
+   "tier": 5
+  },
+  {
+   "question": "food-russian-dish",
+   "answer": "Nesselrode pudding",
+   "description": "Nesselrode pudding is a French chestnut-based frozen dessert invented in the first half of the 19th century and named after Russian diplomat Karl Nesselrode.",
+   "tier": 5
+  },
+  {
+   "question": "food-middle-eastern-dish",
+   "answer": "Bourekas",
+   "description": "Bourekas or burekas are a baked turnover in Sephardic Jewish cuisine and Israeli cuisine.",
+   "tier": 5
+  },
+  {
+   "question": "food-brazilian-dish",
+   "answer": "Pão na chapa",
+   "description": "Pão na chapa is a Brazilian breakfast food that is popular in the state of São Paulo.",
+   "tier": 5
+  },
+  {
+   "question": "food-polish-dish",
+   "answer": "Siemieniotka",
+   "description": "Siemieniotka is a Silesian soup made of hemp seed, often eaten at the traditional Christmas Eve meal, Wigilia.",
+   "tier": 5
+  },
+  {
+   "question": "food-dumpling",
+   "answer": "Toasted ravioli",
+   "description": "Toasted ravioli, colloquially known as T-ravs, is breaded deep-fried ravioli, usually served as an appetizer and also used to consume dipping sauce.",
+   "tier": 5
+  },
+  {
+   "question": "food-curry",
+   "answer": "Daab Chingri",
+   "description": "A Bengali prawn curry cooked and served in a green coconut shell.",
+   "tier": 5
+  },
+  {
+   "question": "food-stew",
+   "answer": "Doro wat",
+   "description": "An Ethiopian and Eritrean chicken stew flavoured with berbere spice and niter kibbeh, traditionally eaten with injera.",
+   "tier": 5
+  },
+  {
+   "question": "food-rice-dish",
+   "answer": "Num ansom",
+   "description": "Num ansom or simply ansom is a traditional Khmer sticky rice cake.",
+   "tier": 5
+  },
+  {
+   "question": "games-playstation-2-game",
+   "answer": "Spartan: Total Warrior",
+   "description": "Spartan: Total Warrior is a 2005 hack and slash game for GameCube, PlayStation 2, and Xbox.",
+   "tier": 5
+  },
+  {
+   "question": "games-nintendo-64-game",
+   "answer": "WWF War Zone",
+   "description": "WWF War Zone is a professional wrestling video game developed by Iguana West and released by Acclaim Entertainment in 1998 for the PlayStation, Nintendo 64, and Game Boy.",
+   "tier": 5
+  },
+  {
+   "question": "games-nintendo-ds-game",
+   "answer": "Transformers: Dark of the Moon",
+   "description": "Transformers: Dark of the Moon is an action-adventure video game based on the 2011 film of the same name.",
+   "tier": 5
+  },
+  {
+   "question": "games-game-boy-advance-game",
+   "answer": "Disney's Party",
+   "description": "Disney's Party is a party video game, developed by Neverland for the GameCube and by Jupiter Corporation for the Game Boy Advance.",
+   "tier": 5
+  },
+  {
+   "question": "games-gamecube-game",
+   "answer": "Super Monkey Ball Adventure",
+   "description": "Super Monkey Ball Adventure is a 2006 platform video game developed by Traveller's Tales and published by Sega.",
+   "tier": 5
+  },
+  {
+   "question": "games-nintendo-3ds-game",
+   "answer": "Monster Hunter Stories",
+   "description": "Monster Hunter Stories is a role-playing video game developed by Capcom and Marvelous and published by Nintendo for the Nintendo 3DS. It is a spinoff title in the Monster Hunter series and features a drastically different.",
+   "tier": 5
+  },
+  {
+   "question": "games-playstation-4-game",
+   "answer": "Star Wars Jedi: Survivor",
+   "description": "Star Wars Jedi: Survivor is a 2023 action-adventure game developed by Respawn Entertainment and published by Electronic Arts.",
+   "tier": 5
+  },
+  {
+   "question": "games-arcade-game",
+   "answer": "Trojan",
+   "description": "Trojan, released in Japan as Tatakai no Banka, is a 1986 hack and slash video game developed and published by Capcom for arcades; it was released in North America by Romstar.",
+   "tier": 5
+  },
+  {
+   "question": "games-final-fantasy-character",
+   "answer": "Faris Scherwiz",
+   "description": "Faris Scherwiz is a character in the Final Fantasy series.",
+   "tier": 5
+  },
+  {
+   "question": "games-street-fighter-character",
+   "answer": "Necalli",
+   "description": "A fictional fighter who debuted in the 2016 fighting game Street Fighter V.",
+   "tier": 5
+  },
+  {
+   "question": "games-atari-2600-game",
+   "answer": "Star Wars: Jedi Arena",
+   "description": "Star Wars: Jedi Arena is a 1983 action video game programmed by Rex Bradford and published by Parker Brothers for the Atari 2600.",
+   "tier": 5
+  },
+  {
+   "question": "myth-hindu-deity",
+   "answer": "Jaganmata",
+   "description": "Jaganmata, also rendered as Lokamata, is primarily an epithet of the Hindu deity Lakshmi, the supreme goddess of Vaishnavism.",
+   "tier": 5
+  },
+  {
+   "question": "history-biblical-figure",
+   "answer": "Arioch",
+   "description": "Arioch appears in Genesis 14 as the name of the King of Ellasar who participated in the Battle of Siddim.",
+   "tier": 5
+  },
+  {
+   "question": "history-admiral",
+   "answer": "Henrik Bjelke",
+   "description": "Henrik Bjelke was a Norwegian-Danish military officer who served as Admiral of the Realm of Denmark-Norway from 1662 to 1679.",
+   "tier": 5
+  },
+  {
+   "question": "history-pandemic",
+   "answer": "Caragea's plague",
+   "description": "Caragea's plague was a bubonic plague epidemic that occurred in Wallachia, mainly in Bucharest, in the years 1813 and 1814.",
+   "tier": 5
+  },
+  {
+   "question": "history-shipwreck",
+   "answer": "HMS Lutine",
+   "description": "A frigate that served in the French Navy and the Royal Navy and was wrecked off the Dutch coast in 1799; her bell hangs at Lloyd's of London.",
+   "tier": 5
+  },
+  {
+   "question": "history-rebellion",
+   "answer": "Kresna-Razlog uprising",
+   "description": "The Kresna–Razlog uprising, also known as the Kresna uprising, was an anti-Ottoman Bulgarian uprising that took place in Ottoman Macedonia, predominantly in the areas of modern Blagoevgrad Province in Bulgaria in late 1878 and.",
+   "tier": 5
+  },
+  {
+   "question": "history-court-case",
+   "answer": "Francovich v Italy",
+   "description": "Francovich v Italy C-6/90 was a decision of the European Court of Justice which established that European Union Member States could be liable to pay compensation to individuals who suffered a loss by reason of the Member.",
+   "tier": 5
+  },
+  {
+   "question": "history-coup",
+   "answer": "Operation Galaxia",
+   "description": "Operation Galaxia was the plan which preceded the 23-F attempted coup d'état in Spain.",
+   "tier": 5
+  },
+  {
+   "question": "food-coffee-drink",
+   "answer": "Oliang",
+   "description": "Commonly known as Thai iced coffee, a popular Thai beverage.",
+   "tier": 5
+  },
+  {
+   "question": "food-street-food",
+   "answer": "Shakoy",
+   "description": "Shakoy, also known as lubid-lubid or bicho bicho, is a traditional Filipino deep-fried twisted doughnut.",
+   "tier": 5
+  },
+  {
+   "question": "games-mortal-kombat-character",
+   "answer": "Shujinko",
+   "description": "A fictional warrior of the Mortal Kombat series who first appears as the hero of the Konquest mode of Mortal Kombat: Deception.",
+   "tier": 5
+  },
+  {
+   "question": "games-mmorpg",
+   "answer": "Tales of Pirates",
+   "description": "A 3D massively multiplayer online role-playing game developed by the Chinese company MOLI and published by IGG, set in a pirate-like world.",
+   "tier": 5
+  },
+  {
+   "question": "movies-comedy-film",
+   "answer": "Kick-Ass 2",
+   "description": "A 2013 black comedy superhero film written and directed by Jeff Wadlow, the sequel to Kick-Ass.",
+   "tier": 5
+  },
+  {
+   "question": "movies-thriller-film",
+   "answer": "Parker",
+   "description": "A 2013 American action thriller film directed by Taylor Hackford and starring Jason Statham.",
+   "tier": 5
+  },
+  {
+   "question": "movies-heist-film",
+   "answer": "Traitor's Gate",
+   "description": "Traitor's Gate is a 1964 West German-British co-production of a black-and-white crime film directed by Freddie Francis and starring Albert Lieven, Gary Raymond, Catherine Schell and Klaus Kinski.",
+   "tier": 5
+  },
+  {
+   "question": "movies-sports-film",
+   "answer": "Million Dollar Arm",
+   "description": "A 2014 American biographical sports drama film directed by Craig Gillespie and produced by Walt Disney Pictures.",
+   "tier": 5
+  },
+  {
+   "question": "movies-film-noir",
+   "answer": "I Was a Shoplifter",
+   "description": "I Was a Shoplifter is a 1950 American film noir crime film directed by Charles Lamont and starring Scott Brady and Mona Freeman.",
+   "tier": 5
+  },
+  {
+   "question": "movies-silent-film",
+   "answer": "Le cauchemar",
+   "description": "A Nightmare (Le cauchemar) is a silent trick film made in 1896 and directed by Georges Méliès.",
+   "tier": 5
+  },
+  {
+   "question": "movies-medical-drama",
+   "answer": "The Shift",
+   "description": "The Shift or Dag & nat is a Danish television drama series, which was broadcast on TV 2 from 29 May 2022.",
+   "tier": 5
+  },
+  {
+   "question": "movies-soap-opera",
+   "answer": "The Restless Years",
+   "description": "An Australian soap opera that followed the lives of several Sydney school-leavers.",
+   "tier": 5
+  },
+  {
+   "question": "movies-hbo-series",
+   "answer": "I'll Be Gone in the Dark",
+   "description": "An American true crime documentary series about Michelle McNamara's search for the Golden State Killer.",
+   "tier": 5
+  },
+  {
+   "question": "movies-british-tv",
+   "answer": "The Million Pound Drop",
+   "description": "The Million Pound Drop is a British television quiz show which was broadcast on Channel 4 in the United Kingdom.",
+   "tier": 5
+  },
+  {
+   "question": "movies-korean-drama",
+   "answer": "The Bride of Habaek",
+   "description": "The Bride of Habaek is a South Korean television drama spin-off of the 2006 sunjung manhwa Bride of the Water God by Yoon Mi-kyung.",
+   "tier": 5
+  },
+  {
+   "question": "movies-doctor-who-character",
+   "answer": "Harriet Jones",
+   "description": "Harriet Jones is a fictional character played by Penelope Wilton in the long-running British science fiction television series Doctor Who.",
+   "tier": 5
+  },
+  {
+   "question": "movies-film-studio",
+   "answer": "Selznick International Pictures",
+   "description": "Selznick International Pictures was a Hollywood motion picture studio created by David O. Selznick in 1935, and dissolved in 1943.",
+   "tier": 5
+  },
+  {
+   "question": "movies-film-composer",
+   "answer": "Joe Kraemer",
+   "description": "Joe Kraemer is an American composer and conductor of film and television scores.",
+   "tier": 5
+  },
+  {
+   "question": "music-beyonce-song",
+   "answer": "Find Your Way Back",
+   "description": "\"Find Your Way Back\" is a song by American singer Beyoncé. It is the fourth track on The Lion King: The Gift, Knowles' curated album released through Parkwood Entertainment and Columbia Records alongside her appearance in the.",
+   "tier": 5
+  },
+  {
+   "question": "music-elton-john-song",
+   "answer": "Sixty Years On",
+   "description": "A song from Elton John's 1970 self-titled album.",
+   "tier": 5
+  },
+  {
+   "question": "music-bob-dylan-song",
+   "answer": "Duquesne Whistle",
+   "description": "\"Duquesne Whistle\" is a song written by Bob Dylan and Grateful Dead lyricist Robert Hunter that appears as the opening track on Dylan's 2012 studio album Tempest.",
+   "tier": 5
+  },
+  {
+   "question": "music-frank-sinatra-song",
+   "answer": "Oh, How I Miss You Tonight",
+   "description": "\"Oh, How I Miss You Tonight\" is a popular song, published in 1925, written by Benny Davis, Joe Burke, and Mark Fisher.",
+   "tier": 5
+  },
+  {
+   "question": "music-u2-song",
+   "answer": "White as Snow",
+   "description": "\"White as Snow\" is a song by Irish rock band U2 and the ninth track on their 2009 album No Line on the Horizon.",
+   "tier": 5
+  },
+  {
+   "question": "music-bassist",
+   "answer": "Gary Thain",
+   "description": "Gary Mervin Thain was a New Zealand bassist, best known for his work with British rock band Uriah Heep.",
+   "tier": 5
+  },
+  {
+   "question": "music-conductor",
+   "answer": "Franz Welser-Möst",
+   "description": "Franz Leopold Maria Möst, known professionally as Franz Welser-Möst, is an Austrian conductor.",
+   "tier": 5
+  },
+  {
+   "question": "music-opera-singer",
+   "answer": "Elvira de Hidalgo",
+   "description": "Elvira Juana Rodríguez Roglán, known professionally as Elvira de Hidalgo, was a prominent Spanish coloratura soprano, who later became a teacher and vocal coach.",
+   "tier": 5
+  },
+  {
+   "question": "music-kpop-act",
+   "answer": "Woohee",
+   "description": "Bae Woo-hee, known professionally as Woohee, is a South Korean singer and actress.",
+   "tier": 5
+  },
+  {
+   "question": "music-chinese-pop-act",
+   "answer": "Crowd Lu",
+   "description": "Crowd Lu Kuang-chung is a Taiwanese singer, songwriter and actor.",
+   "tier": 5
+  },
+  {
+   "question": "misc-writing-system",
+   "answer": "Saurashtra",
+   "description": "The Saurashtra script is an abugida script that is used by Saurashtrians of Tamil Nadu to write the Saurashtra language.",
+   "tier": 5
+  },
+  {
+   "question": "misc-social-media-platform",
+   "answer": "Hello",
+   "description": "Hello, stylized as hello, was a social networking service founded by Orkut Büyükkökten, the creator of Orkut.",
+   "tier": 5
+  },
+  {
+   "question": "misc-television-channel",
+   "answer": "Zee News",
+   "description": "An Indian Hindi-language news channel owned by Subhash Chandra's Essel Group.",
+   "tier": 5
+  },
+  {
+   "question": "misc-shakespeare-character",
+   "answer": "Philostrate",
+   "description": "Philostrate is a fictional character in a number of literary works, including William Shakespeare's A Midsummer Night's Dream.",
+   "tier": 5
+  },
+  {
+   "question": "misc-youtuber",
+   "answer": "Wode Maya",
+   "description": "Berthold Kobby Winkler Ackon, popularly known as Wode Maya, is a Ghanaian YouTube personality, vlogger, digital media influencer, and aeronautical engineer.",
+   "tier": 5
+  },
+  {
+   "question": "misc-fashion-designer",
+   "answer": "Ottavio Missoni",
+   "description": "Count Ottavio Missoni was an Italian businessman, clothing and resortwear designer, founder of the Italian fashion house Missoni and an Olympic hurdler who competed in the 1948 Summer Olympics.",
+   "tier": 5
+  },
+  {
+   "question": "misc-photographer",
+   "answer": "Gustave Le Gray",
+   "description": "Jean-Baptiste Gustave Le Gray was a French painter, draughtsman, sculptor, print-maker, and photographer.",
+   "tier": 5
+  },
+  {
+   "question": "misc-chef",
+   "answer": "Karen Dudley",
+   "description": "Karen Dudley is a South African chef, food writer, and restaurateur.",
+   "tier": 5
+  },
+  {
+   "question": "misc-magician",
+   "answer": "Aref Ghafouri",
+   "description": "Aref Ghafouri is a Turkish-Iranian illusionist who won the Merlin Award.",
+   "tier": 5
+  },
+  {
+   "question": "misc-entrepreneur",
+   "answer": "Evan Williams",
+   "description": "Evan Clark Williams is an American internet entrepreneur.",
+   "tier": 5
+  },
+  {
+   "question": "misc-alloy",
+   "answer": "Megallium",
+   "description": "Megallium is a trademark for an alloy of 60% cobalt, 20% chromium, 5% molybdenum, and traces of other substances.",
+   "tier": 5
+  },
+  {
+   "question": "places-archaeological-site",
+   "answer": "Seleucia",
+   "description": "An ancient Greek city on the Mediterranean coast of Pamphylia, in Anatolia, about 15 km northeast of Side.",
+   "tier": 5
+  },
+  {
+   "question": "places-theatre-opera-hall",
+   "answer": "Odeon of Amman",
+   "description": "The Odeon is a small 500-seat theatre in Amman, Jordan.",
+   "tier": 5
+  },
+  {
+   "question": "places-shopping-mall",
+   "answer": "Myyrmanni",
+   "description": "Myyrmanni is a shopping center in the Myyrmäki suburb of Vantaa, Finland.",
+   "tier": 5
+  },
+  {
+   "question": "places-monastery",
+   "answer": "Our Lady of Saidnaya Monastery",
+   "description": "Our Lady of Saidnaya Patriarchal Monastery is a monastery of the Greek Orthodox Church of Antioch located in Saidnaya, Syria.",
+   "tier": 5
+  },
+  {
+   "question": "places-botanical-garden",
+   "answer": "Central Siberian Botanical Garden",
+   "description": "Central Siberian Botanic Garden is a botanic garden in the south-eastern part of Novosibirsk, Russia.",
+   "tier": 5
+  },
+  {
+   "question": "places-mountain-pass",
+   "answer": "Paso de Cortés",
+   "description": "Paso de Cortés, officially proposed to be renamed to Paso de los Pueblos Indígenas, is a mountain pass between the Popocatépetl and Iztaccihuatl volcanoes in central Mexico.",
+   "tier": 5
+  },
+  {
+   "question": "places-cemetery",
+   "answer": "Ibn Babawayh Cemetery",
+   "description": "Ibn Babawayh cemetery, also spelled as Ebn-e Babviyeh, Ebn-e Babooyeh, is located in Iran in the town of Rey.",
+   "tier": 5
+  },
+  {
+   "question": "places-library",
+   "answer": "Aozora Bunko",
+   "description": "Aozora Bunko is a Japanese digital library.",
+   "tier": 5
+  },
+  {
+   "question": "places-prison",
+   "answer": "Klong Prem Central Prison",
+   "description": "Klong Prem Central prison is a maximum security prison in Chatuchak District, Bangkok, Thailand.",
+   "tier": 5
+  },
+  {
+   "question": "places-city-park",
+   "answer": "Al-Azhar Park",
+   "description": "A public park in Historic Cairo, Egypt.",
+   "tier": 5
+  },
+  {
+   "question": "places-archipelago",
+   "answer": "Hen and Chicken Islands",
+   "description": "The Hen and Chicken Islands, usually known as the Hen and Chickens, lie to the east of the Northland Peninsula off the coast of northern New Zealand.",
+   "tier": 5
+  },
+  {
+   "question": "places-cape",
+   "answer": "Rumbolds Point",
+   "description": "Rumbolds Point is a point which marks the east side of the entrance to Doubtful Bay at the southeast end of South Georgia.",
+   "tier": 5
+  },
+  {
+   "question": "science-asteroid",
+   "answer": "609 Fulvia",
+   "description": "609 Fulvia is a minor planet orbiting the Sun.",
+   "tier": 5
+  },
+  {
+   "question": "science-nebula",
+   "answer": "McNeil's Nebula",
+   "description": "A variable nebula discovered on 23 January 2004 by the amateur astronomer Jay McNeil.",
+   "tier": 5
+  },
+  {
+   "question": "science-economist",
+   "answer": "John Maurice Clark",
+   "description": "John Maurice Clark was an American economist whose work combined the rigor of traditional economic analysis with an \"institutionalist\" attitude.",
+   "tier": 5
+  },
+  {
+   "question": "science-psychologist",
+   "answer": "Albert Moll",
+   "description": "Albert Moll was a neurologist, psychologist, sexologist, and ethicist.",
+   "tier": 5
+  },
+  {
+   "question": "science-hormone",
+   "answer": "Enterogastrone",
+   "description": "An enterogastrone is any hormone secreted by the mucosa of the duodenum in the lower gastrointestinal tract in response to dietary lipids that inhibits the caudal motion of the contents of chyme.",
+   "tier": 5
+  },
+  {
+   "question": "science-phobia",
+   "answer": "Spheksophobia",
+   "description": "The fear of wasps, technically known as spheksophobia, is a relatively common type of specific phobia.",
+   "tier": 5
+  },
+  {
+   "question": "science-web-browser",
+   "answer": "360 Secure Browser",
+   "description": "360 Secure Browser or 360 Safe Browser is a freeware web browser developed by the Qihoo company of Beijing, China.",
+   "tier": 5
+  },
+  {
+   "question": "science-geologist",
+   "answer": "Carlotta Joaquina Maury",
+   "description": "Carlotta Joaquina Maury was a geologist, stratigrapher and paleontologist, specialising in Tertiary mollusks.",
+   "tier": 5
+  },
+  {
+   "question": "science-engineer",
+   "answer": "Thomas Savery",
+   "description": "An English inventor and engineer who patented an early steam-powered water pump in 1698.",
+   "tier": 5
+  },
+  {
+   "question": "sports-sumo-wrestler",
+   "answer": "Oshoma Degi",
+   "description": "Ōshōma Degi is a Mongolian professional sumo wrestler from Töv Province.",
+   "tier": 5
+  },
+  {
+   "question": "sports-skateboarder",
+   "answer": "Dora Varella",
+   "description": "Dora Varella Gallacci Pereira is a Brazilian professional skateboarder.",
+   "tier": 5
+  },
+  {
+   "question": "sports-surfer",
+   "answer": "Malik Joyeux",
+   "description": "Malik Joyeux was an accomplished all-around waterman and a professional Big Wave surfer.",
+   "tier": 5
+  },
+  {
+   "question": "sports-snowboarder",
+   "answer": "Alberto Schiavon",
+   "description": "Alberto Schiavon is an Italian snowboarder.",
+   "tier": 5
+  },
+  {
+   "question": "sports-weightlifter",
+   "answer": "Henri Gance",
+   "description": "Henri Gance was a French weightlifter who won a gold medal at the 1920 Summer Olympics in Antwerp, representing France.",
+   "tier": 5
+  },
+  {
+   "question": "sports-fencer",
+   "answer": "Matthias Behr",
+   "description": "Matthias Behr is a former German foil fencer.",
+   "tier": 5
+  },
+  {
+   "question": "sports-judoka",
+   "answer": "Luiz Onmura",
+   "description": "Luiz Yoshio Onmura was a Brazilian judoka.",
+   "tier": 5
+  },
+  {
+   "question": "sports-mountaineer",
+   "answer": "David F. Breashears",
+   "description": "David Finlay Breashears was an American mountaineer, filmmaker, author and motivational speaker.",
+   "tier": 5
+  },
+  {
+   "question": "sports-league",
+   "answer": "K League",
+   "description": "K League is South Korea's professional football league.",
+   "tier": 5
+  },
+  {
+   "question": "transport-submarine",
+   "answer": "Vesikko",
+   "description": "Vesikko is a submarine, which was launched on 10 May 1933 at the Crichton-Vulcan dock in Turku.",
+   "tier": 5
+  },
+  {
+   "question": "transport-battleship",
+   "answer": "Regina Elena",
+   "description": "Regina Elena was the lead ship of her class of pre-dreadnought battleships built for the Italian Regia Marina.",
+   "tier": 5
+  },
+  {
+   "question": "transport-ocean-liner",
+   "answer": "RMS Empress of Britain",
+   "description": "An ocean liner of the Canadian Pacific Steamship Company, built in Scotland between 1928 and 1931.",
+   "tier": 5
+  },
+  {
+   "question": "transport-cruise-ship",
+   "answer": "Fascination",
+   "description": "Carnival Fascination, originally Fascination, was a Fantasy-class cruise ship built at Helsinki, Finland in 1994.",
+   "tier": 5
+  },
+  {
+   "question": "transport-motorcycle-model",
+   "answer": "Aprilia RS125",
+   "description": "The Aprilia RS125 is a GP derived replica sport production motorcycle.",
+   "tier": 5
+  },
+  {
+   "question": "transport-railway-company",
+   "answer": "White Pass and Yukon Route",
+   "description": "The White Pass and Yukon Route is a Canadian and U.S. Class III 3 ft narrow-gauge railroad linking the port of Skagway, Alaska, with Whitehorse, the capital of Yukon.",
+   "tier": 5
+  },
+  {
+   "question": "transport-defunct-airline",
+   "answer": "Flyr",
+   "description": "Flyr AS was a short-lived Norwegian low-cost airline.",
+   "tier": 5
+  },
+  {
+   "question": "music-bruce-springsteen-song",
+   "answer": "Jesse James",
+   "description": "An 1887 American folk song about the outlaw Jesse James, which Bruce Springsteen recorded on his 2006 album We Shall Overcome: The Seeger Sessions.",
+   "tier": 5
+  },
+  {
+   "question": "music-lady-gaga-song",
+   "answer": "LoveDrug",
+   "description": "A 2025 song by Lady Gaga, released on her album Mayhem.",
+   "tier": 5
+  },
+  {
+   "question": "movies-dragon-ball-character",
+   "answer": "Nail",
+   "description": "A Namekian warrior in the Dragon Ball Z series who fights Frieza's forces on the planet Namek.",
+   "tier": 5
+  },
+  {
+   "question": "movies-one-piece-character",
+   "answer": "Laboon",
+   "description": "A giant whale who lives at the entrance to the Grand Line in the manga and anime One Piece.",
+   "tier": 5
+  },
+  {
+   "question": "movies-fairy-tale",
+   "answer": "Katie Woodencloak",
+   "description": "\"Katie Woodencloak\" or \"Kari Woodengown\" is a Norwegian fairy tale collected by Peter Christen Asbjørnsen and Jørgen Moe in Norske Folkeeventyr.",
+   "tier": 5
+  },
+  {
+   "question": "misc-poem",
+   "answer": "Reamker",
+   "description": "Reamker is a Cambodian epic poem, based on the Sanskrit's Rāmāyana epic.",
+   "tier": 5
+  },
+  {
+   "question": "misc-roller-coaster",
+   "answer": "Tsunami",
+   "description": "Tsunami was a steel roller coaster manufactured by Anton Schwarzkopf and located at the San Marcos National Fair in Mexico.",
+   "tier": 5
+  },
+  {
+   "question": "sports-football-manager",
+   "answer": "Phillip Cocu",
+   "description": "Phillip John-William Cocu is a Dutch professional football manager and former midfielder who was most recently the manager of Vitesse.",
+   "tier": 5
+  },
+  {
+   "question": "transport-aerospace-company",
+   "answer": "Avro Canada",
+   "description": "Avro Canada, officially A. V. Roe Canada Limited, was a Canadian aircraft manufacturing company that existed from 1945 to 1962.",
+   "tier": 5
+  },
+  {
+   "question": "science-medical-specialty",
+   "answer": "Agada",
+   "description": "Agada is one of the eight branches into which ayurveda medicine is traditionally divided.",
+   "tier": 5
+  },
+  {
+   "question": "science-impact-crater",
+   "answer": "Secchi",
+   "description": "Secchi is a small lunar impact crater formation on the northwest edge of Mare Fecunditatis.",
+   "tier": 5
+  },
+  {
+   "question": "science-scientific-instrument",
+   "answer": "Kibble balance",
+   "description": "An electromechanical measuring instrument that weighs a test object very precisely by the electric current and voltage needed to produce a compensating force.",
+   "tier": 5
+  },
+  {
+   "question": "misc-playwright",
+   "answer": "George S. Kaufman",
+   "description": "George Simon Kaufman was an American playwright, theater director and producer, humorist, and drama critic.",
+   "tier": 5
+  },
+  {
+   "question": "movies-screenwriter",
+   "answer": "Larisa Shepitko",
+   "description": "A Soviet film director and screenwriter of Ukrainian origin.",
+   "tier": 5
+  },
+  {
+   "question": "misc-dancer",
+   "answer": "Zohra Sehgal",
+   "description": "An Indian actress, dancer and choreographer.",
+   "tier": 5
+  },
+  {
+   "question": "misc-fashion-model",
+   "answer": "Lee Bo-young",
+   "description": "Lee Bo-young is a South Korean actress, model and beauty pageant titleholder.",
+   "tier": 5
+  },
+  {
+   "question": "misc-cartoonist",
+   "answer": "Tamar Abakelia",
+   "description": "Tamar Abakelia was a Georgian sculptor, theater designer and illustrator.",
+   "tier": 5
+  },
+  {
+   "question": "misc-sculptor",
+   "answer": "Lucie Delarue-Mardrus",
+   "description": "Lucie Delarue-Mardrus was a French journalist, poet, novelist, sculptor, historian and designer.",
+   "tier": 5
+  },
+  {
+   "question": "movies-tv-presenter",
+   "answer": "Xuxa",
+   "description": "A Brazilian television presenter, singer and actress known for her children's shows.",
+   "tier": 5
+  },
+  {
+   "question": "movies-voice-actor",
+   "answer": "Thom Adcox-Hernandez",
+   "description": "An American actor known for the voices of Felix the Cat in The Twisted Tales of Felix the Cat and Lexington in Gargoyles.",
+   "tier": 5
+  },
+  {
+   "question": "music-songwriter",
+   "answer": "Denny Laine",
+   "description": "Brian Frederick Hines, known professionally as Denny Laine, was an English musician who co-founded two major rock bands: the Moody Blues and Paul McCartney and Wings.",
+   "tier": 5
+  },
+  {
+   "question": "music-record-producer",
+   "answer": "Daniel Lanois",
+   "description": "Daniel Roland Lanois is a Canadian record producer and musician.",
+   "tier": 5
+  },
+  {
+   "question": "misc-manga-artist",
+   "answer": "Kan Takahama",
+   "description": "Kan Takahama is a Japanese manga artist born in Amakusa, Kumamoto Prefecture.",
+   "tier": 5
+  },
+  {
+   "question": "transport-aviator",
+   "answer": "Norman Thagard",
+   "description": "Norman Earl Thagard is an American scientist and former U.S. Marine Corps officer and naval aviator and NASA astronaut.",
+   "tier": 5
+  },
+  {
+   "question": "history-archaeologist",
+   "answer": "Ekrem Akurgal",
+   "description": "Ekrem Akurgal was a Turkish archaeologist.",
+   "tier": 5
+  },
+  {
+   "question": "history-diplomat",
+   "answer": "Rabban Bar Sauma",
+   "description": "Rabban Bar Ṣawma, also known as Rabban Çauma, was a Uyghur Christian monk turned diplomat of the Church of the East in China.",
+   "tier": 5
+  },
+  {
+   "question": "places-forest",
+   "answer": "Sambisa Forest",
+   "description": "The Sambisa Forest is a forest in Borno State, northeast Nigeria.",
+   "tier": 5
+  },
+  {
+   "question": "misc-journalist",
+   "answer": "Hedda Hopper",
+   "description": "An American gossip columnist and actress who wrote about Hollywood.",
+   "tier": 5
+  },
+  {
+   "question": "science-physician",
+   "answer": "Julien Offray de La Mettrie",
+   "description": "A French physician and philosopher, one of the earliest of the French materialists of the Enlightenment.",
+   "tier": 5
+  },
+  {
+   "question": "science-anthropologist",
+   "answer": "Dorothea Bleek",
+   "description": "Dorothea Frances Bleek was a German–South African anthropologist and philologist known for her research on the Bushmen of Southern Africa.",
+   "tier": 5
+  },
+  {
+   "question": "history-theologian",
+   "answer": "Philip Schaff",
+   "description": "Philip Schaff was a Swiss-born, German-educated Protestant theologian and ecclesiastical historian, who spent most of his adult life living and teaching in the United States.",
+   "tier": 5
+  },
+  {
+   "question": "science-linguist",
+   "answer": "Norman Fairclough",
+   "description": "Norman Fairclough is an emeritus professor of linguistics at Lancaster University.",
    "tier": 5
   }
  ]

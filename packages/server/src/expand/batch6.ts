@@ -13,12 +13,12 @@ import type { NewQuestion } from './newq'
 import { anyOf, characterIn, cuisineDishes, HUMAN, instanceOf, kindOf, latinOnly, nameIs, NOT_EXTINCT, notDescribedAs, occupation, personForms, strip } from './recipes'
 
 /** every taxon below a group that has an English common name (a million insects cannot be walked one level at a time: this asks for the named ones directly) */
-const NAMED_BELOW = (root: string) => `?item wdt:P171+ wd:${root} . ?item wdt:P1843 ?cnx . FILTER(lang(?cnx) = "en") ${NOT_EXTINCT}`
+export const NAMED_BELOW = (root: string) => `?item wdt:P171+ wd:${root} . ?item wdt:P1843 ?cnx . FILTER(lang(?cnx) = "en") ${NOT_EXTINCT}`
 /**
  * The named taxa below each group, ONE query per group (the banded fetch of newq.ts splits a group of a million taxa into many queries and they time
  * out one after the other). A group that still times out is asked for in two parts, by number of languages.
  */
-const namedBelow = (roots: string[], minSignal: number) => async () => {
+export const namedBelow = (roots: string[], minSignal: number) => async () => {
   const ids = new Set<string>()
   const ask = async (root: string, lo: number, hi: number): Promise<void> => {
     try {
@@ -35,10 +35,10 @@ const namedBelow = (roots: string[], minSignal: number) => async () => {
   return detailsOf([...ids], true, '', undefined, true)
 }
 /** taxon questions: no Latin-only names, no taxonomic synonyms with an author and a year ("Felis mexicana Brass, 1911"), no "sp." entries, and not the question's own subject word */
-const TAXON = (subject: RegExp) => anyOf(latinOnly, nameIs(/, ?\d{4}\b|\bspp?\.|\bsensu\b/i), nameIs(subject))
+export const TAXON = (subject: RegExp) => anyOf(latinOnly, nameIs(/, ?\d{4}\b|\bspp?\.|\bsensu\b/i), nameIs(subject))
 const GAME = '?item wdt:P31/wdt:P279* wd:Q7889 .'
 /** video games on any of these platforms */
-const ON = (...platforms: string[]) => `${GAME} ?item wdt:P400 ?plt . VALUES ?plt { ${platforms.map((p) => 'wd:' + p).join(' ')} }`
+export const ON = (...platforms: string[]) => `${GAME} ?item wdt:P400 ?plt . VALUES ?plt { ${platforms.map((p) => 'wd:' + p).join(' ')} }`
 const GENRE = (g: string) => `${GAME} ?item wdt:P136 wd:${g} .`
 
 export const BATCH: NewQuestion[] = [

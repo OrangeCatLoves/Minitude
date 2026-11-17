@@ -38,7 +38,13 @@ export async function sparql(query: string, tries = 5): Promise<Row[]> {
         continue
       }
       if (!res.ok) throw new Error(`wikidata http ${res.status}: ${(await res.text()).slice(0, 300)}`)
-      const body = (await res.json()) as { results: { bindings: Record<string, { value: string }>[] } }
+      const text = await res.text()
+      let body: { results: { bindings: Record<string, { value: string }>[] } }
+      try { body = JSON.parse(text) } catch (e) {
+        // now and then one label holds a raw control character, which JSON does not allow inside a string: read it as a space instead of failing the whole question
+        if (e instanceof SyntaxError && /control character/i.test(e.message)) body = JSON.parse(text.replace(/[\u0000-\u001f]/g, ' '))
+        else throw e
+      }
       return body.results.bindings.map((b) => Object.fromEntries(Object.entries(b).map(([k, v]) => [k, v.value])))
     } catch (e) {
       last = e

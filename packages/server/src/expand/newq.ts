@@ -129,8 +129,8 @@ export function buildQuestion(q: NewQuestion, input: Candidate[]): Built {
   const fetched = input.map((c) => ({ ...c, aliases: [...c.aliases] }))
   // Wikidata sometimes keeps several common names in ONE value ("hen-of-the-woods; ram's head; sheep's head"): the first is the name, the others are other ways to write it
   for (const c of fetched) {
-    if (!c.name.includes(';')) continue
-    const parts = c.name.split(/\s*;\s*/).filter(Boolean)
+    if (!/;\s/.test(c.name)) continue // a semicolon with no space after it belongs to the title ("Steins;Gate")
+    const parts = c.name.split(/\s*;\s+/).filter(Boolean)
     if (parts.length > 1) { c.aliases = [...new Set([...parts.slice(1), ...c.aliases])].filter((a) => a !== parts[0]); c.name = parts[0] }
   }
   const dropped: Record<string, number> = { 'no usable name': 0, 'generic word': 0, 'skipped by the recipe': 0, 'same name as a better-known one': 0 }
@@ -284,10 +284,13 @@ async function main() {
   const arg = (n: string) => { const i = args.indexOf('--' + n); return i >= 0 ? args[i + 1] : undefined }
   const batchName = arg('batch') ?? 'batch1'
   const out = arg('out') ?? `C:/Users/weibi/minitude/list-build/${batchName}`
-  const only = arg('only')
+  const only = arg('only')?.split(',')
+  const skipIds = arg('skip')?.split(',') ?? []
+  /** assemble from the raw files already fetched; a question with no raw file is left out instead of being fetched */
+  const cachedOnly = args.includes('--cached-only')
   const cached = args.includes('--cached')
   const mod = await import(`./${batchName}`)
-  const defs: NewQuestion[] = (mod.BATCH as NewQuestion[]).filter((d) => !only || d.id === only)
+  const defs: NewQuestion[] = (mod.BATCH as NewQuestion[]).filter((d) => (!only || only.includes(d.id)) && !skipIds.includes(d.id))
   mkdirSync(join(out, 'raw'), { recursive: true })
   const built = new Map<string, Built>()
   for (const d of defs) {
@@ -295,7 +298,8 @@ async function main() {
     const t0 = Date.now()
     try {
       let fetched: Candidate[]
-      if (cached && existsSync(rawFile)) fetched = JSON.parse(readFileSync(rawFile, 'utf8')) as Candidate[]
+      if ((cached || cachedOnly) && existsSync(rawFile)) fetched = JSON.parse(readFileSync(rawFile, 'utf8')) as Candidate[]
+      else if (cachedOnly) continue
       else {
         fetched = d.fetch ? await d.fetch() : await fetchPattern(d.pattern!, !!d.commonNames, d.minSignal ?? 0, d.codeProp, true)
         const byId = new Map<string, Candidate>()
@@ -303,6 +307,8 @@ async function main() {
         fetched = [...byId.values()]
         writeFileSync(rawFile, JSON.stringify(fetched))
       }
+      // a raw file fetched with a lower bar is read again with a higher one (hand-listed answers are added back by buildQuestion if they fall out)
+      if (d.minSignal) fetched = fetched.filter((c) => c.signal >= d.minSignal!)
       if (d.fetch && d.commonNames) await addScientificNames(fetched, join(out, 'scientific-names.json'))
       const b = buildQuestion(d, fetched)
       built.set(d.id, b)
