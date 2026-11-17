@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#070b17" />
+  <meta name="google-adsense-account" content="ca-pub-8003325864730114" />
   <link rel="icon" href="/favicon.ico" sizes="48x48" />
   <link rel="icon" href="/icon.svg" type="image/svg+xml" sizes="any" />
   <link rel="icon" href="/icon-32.png" type="image/png" sizes="32x32" />
@@ -14,11 +15,13 @@
     html, body { margin: 0; height: 100%; background: #070b17; overflow: hidden; }
     /* Room the game gives up for ads while the TITLE SCREEN is up (src/ads.ts writes data-ads="wide" | "small" on <html>; docs/ADS.md).
        Without the attribute all three are 0 and nothing below differs from the page of before. wide = a left and a right ad (160 wide) and a banner
-       under the game (728 x 90); small = one 320 x 50 banner at the very bottom. The gap keeps the game's own buttons a little away from an ad. */
+       under the game (728 x 90); small = one 320 x 50 banner at the very bottom. Every ad is kept 150 px from the game and from the buttons that sit
+       in its corners (Google's guidance for games: at least 150 px between ads and the edge of a game). 318 = 8 (edge) + 160 (ad) + 150; 248 = 8 + 90 + 150; 206 = 6 + 50 + 150.
+       The same numbers are ROOM in src/ads.ts; change them together. */
     :root { --ad-side: 0px; --ad-bottom: 0px; --ad-sb: 0px; }
     html[data-ads] { --ad-sb: env(safe-area-inset-bottom, 0px); }
-    html[data-ads='wide'] { --ad-side: 176px; --ad-bottom: 110px; }
-    html[data-ads='small'] { --ad-bottom: 80px; }
+    html[data-ads='wide'] { --ad-side: 318px; --ad-bottom: 248px; }
+    html[data-ads='small'] { --ad-bottom: 206px; }
     #stage { position: fixed; top: 0; left: var(--ad-side); right: var(--ad-side); bottom: calc(var(--ad-bottom) + var(--ad-sb)); display: grid; place-items: center; }
     html[data-adsfeature] #game { transition: width 0.2s ease-out; }
     /* The game keeps its 16:9 shape and is sized from the part of the screen that is really visible.

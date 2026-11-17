@@ -228,8 +228,8 @@ Tests: the core, timeline and gem tests that pinned 440/439 were rewritten with 
 The owner: money is the priority, no full-screen ads, the audience is everyone (the owner is 24), ads at the front page with a left and a right ad, then asked for the bottom ad as well on large screens and a small banner at the very bottom on small ones, and no ads on the finish screen; and chose "title screen only" over "title and menu screens" and "every screen". Everything is in `docs/ADS.md`.
 
 Choices made without asking (change freely, but tell the owner):
-1. A "large screen" is a window of at least 1200 x 600 (a 1366 x 768 laptop with the browser's bars is about 1366 x 650 and counts). Smaller ones, tablets included, get the small banner.
-2. Sizes: side ads 160 x 600, bottom banner 728 x 90 (large) or 320 x 50 (small); the game is sized to what is left (848 x 477 in the smallest large window, 1088 x 612 on a 1440 x 800 one) and eases back to full size when PLAY is pressed.
+1. (Replaced the same day, see "Ads: 150 px" below.) A "large screen" was first a window of at least 1200 x 600.
+2. Sizes: side ads 160 x 600, bottom banner 728 x 90 (large) or 320 x 50 (small); the game is sized to what is left and eases back to full size when PLAY is pressed.
 3. The ads also go while the gem cabinet is open and when PLAY is pressed (not only when the run starts), so the game never jumps size mid-animation.
 4. The sound and cabinet buttons move right of the left ad when it shows; nothing else was rearranged (the other buttons are drawn inside the game's picture and move with it).
 5. Built as a switched-off draft (`ADS_ENABLED = false`), with a preview (`?adpreview=1`). Nothing was committed or deployed.
@@ -246,3 +246,14 @@ Choices made without asking (change freely, but tell the owner):
 5. The privacy page got a row and a new date; its other promises are unchanged.
 6. The about page says "an independent project, made by Wei Bin" (the owner asked for the name on 17 Nov 2026); the how-to-play page does not mention how answers are judged, names no gem, and does not promise the phone keyboard behaviour (unproven on a real iPhone).
 7. Links to the pages are three small texts at the top right of the title screen (one line from 360 px wide up).
+
+## Ads: the 150 px rule, ads on the text pages, the publisher id (17 November 2026, built, not yet deployed)
+
+The owner, after reading `docs/ADSENSE.md`: "For the layout let's not risk a violation notice. Ads should go on the howtoplay and about pages too." and gave the AdSense publisher id `pub-8003325864730114`.
+
+What it means, and choices made without asking (change freely, but tell the owner):
+1. Every ad on the game page is 150 px from the game (Google's guidance for games; its distance for an Flash-era game, applied to this one). The game therefore gets 318 px less on each side for the side ads and 248 or 206 px less at the bottom, on the title screen only.
+2. The three ads need a game that is still at least 880 px wide: about 1516 px wide windows and up (a 1600 x 900 monitor: yes; a 1440 x 800 laptop: no). Smaller windows get the 320 x 50 banner at the bottom if the game keeps at least 560 px (or its normal width, for a phone). A phone on its side (844 x 390) gets no ad on the game page, because 150 px of gap would leave a game under 330 px wide. Table: `docs/ADS.md`.
+3. The text pages (how to play, about) each have one ad place, between two sections with no links or buttons (at least 100 px from any, checked in a browser); none on the privacy page.
+4. AdSense verification (Phase A) is a meta tag in the head of the four pages and `public/ads.txt`: no script, no cookie, nothing about the privacy page changes. The publisher id is public.
+5. Not committed or deployed until the owner says so.

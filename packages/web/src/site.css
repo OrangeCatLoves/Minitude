@@ -260,3 +260,12 @@ html[data-adpreview] #ads .ad::after { display: grid; place-items: center; heigh
 html[data-adpreview] #ads .ad-left::after, html[data-adpreview] #ads .ad-right::after { content: 'AD 160 x 600'; }
 html[data-adpreview][data-ads='wide'] #ads .ad-bottom::after { content: 'AD 728 x 90'; }
 html[data-adpreview][data-ads='small'] #ads .ad-bottom::after { content: 'AD 320 x 50'; }
+
+/* ------------------------------------------------------------------ the place for an ad on the text pages (how to play, about; docs/ADS.md) */
+/* Hidden unless the ads are switched on (src/docpage.ts). It sits between two sections that have no links or buttons, with plenty of space around it. */
+.doc-ad { margin: 48px 0; text-align: center; }
+.doc-ad[hidden] { display: none; }
+.doc-ad-label { display: block; margin-bottom: 8px; font: 700 9px/1 var(--pixel); letter-spacing: 0.18em; color: var(--faint); text-transform: uppercase; }
+.doc-ad-slot { min-height: 250px; max-width: 728px; margin: 0 auto; }
+html[data-adpreview] .doc-ad-slot { display: grid; place-items: center; border: 1px dashed var(--line-strong); background: rgba(16, 24, 49, 0.6); }
+html[data-adpreview] .doc-ad-slot::after { content: 'AD (responsive, about 300 x 250 up to 728 x 90)'; font: 700 10px/1 var(--pixel); letter-spacing: 0.18em; color: var(--faint); }

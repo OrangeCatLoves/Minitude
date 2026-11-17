@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { GEM_TIER, RUN_LENGTH, TIERS } from '@minitude/core'
+import { ADSENSE_CLIENT } from '../src/ads'
 
 // The plain pages around the game (how to play, about, privacy): they must say what the game really does, point only at pages that exist, and
 // say nothing about how answers are judged (the same rule as the privacy page).
@@ -82,6 +83,38 @@ describe('how people find these pages', () => {
     expect(robots).toContain('Allow: /')
     expect(robots).toContain('Disallow: /api/')
     expect(robots).toContain('Sitemap: https://minitude.io/sitemap.xml')
+  })
+})
+
+describe('the AdSense site verification (docs/ADSENSE.md, Phase A): a tag and a file, no script, no ad', () => {
+  const pages = ['index.html', ...Object.values(PAGES)]
+  it('has the owner\'s publisher id as a meta tag in the head of the game and of every plain page', () => {
+    for (const f of pages) {
+      const html = read(f)
+      const head = /<head>([\s\S]*?)<\/head>/.exec(html)![1]
+      expect(head, f).toContain(`<meta name="google-adsense-account" content="${ADSENSE_CLIENT}" />`)
+    }
+  })
+  it('has the matching ads.txt at the root: one line, the id without "ca-", DIRECT, Google\'s own certification id', () => {
+    expect(read(join('public', 'ads.txt'))).toBe(`google.com, ${ADSENSE_CLIENT.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0\n`)
+  })
+  it('loads nothing from Google yet: no ad script, no outside address in any page', () => {
+    for (const f of pages) {
+      const html = read(f)
+      expect(html, f).not.toMatch(/googlesyndication|doubleclick|adsbygoogle|googletagmanager|google-analytics|fundingchoices/i)
+      expect(html, f).not.toMatch(/<script[^>]+src="https?:/i)
+    }
+  })
+  it('has an ad place on how to play and about, hidden until the ads are switched on, and none on the privacy page', () => {
+    for (const f of ['how-to-play.html', 'about.html']) {
+      const html = read(f)
+      expect(html.match(/<aside class="doc-ad"[^>]* hidden>/g)?.length, f).toBe(1)
+      // the sections on both sides of it have no link of their own right next to it: it is placed in front of a section, after one without links
+      const before = html.slice(0, html.indexOf('<aside class="doc-ad"'))
+      const prevSection = before.slice(before.lastIndexOf('<section'))
+      expect(prevSection, f).not.toMatch(/<a /)
+    }
+    expect(read('privacy.html')).not.toContain('doc-ad')
   })
 })
 

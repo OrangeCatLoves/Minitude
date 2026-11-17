@@ -1,5 +1,13 @@
-/** The small script of the plain pages around the game (how to play, about): the footer, and the contact section when there is an address to show. */
+/**
+ * The small script of the plain pages around the game (how to play, about): the footer, the contact section when there is an address to show,
+ * and the place for an ad (docs/ADS.md): empty and hidden unless the ads are switched on (ADS_ENABLED) or `?adpreview=1` asks to see the box.
+ */
+import { ADS_ENABLED } from './ads'
 import { SITE, buildFooter, footerLinks } from './site'
+
+const preview = new URLSearchParams(location.search).has('adpreview')
+if (preview) document.documentElement.dataset.adpreview = ''
+if (ADS_ENABLED || preview) document.querySelectorAll<HTMLElement>('.doc-ad').forEach((e) => { e.hidden = false })
 
 // the contact section appears only when there is something in it
 const contact = document.getElementById('contact')
