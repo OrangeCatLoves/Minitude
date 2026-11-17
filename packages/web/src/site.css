@@ -244,3 +244,19 @@ button.cab-slot:hover, button.cab-slot:focus-visible, .cab-slot.on { border-colo
   .doc a { color: #111; }
   .doc h1, .doc h2, .doc h3, .doc strong, .doc-lede { color: #000; }
 }
+
+/* ------------------------------------------------------------------ room for ads (src/ads.ts, docs/ADS.md): the title screen only, switched off by default */
+/* The game gives up the room in index.html (data-ads on <html>); these are the slots in that room. Empty and not shown without the attribute. */
+#ads { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+#ads .ad { position: fixed; box-sizing: border-box; display: none; overflow: hidden; pointer-events: auto; }
+html[data-ads='wide'] #ads .ad-left, html[data-ads='wide'] #ads .ad-right { display: block; top: 50%; transform: translateY(-50%); width: 160px; height: min(600px, calc(100vh - 16px)); }
+html[data-ads='wide'] #ads .ad-left { left: 8px; }
+html[data-ads='wide'] #ads .ad-right { right: 8px; }
+html[data-ads='wide'] #ads .ad-bottom { display: block; left: 50%; bottom: 8px; transform: translateX(-50%); width: 728px; height: 90px; }
+html[data-ads='small'] #ads .ad-bottom { display: block; left: 50%; bottom: calc(6px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: 320px; height: 50px; }
+/* the preview (?adpreview=1): empty dashed boxes with their size, to look at the layout. Nothing is loaded. */
+html[data-adpreview] #ads .ad { border: 1px dashed var(--line-strong); background: rgba(16, 24, 49, 0.6); }
+html[data-adpreview] #ads .ad::after { display: grid; place-items: center; height: 100%; color: var(--faint); font: 700 10px/1 var(--pixel); letter-spacing: 0.18em; }
+html[data-adpreview] #ads .ad-left::after, html[data-adpreview] #ads .ad-right::after { content: 'AD 160 x 600'; }
+html[data-adpreview][data-ads='wide'] #ads .ad-bottom::after { content: 'AD 728 x 90'; }
+html[data-adpreview][data-ads='small'] #ads .ad-bottom::after { content: 'AD 320 x 50'; }

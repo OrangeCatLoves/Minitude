@@ -86,6 +86,30 @@ const ok = (c, w, d = '') => { if (!c) bad++; console.log((c ? 'ok       ' : 'PR
   ok(pr.status() === 200 && v2.length === 0, 'the privacy page loads and nothing is refused', v2.join(' | '))
   ok(await p2.evaluate(() => /minitude/i.test(document.title) || document.body.innerText.length > 200), 'the privacy page has its text')
 
+  // the two plain pages (how to play, about): own scripts and styles only, nothing refused
+  for (const name of ['how-to-play', 'about']) {
+    await p2.evaluate(() => { window.__csp.length = 0 })
+    const rr = await p2.goto(BASE + '/' + name)
+    await p2.waitForTimeout(800)
+    const vv = await p2.evaluate(() => window.__csp.slice())
+    ok(rr.status() === 200 && vv.length === 0, `the ${name} page loads and nothing is refused`, vv.join(' | '))
+    ok((await p2.locator('footer.site-foot').count()) === 1, `the ${name} page has its footer (its script ran)`)
+  }
+
+  // the visit count: the game's own call to this site is allowed (connect-src 'self'); a browser that says it is automated sends nothing,
+  // so hide that flag for this one page, wait for the count to go out, and look at what the server answered
+  const p3 = await ctx.newPage()
+  await p3.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', { get: () => false }); window.__csp = []; document.addEventListener('securitypolicyviolation', (e) => window.__csp.push(`${e.violatedDirective} blocked ${e.blockedURI || '(inline)'}`)) })
+  const visitReplies = []
+  p3.on('response', (r) => { if (r.url().endsWith('/api/visit')) visitReplies.push(r.status()) })
+  await p3.goto(BASE + '/')
+  await p3.waitForSelector('#boot', { state: 'hidden', timeout: 60000 })
+  await p3.mouse.click(200, 200)
+  await p3.waitForTimeout(1500)
+  const v3 = await p3.evaluate(() => window.__csp.slice())
+  ok(visitReplies.length === 1 && visitReplies[0] === 200, 'the visit count is sent to this site and the policy lets it through', `replies: ${visitReplies.join(',') || 'none'}`)
+  ok(v3.length === 0, 'the title screen with its three links loads and nothing is refused', v3.join(' | '))
+
   ok(consoleBad.length === 0, 'the browser console reports no policy refusal and no page error', consoleBad.join(' | '))
   await browser.close()
   console.log(bad ? `${bad} PROBLEM(S)` : 'the policy lets the whole game work and blocks everything else')

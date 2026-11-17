@@ -12,20 +12,28 @@
   <meta name="description" content="Answer rare. Shrink far. A pixel-art trivia game about getting very, very small." />
   <style>
     html, body { margin: 0; height: 100%; background: #070b17; overflow: hidden; }
-    #stage { position: fixed; inset: 0; display: grid; place-items: center; }
+    /* Room the game gives up for ads while the TITLE SCREEN is up (src/ads.ts writes data-ads="wide" | "small" on <html>; docs/ADS.md).
+       Without the attribute all three are 0 and nothing below differs from the page of before. wide = a left and a right ad (160 wide) and a banner
+       under the game (728 x 90); small = one 320 x 50 banner at the very bottom. The gap keeps the game's own buttons a little away from an ad. */
+    :root { --ad-side: 0px; --ad-bottom: 0px; --ad-sb: 0px; }
+    html[data-ads] { --ad-sb: env(safe-area-inset-bottom, 0px); }
+    html[data-ads='wide'] { --ad-side: 176px; --ad-bottom: 110px; }
+    html[data-ads='small'] { --ad-bottom: 80px; }
+    #stage { position: fixed; top: 0; left: var(--ad-side); right: var(--ad-side); bottom: calc(var(--ad-bottom) + var(--ad-sb)); display: grid; place-items: center; }
+    html[data-adsfeature] #game { transition: width 0.2s ease-out; }
     /* The game keeps its 16:9 shape and is sized from the part of the screen that is really visible.
        On phones 100vh is the height with the browser's address bar HIDDEN, so while the bar was showing the bottom of the game
        (where the question is) was pushed off the screen, and the page cannot scroll. dvh follows the bar, so the game always fits.
        The safe-area insets keep it clear of a notch when the phone is on its side. Older browsers fall back to vh. */
     #game {
-      --w: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
-      --h: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+      --w: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 2 * var(--ad-side));
+      --h: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - var(--ad-bottom));
       width: min(var(--w), calc(var(--h) * 16 / 9)); aspect-ratio: 16 / 9; display: block; background: #070b17; touch-action: manipulation;
     }
     @supports (height: 100dvh) {
       #game {
-        --w: calc(100dvw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
-        --h: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+        --w: calc(100dvw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 2 * var(--ad-side));
+        --h: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - var(--ad-bottom));
       }
     }
     #answer { position: fixed; left: 50%; bottom: 8px; width: 2px; height: 2px; opacity: 0; border: 0; padding: 0; font-size: 16px; }
@@ -38,11 +46,23 @@
     #cabbtn[hidden] { display: none; }
     #cabbtn:hover, #cabbtn:focus-visible { color: #fff; border-color: #fff; outline: none; }
     #mute:hover, #mute:focus-visible { color: #eef2ff; border-color: #eef2ff; outline: none; }
+    /* with an ad on the left these two buttons stay inside the game's part of the window instead of sitting on the ad */
+    html[data-ads] #mute, html[data-ads] #cabbtn { left: calc(var(--ad-side) + 10px + env(safe-area-inset-left, 0px)); }
     #boot { position: fixed; inset: 0; display: grid; place-items: center; color: #a3b0d6; font: 14px/1.4 monospace; letter-spacing: 0.2em; }
+    /* the plain pages (how to play, about, privacy): three small links at the top right, on the title screen only (html[data-title] is set by src/game.ts) */
+    #pagelinks { position: fixed; z-index: 2; right: calc(var(--ad-side) + 10px + env(safe-area-inset-right, 0px)); top: calc(8px + env(safe-area-inset-top, 0px)); display: none; flex-wrap: wrap; justify-content: flex-end; gap: 4px 14px; max-width: calc(100vw - 130px); font: 700 10px/1 Silkscreen, monospace; letter-spacing: 0.18em; }
+    html[data-title] #pagelinks { display: flex; }
+    #pagelinks a { color: #a3b0d6; text-decoration: none; padding: 5px 0; border-bottom: 1px solid rgba(163,176,214,0.4); }
+    #pagelinks a:hover, #pagelinks a:focus-visible { color: #eef2ff; border-color: #eef2ff; outline: none; }
+    /* on a phone the three links must fit on one line beside the sound button */
+    @media (max-width: 480px) { #pagelinks { font-size: 9px; letter-spacing: 0.12em; gap: 4px 10px; max-width: calc(100vw - 124px); } }
   </style>
 </head>
 <body>
   <div id="stage"><canvas id="game" width="1280" height="720"></canvas></div>
+  <!-- room for ads, on the title screen only (src/ads.ts, styled in src/site.css). Empty and not shown unless the ad layout is on (docs/ADS.md) -->
+  <div id="ads" aria-hidden="true"><div class="ad ad-left"></div><div class="ad ad-right"></div><div class="ad ad-bottom"></div></div>
+  <nav id="pagelinks" aria-label="About this game"><a href="/how-to-play" target="_blank" rel="noopener">HOW TO PLAY</a><a href="/about" target="_blank" rel="noopener">ABOUT</a><a href="/privacy" target="_blank" rel="noopener">PRIVACY</a></nav>
   <input id="answer" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="80" enterkeyhint="send" aria-label="Your answer" />
   <button id="cabbtn" type="button" hidden aria-label="Open your gem cabinet">GEM CABINET</button>
   <button id="mute" type="button" aria-label="Turn sound on or off (M)" title="Sound on/off (M)">SOUND ON</button>

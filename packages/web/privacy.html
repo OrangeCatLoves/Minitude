@@ -24,7 +24,7 @@
   <main class="doc-main" id="top">
     <h1>Privacy and how Minitude works</h1>
     <p class="doc-lede">Minitude is a pixel-art trivia game about getting very, very small. This page explains how the game works, what information it handles and why, and who owns what. We have tried to write it so that it can be read.</p>
-    <p class="doc-updated">Last updated <span id="updated">14 November 2026</span></p>
+    <p class="doc-updated">Last updated <span id="updated">17 November 2026</span></p>
 
     <nav class="doc-toc" aria-label="On this page">
       <b>On this page</b>
@@ -72,7 +72,7 @@
 
     <section id="what-we-store">
       <h2>What we store, and why</h2>
-      <p>There are no accounts. We never ask for your name, email address or location, and the game contains no advertising, no tracking cookies and no third-party analytics. This is what the game does keep on its own servers:</p>
+      <p>There are no accounts. We never ask for your name, email address or location, and the game contains no advertising, no tracking cookies and no third-party analytics. It does count visits, in a way that cannot tell one visitor from another (see “A visit count” below). This is what the game does keep on its own servers:</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>What</th><th>Why</th><th>Is it tied to you?</th></tr></thead>
@@ -89,8 +89,13 @@
             </tr>
             <tr>
               <td><strong>A one-way fingerprint</strong> made from your network address and the date.</td>
-              <td>To limit how many Daily runs, ratings and ideas a single network can send in a day, so the game stays fair. It cannot be turned back into your address, and it changes every day, so it cannot be followed from one day to the next. We do not keep the address itself.</td>
+              <td>To limit how many Daily runs, ratings, ideas and counted visits a single network can send in a day, so the game stays fair. It cannot be turned back into your address, and it changes every day, so it cannot be followed from one day to the next. We do not keep the address itself.</td>
               <td>No.</td>
+            </tr>
+            <tr>
+              <td><strong>A visit count.</strong> Once each time the game is opened and left open for a few seconds, the time zone your browser reports (for example “Asia/Singapore”), added to a total for that day. Nothing else is sent.</td>
+              <td>To learn roughly how many people play and from which part of the world, so that we can decide how to run and grow the game.</td>
+              <td>No. Only a total for each day and time zone is kept: no address, no ID and nothing that says who you are. A visit is not counted at all if the page is closed within a few seconds, and programs that say they are automated are not counted.</td>
             </tr>
             <tr>
               <td><strong>Your rating</strong> (1 to 5) of a run, if you give one.</td>

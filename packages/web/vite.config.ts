@@ -1,12 +1,16 @@
 import { resolve } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 
-/** /privacy is the page privacy.html (the server does the same in production, see packages/server/src/index.ts) */
+/** the plain pages around the game: /privacy is the file privacy.html, and so on (the server does the same in production, see packages/server/src/index.ts) */
+export const PAGES = ['privacy', 'how-to-play', 'about']
+
 const prettyUrls = (): Plugin => ({
   name: 'pretty-urls',
   configureServer(server) {
     server.middlewares.use((req, _res, next) => {
-      if (req.url === '/privacy' || req.url?.startsWith('/privacy?')) req.url = '/privacy.html'
+      for (const p of PAGES) {
+        if (req.url === '/' + p || req.url === '/' + p + '/' || req.url?.startsWith('/' + p + '?')) { req.url = '/' + p + '.html'; break }
+      }
       next()
     })
   },
@@ -23,7 +27,7 @@ export default defineConfig({
     outDir: 'dist',
     target: 'es2022',
     chunkSizeWarningLimit: 800,
-    // two pages: the game and the privacy page
-    rollupOptions: { input: { main: resolve(__dirname, 'index.html'), privacy: resolve(__dirname, 'privacy.html') } },
+    // the game and the plain pages around it (privacy, how to play, about)
+    rollupOptions: { input: { main: resolve(__dirname, 'index.html'), ...Object.fromEntries(PAGES.map((p) => [p, resolve(__dirname, p + '.html')])) } },
   },
 })

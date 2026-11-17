@@ -1,9 +1,11 @@
 import { loadAssets } from './assets'
 import { Game } from './game'
 import { Sfx } from './audio'
+import { ADS_ENABLED, AdFrame } from './ads'
 import { Afterword } from './afterword'
 import { CabinetUi } from './cabinet'
 import { AnswersUi } from './answers'
+import { trackVisit } from './visit'
 import './site.css'
 
 const boot = document.getElementById('boot') as HTMLElement
@@ -38,6 +40,10 @@ async function main(): Promise<void> {
   if (ansEl) game.answers = new AnswersUi(ansEl)
 
   const params = new URLSearchParams(location.search)
+  // the visit count (src/visit.ts, docs/TRAFFIC.md): not in the test modes
+  if (!params.has('manual') && !params.has('debug')) trackVisit()
+  // room for ads on the title screen (src/ads.ts, docs/ADS.md): off unless ADS_ENABLED is true; ?adpreview=1 shows empty dashed boxes to look at the layout (nothing is loaded)
+  if (ADS_ENABLED || params.has('adpreview')) game.ads = new AdFrame(document.documentElement, true, params.has('adpreview'))
   // ?debug=1 lets a test script look inside the running game (the clock keeps running, unlike ?manual=1)
   if (params.has('debug')) (window as unknown as { __mtv: unknown }).__mtv = { game }
   if (params.has('manual')) {

@@ -12,6 +12,7 @@ import { nearForms } from '../expand/lint'
 import { editDistance, normalize, typoBudget } from '../normalize'
 import type { QuestionBank } from '../questions'
 import { parseArgs } from './args'
+import { AREAS_SHOWN, GUIDE_PREMIUM, areaOf, type Area } from '../regions'
 
 export interface CliContext {
   repo: Repo
@@ -59,6 +60,7 @@ const HELP = `Minitude command line
   suggestions list [--status new|used|skipped|all] [--limit 50]   (question ideas players sent from the page under the report; newest first, with the exact time sent in UTC)
   suggestions mark <id> new|used|skipped               (keep track of which ideas you have dealt with)
   ratings                                              (how players rated their runs, 1 to 5)
+  traffic [--days 14]                                  (per day: visits, finished solo runs, Daily players; and where visits come from, by browser time zone; docs/TRAFFIC.md)
 
   db stats
   db backup [folder]                                   (a safe copy of the database file)
@@ -545,6 +547,52 @@ export async function runCli(argv: string[], ctx: CliContext): Promise<number> {
       }
     }
     return bad('unknown suggestions command. Try: help')
+  }
+
+  if (group === 'traffic') {
+    const days = flag('days') ? Number(flag('days')) : 14
+    if (!Number.isInteger(days) || days < 1 || days > 365) return bad('--days must be a whole number from 1 to 365')
+    const to = utcDay(ctx.now())
+    const from = addDays(to, -(days - 1))
+    const visits = repo.visitsBetween(from, to)
+    const solo = new Map(repo.finishedSoloRunsBetween(from, to, RUN_LENGTH).map((r) => [r.day, r.n]))
+    const daily = new Map(repo.dailyPlaysBetween(from, to).map((r) => [r.day, r]))
+    const visitsPerDay = new Map<string, number>()
+    for (const v of visits) visitsPerDay.set(v.day, (visitsPerDay.get(v.day) ?? 0) + v.n)
+    out(`Traffic, ${from} to ${to} (UTC days)`)
+    out('day         visits  solo runs finished  Daily players  Daily finished')
+    let tv = 0, ts = 0, tp = 0, tf = 0
+    for (let d = from; d <= to; d = addDays(d, 1)) {
+      const v = visitsPerDay.get(d) ?? 0, s = solo.get(d) ?? 0, p = daily.get(d)?.started ?? 0, f = daily.get(d)?.finished ?? 0
+      tv += v; ts += s; tp += p; tf += f
+      out(`${d}  ${String(v).padStart(6)}  ${String(s).padStart(18)}  ${String(p).padStart(13)}  ${String(f).padStart(14)}`)
+    }
+    out(`${'total'.padEnd(10)}  ${String(tv).padStart(6)}  ${String(ts).padStart(18)}  ${String(tp).padStart(13)}  ${String(tf).padStart(14)}`)
+    // where the visits came from, by the time zone the browser reported
+    const byZone = new Map<string, number>()
+    const byArea = new Map<string, number>()
+    for (const v of visits) {
+      byZone.set(v.zone, (byZone.get(v.zone) ?? 0) + v.n)
+      const area = areaOf(v.zone)
+      byArea.set(area, (byArea.get(area) ?? 0) + v.n)
+    }
+    if (tv > 0) {
+      out('')
+      out('Where visits came from (by the time zone the browser reported):')
+      for (const area of AREAS_SHOWN) {
+        const n = byArea.get(area) ?? 0
+        if (n) out(`  ${area.padEnd(26)} ${String(n).padStart(6)}  ${((100 * n) / tv).toFixed(1).padStart(5)}%`)
+      }
+      const guide = [...byArea].filter(([a]) => GUIDE_PREMIUM.has(a as Area)).reduce((s, [, n]) => s + n, 0)
+      out(`  The big ad networks pay most for the US, Canada, the UK, Ireland, Australia and New Zealand: ${((100 * guide) / tv).toFixed(1)}% of visits (a guide only: their own lists differ).`)
+      out('  Top time zones: ' + [...byZone].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([z, n]) => `${z} ${n}`).join(', '))
+    } else {
+      out('')
+      out('No visits counted in this period yet.')
+    }
+    out('')
+    out('How to read this: a visit is counted once, after the page has been in view for a few seconds or the visitor has touched it. Crawlers, scripts that say what they are, headless browsers and one network adding hundreds a day are not counted. Programs that pretend to be people can still get in, so treat the numbers as "about", not exact. Runs are only FINISHED ones (all seven questions answered or timed out). Multiplayer matches are not recorded and are not in these numbers.')
+    return 0
   }
 
   if (group === 'ratings') {

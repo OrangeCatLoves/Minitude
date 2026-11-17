@@ -7,6 +7,7 @@ import { ApiError, getDaily, sendAbandon, sendAnswer, sendMiss, sendStart, start
 import { drawLobby, drawStandings, drawVersusPanel, itemAt, lobbyItems, type LobbyItem } from './lobbyui'
 import { VersusClient } from './versus'
 import type { Assets } from './assets'
+import type { AdFrame } from './ads'
 import type { Afterword } from './afterword'
 import type { AnswersUi } from './answers'
 import type { CabinetUi } from './cabinet'
@@ -68,6 +69,8 @@ export class Game {
   cabinet: CabinetUi | null = null
   /** "everything that counted" for the Daily's questions (what is accepted, by rarity); set by main.ts */
   answers: AnswersUi | null = null
+  /** room for ads around the game on the title screen (src/ads.ts); null while the feature is off, so nothing changes; set by main.ts */
+  ads: AdFrame | null = null
 
   private readonly gl: WorldGL
   /** the little movement in the world pictures (src/life) */
@@ -934,7 +937,13 @@ export class Game {
     this.syncAfter()
     // the cabinet button is on the title screen and the report only (not while a question is being answered)
     this.cabinet?.setButtonVisible(this.phase === 'title' || this.phase === 'report')
+    // ads only while the title screen is up with nothing on top of it: not once PLAY is pressed, not in the lobby, not on the report, not over the gem cabinet
+    this.ads?.setOnTitle(this.phase === 'title' && this.pressedAt === null && !this.cabinet?.isOpen)
+    // the links to the plain pages (how to play, about, privacy) show on the title screen only: html[data-title] is what index.html's style looks at
+    const onTitle = this.phase === 'title' && this.pressedAt === null
+    if (onTitle !== this.titleFlag) { this.titleFlag = onTitle; document.documentElement.toggleAttribute('data-title', onTitle) }
   }
+  private titleFlag = false
   private syncAfter(): void {
     const a = this.after
     if (!a) return

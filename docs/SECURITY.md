@@ -14,6 +14,7 @@ One Fly machine (Singapore, fixed size, never scaled automatically) serves the g
 | Daily | `GET /api/daily`, `POST /api/daily/start`, `GET /api/daily/answers...` | a guest id; 10 runs a network a day; the answer lists only for the guest who finished that Daily |
 | Multiplayer | `/api/versus/...` (plain calls and one event stream per player) | a guest id; 300 requests a minute per network; at most 100 rooms |
 | Forms | `POST /api/rating`, `/api/suggest` | validated, 20 calls a minute, a daily cap per network, a hidden trap field, no links, at most 5,000 unread ideas |
+| Visit count | `POST /api/visit` | stores only a total per day and time zone (no address, no id), 20 calls a minute shared with the forms, 8 KB body, the time zone must be a real one, crawlers, scripts and loopback are not counted, 300 counted visits a day per network (`docs/TRAFFIC.md`) |
 | Read only | `/api/health`, `/api/gems` (counts only), `/api/rank` | nothing secret in them |
 
 Everything else is static files (the built game) or the game's front page. A "network" is an IPv4 address or an IPv6 /64.
@@ -61,6 +62,7 @@ Set a setting in `fly.toml` under `[env]` and run `fly deploy --ha=false` (a dep
 | Free disk below which new solo runs stop / new Dailies stop / the backup is skipped | 150 MB / 40 MB / 60 MB spare | `src/diskguard.ts` | when the volume is bigger, or if they trip too early |
 | Solo runs left half way are deleted after / empty runs after | 6 h / 24 h | `ABANDONED_RUN_MS`, `EMPTY_RUN_MS` in `index.ts` | rarely |
 | Daily backups kept / hand-made backups kept | 3 / 2 | `BACKUP_KEEP`, `KEEP_MANUAL` | the volume grows |
+| Counted visits a day, one network | 300 | `VISITS_PER_NETWORK_PER_DAY` in `siteRoutes.ts` | a big school or an office makes the count look too low |
 
 What the real ceiling is: the one machine's processor. A wrong or misspelled answer takes up to about 35 ms of it on the biggest list; correct answers take a few milliseconds. My estimate (not measured under load) is a few hundred players at the same moment before it slows down. The cure is a bigger machine (`fly scale vm`, `fly scale memory`), not a code change. A real player's runs also store their typed answers, probably a few KB a run, so the disk fills with real players too: at that point extend the volume ($0.15 a GB a month) and decide how long finished runs are kept.
 

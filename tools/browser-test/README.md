@@ -16,6 +16,8 @@ node daily.cjs             # the Daily Challenge (uses new guests; best run agai
 node realtime.cjs
 node audio-levels.cjs 5,5,5,5,5,5,5
 node focus.cjs             # typing still works after Tab, clicks elsewhere, the sound button, switching tabs (submits nothing)
+node pages.cjs             # the how-to-play, about and privacy pages, the three links on the title screen, and the visit count (docs/TRAFFIC.md; MINITUDE_URL=http://localhost:5173 if 127.0.0.1 is refused)
+node ads.cjs               # the ad layout on the title screen (docs/ADS.md): three ads on a laptop, one banner on a phone, none after PLAY; pictures in out/ads-*.png (needs the dev server; MINITUDE_URL=http://localhost:5173 if 127.0.0.1 is refused)
 node keyboard.cjs          # a phone's on-screen keyboard (FAKED): the answer box and the lobby field rise above it and come back, taps on raised YES / NO work; pictures in out/keyboard-*.png (submits nothing). Needs MINITUDE_URL=http://localhost:5173 on Windows (Vite listens on IPv6 there)
 node home.cjs              # the HOME button on every report (plays a solo run, today's Daily and "today's result"; answers nothing)
 node afterword.cjs         # the page under the report: logbook, rating, idea box, footer, scrolling, a swipe over a button, a phone size (docs/SITE.md; use a throw-away database)

@@ -547,6 +547,29 @@ export class Repo {
     return this.st('UPDATE suggestions SET status = ? WHERE id = ?').run(status, id).changes > 0
   }
 
+  // ---------------------------------------------------------------- traffic (docs/TRAFFIC.md): totals only, nothing that identifies anybody
+  /** one more visit on this UTC day from this browser time zone */
+  addVisit(day: string, zone: string): void {
+    this.st('INSERT INTO visits (day, zone, n) VALUES (?,?,1) ON CONFLICT(day, zone) DO UPDATE SET n = n + 1').run(day, zone)
+  }
+  /** visits per day and time zone, from `from` to `to` (both 'YYYY-MM-DD', both included) */
+  visitsBetween(from: string, to: string): { day: string; zone: string; n: number }[] {
+    return this.st('SELECT day, zone, n FROM visits WHERE day BETWEEN ? AND ? ORDER BY day, n DESC').all(from, to) as { day: string; zone: string; n: number }[]
+  }
+  /** solo runs that were finished (every one of the `runLength` questions answered or missed), per UTC day of their start */
+  finishedSoloRunsBetween(from: string, to: string, runLength: number): { day: string; n: number }[] {
+    return this.st(`SELECT strftime('%Y-%m-%d', r.created_at / 1000, 'unixepoch') AS day, COUNT(*) AS n
+      FROM runs r
+      WHERE r.mode = 'solo' AND strftime('%Y-%m-%d', r.created_at / 1000, 'unixepoch') BETWEEN ? AND ?
+        AND (SELECT COUNT(*) FROM run_questions q WHERE q.run_id = r.id AND q.result IS NOT NULL) >= ?
+      GROUP BY day ORDER BY day`).all(from, to, runLength) as { day: string; n: number }[]
+  }
+  /** Daily attempts per day: started, and finished (one row per browser per day, so "started" is also the number of Daily players) */
+  dailyPlaysBetween(from: string, to: string): { day: string; started: number; finished: number }[] {
+    return this.st(`SELECT day, COUNT(*) AS started, SUM(CASE WHEN finished_at IS NOT NULL THEN 1 ELSE 0 END) AS finished
+      FROM daily_plays WHERE day BETWEEN ? AND ? GROUP BY day ORDER BY day`).all(from, to) as { day: string; started: number; finished: number }[]
+  }
+
   stats(): Record<string, number> {
     const n = (sql: string) => (this.st(sql).get() as Row).n as number
     return {

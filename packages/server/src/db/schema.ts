@@ -189,4 +189,14 @@ export const MIGRATIONS: string[] = [
     FOREIGN KEY (question_id, answer_norm) REFERENCES answers(question_id, norm) ON DELETE CASCADE
   );
   `,
+  // 5: a count of visits, for the owner to see how many people open the game and from which part of the world (docs/TRAFFIC.md).
+  //    Only a total per day and browser time zone: no address, no fingerprint, no guest id, nothing that could identify anybody.
+  `
+  CREATE TABLE visits (
+    day  TEXT NOT NULL,                 -- 'YYYY-MM-DD' (UTC)
+    zone TEXT NOT NULL,                 -- an IANA time zone the browser reported ('Asia/Singapore'), 'other' or 'unknown'
+    n    INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, zone)
+  );
+  `,
 ]

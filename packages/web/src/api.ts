@@ -95,6 +95,8 @@ export const sendRating = (score: number, runId: string | null): Promise<{ ok: b
   call('/api/rating', runId ? { runId, score } : { mode: 'versus', score }, 10000)
 /** "got an idea for a question?": one line of text. `website` is a field people cannot see; it stays empty. */
 export const sendIdea = (text: string, website = ''): Promise<{ ok: boolean }> => call('/api/suggest', { text, website }, 10000)
+/** the visit count (src/visit.ts): the browser's time zone, nothing else */
+export const sendVisit = (tz: string): Promise<{ ok: boolean }> => call('/api/visit', { tz }, 10000)
 export const sendMiss = (runId: string, index: number): Promise<unknown> =>
   call(`/api/run/${encodeURIComponent(runId)}/miss`, { index }, 8000)
 

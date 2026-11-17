@@ -7,6 +7,7 @@ import type { Context, Hono } from 'hono'
 import { utcDay } from '@minitude/core'
 import { ipFingerprint, isLoopback } from './clientip'
 import type { Repo } from './db/repo'
+import { cleanZone } from './regions'
 
 export interface SiteRouteDeps {
   repo: Repo
@@ -18,7 +19,14 @@ export interface SiteRouteDeps {
   ratingsPerDay?: number
   /** unread ideas the database will hold before it asks people to come back later */
   maxUnread?: number
+  /** visits one network may add to the count per day (0 = no limit); generous, because a school or an office shares one address */
+  visitsPerNetworkPerDay?: number
 }
+
+export const VISITS_PER_NETWORK_PER_DAY = 300
+
+/** programs that say what they are in their user agent: search crawlers, link previews, scripts, monitors, headless browsers. People are not them. */
+const NOT_A_PERSON = /bot\b|crawl|spider|slurp|facebookexternalhit|preview|headless|phantom|lighthouse|pingdom|uptime|monitor|python|curl\/|wget|java\/|go-http|okhttp|axios|node-fetch|libwww|scrapy|httpclient|postman|insomnia/i
 
 export const IDEA_MIN = 5
 export const IDEA_MAX = 140
@@ -110,6 +118,31 @@ export function mountSite(app: Hono, d: SiteRouteDeps): void {
     if (repo.hasSuggestion(text)) return c.json({ ok: true }) // already have it: no need to say so
     if (repo.countSuggestions('new') >= maxUnread) return fail(c, 503, 'We are catching up on ideas. Please try again in a few days.', 'busy')
     repo.addSuggestion({ text, day, ipHash: fp, at: t })
+    return c.json({ ok: true })
+  })
+
+  // The visit count (docs/TRAFFIC.md). The game calls this once per visit, after the page has been in view for a few seconds or the visitor has
+  // touched it. Only a total per day and time zone is kept. The reply is always the same, so a program learns nothing about whether it was counted.
+  const visitsPerNetwork = d.visitsPerNetworkPerDay ?? VISITS_PER_NETWORK_PER_DAY
+  let countDay = ''
+  let perNetwork = new Map<string, number>()
+  app.post('/api/visit', async (c) => {
+    const ip = d.clientIp(c)
+    if (limited(ip)) return fail(c, 429, 'Too many requests. Slow down.', 'rate')
+    const b = await body(c)
+    if (!b) return fail(c, 400, 'Bad request.', 'bad')
+    const t = d.now()
+    const day = utcDay(t)
+    const ua = c.req.header('user-agent') ?? ''
+    // not counted, quietly: no user agent, a program that says it is one, or the developer's own machine
+    if (!ua || NOT_A_PERSON.test(ua) || isLoopback(ip)) return c.json({ ok: true })
+    // not counted once a network has added a lot today (one script on one address cannot inflate the numbers)
+    if (day !== countDay) { countDay = day; perNetwork = new Map() }
+    const fp = ipFingerprint(day, ip)
+    const used = perNetwork.get(fp) ?? 0
+    if (visitsPerNetwork > 0 && used >= visitsPerNetwork) return c.json({ ok: true })
+    perNetwork.set(fp, used + 1)
+    repo.addVisit(day, cleanZone(b.tz))
     return c.json({ ok: true })
   })
 }
