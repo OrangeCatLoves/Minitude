@@ -39,7 +39,7 @@ Distinguish confirmed requirements from proposed implementation defaults through
 | Formats | Shared Daily Challenge, Unlimited Solo, and Competitive Multiplayer are all desired. |
 | Question categories | The 11 categories in section 4 are approved. |
 | Visual direction | SMALL WONDER: a shrinking expedition through hidden worlds. |
-| Art style | Pixel art, inspired by Krillion but with original art and interface. |
+| Art style | Pixel art, with original art and interface. |
 | Starting point | The player starts as a person (about 1.7 m) and shrinks through many magnitudes. |
 | Rarity tiers | Six tiers worth 10, 20, 40, 60, 80 and 100 points. The lowest is named Common. Names for the other five are proposals (section 7). |
 | Initial LLM budget | Test a genuinely free API tier first. Do not silently enable paid usage. |
@@ -47,18 +47,9 @@ Distinguish confirmed requirements from proposed implementation defaults through
 
 ## 3. Inspiration and differentiation
 
-Reference projects supplied by the user:
-
-- [Krillion](https://krillion.io/)
-- [Scallion](https://scallion.anselmlong.com/)
-
 Retain the short open-answer loop and the pleasure of recalling an unusual correct answer. Give this project its own art, interface, content, scoring implementation, and identity.
 
-Krillion's official FAQ describes assembling answer sets from datasets and reference sources. It describes rarity assessment using familiarity data for some prompts and LLM assistance plus a manual pass for others. It also says its highest-tier answer can be chosen partly for its satisfying discovery value. These are reference observations, not access to Krillion's private scoring algorithm.
-
 For this project, a special decorative discovery should not secretly override the published rarity scoring rule.
-
-Research limitation: Krillion's official text pages were accessible during planning. Scallion could not be inspected directly in that browsing environment. Do not invent details about Scallion or imply that both games were fully playtested.
 
 ## 4. Approved question categories
 
@@ -152,7 +143,7 @@ A polished layered 2D implementation is a reasonable first option; evaluate WebG
 
 ### Confirmed visual choices
 
-- Pixel-art style. Take inspiration from Krillion's look but draw original art.
+- Pixel-art style, with original art.
 - The player starts as a person, about 1.7 m tall, standing in an ordinary room.
 - The player is drawn at the same size in every world. The world grows around them, so the scale is always clear.
 
@@ -347,11 +338,11 @@ The player asked for a plain scale bar instead of a ruler, and for far more worl
 
 ### Request of 28 October 2026: remove fun facts entirely, and make the whole UI minimal (designs only, pending the player's critique)
 
-The player said the UI looks cluttered and messy, asked for **the fun-facts component to be removed entirely from the UI**, and asked for a minimal look like Krillion.io. They asked for before/after designs to critique, not a walkthrough video.
+The player said the UI looks cluttered and messy, asked for **the fun-facts component to be removed entirely from the UI**, and asked for a minimal look. They asked for before/after designs to critique, not a walkthrough video.
 
 **Decided by the player (binding):**
 - No fun facts, field notes, "FIELD NOTE" panels, field guide, fact-check page, "INVENTED WORLD · ART ONLY" labels or the 8-second field note after the last landing. This replaces the "Scale bars and fun facts" notes above wherever they describe UI. The sourced-facts work is kept in the record only as research; none of it appears in the game.
-- Direction: minimal, Krillion-style. Krillion.io could not be opened from the build environment (blocked), so the direction was taken from the player's description, not from looking at the site. Ask the player for screenshots of the parts they like.
+- Direction: minimal, taken from the player's description. Ask the player for screenshots of the parts they like.
 
 **Proposed minimal UI (designs delivered as 9 before/after sheets of all 18 screen states of a run, plus 2 sheets showing all 36 worlds; NOT yet approved, NOT yet in the video; the video v4 is still the spec until the player approves):**
 - Rules: no boxes, panels or chips; one text style per level; colour is used only for the rarity tier; every text sits on a soft fade, not on a card; the scene stays the hero.
@@ -618,9 +609,6 @@ Do not claim the current document establishes final model accuracy, exhaustive a
 
 Planning references; recheck time-sensitive provider details before building.
 
-- [Krillion](https://krillion.io/)
-- [Scallion](https://scallion.anselmlong.com/) — supplied inspiration; direct inspection was unavailable during planning.
-- [Krillion FAQ: answer curation and rarity](https://krillion.io/faq)
 - [Gemini API pricing](https://ai.google.dev/gemini-api/docs/pricing)
 - [Gemini API rate limits](https://ai.google.dev/gemini-api/docs/rate-limits)
 - [Gemini 3.8 Flash model documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash)

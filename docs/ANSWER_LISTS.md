@@ -9,7 +9,7 @@ The live game accepts an answer only if it is on the question's list (see `docs/
 
 ## The loop that makes the lists better
 1. `npm run cli -- answers unknown` shows what players typed that was not found, most often first. If it is valid: `answers add <question-id> "<name>" <0-5> --alias "..."`, or `answers alias <question-id> <answer> "<other way to write it>"`.
-2. `npm run cli -- answers lint` lists pairs of different answers that are one slip apart. A pair is a warning: a typo near both would be ambiguous, and an alias one letter off an unrelated phrase is how odd corrections happen (krillion's FAQ admits this happens to them).
+2. `npm run cli -- answers lint` lists pairs of different answers that are one slip apart. A pair is a warning: a typo near both would be ambiguous, and an alias one letter off an unrelated phrase is how odd corrections happen.
 3. `npm run cli -- answers list <question-id> --source wikidata` (or `--source curated`) shows what the builders added, to vet.
 
 ## Growing the lists in bulk (offline, uses the internet only for Wikidata)

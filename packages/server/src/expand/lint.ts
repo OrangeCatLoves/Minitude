@@ -2,7 +2,7 @@ import { editDistance, looseKey, typoBudget } from '../normalize'
 
 /**
  * Two written forms that mean DIFFERENT answers but sit within a slip of each other. Those are where "weird matches" come from:
- * krillion's FAQ admits that an alias one letter off an unrelated phrase ("sea donkey" / "sea monkey") can turn a guess into
+ * an alias one letter off an unrelated phrase ("sea donkey" / "sea monkey") can turn a guess into
  * something the player did not expect. Here the player is always asked before a slip counts, but a close pair still makes a
  * correction ambiguous (two answers fit), so it is worth a look.
  */

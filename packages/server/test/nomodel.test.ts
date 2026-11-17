@@ -7,7 +7,7 @@ import { editDistance, looseKey, normalize, typoBudget } from '../src/normalize'
 const here = dirname(fileURLToPath(import.meta.url))
 const read = (rel: string) => readFileSync(join(here, '..', rel), 'utf8')
 
-describe('the live game never calls a language model (decided: answer lists built ahead of time, like Krillion)', () => {
+describe('the live game never calls a language model (decided: answer lists built ahead of time)', () => {
   it('the server start-up code does not import or build any model client', () => {
     const src = read('src/index.ts')
     expect(src).not.toMatch(/llm\//i)
