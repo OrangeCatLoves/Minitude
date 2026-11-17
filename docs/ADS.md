@@ -30,14 +30,14 @@ On the title screen the game gets smaller to make room: on a 1440 x 800 window f
 2. **The ad code itself** goes into the three slots (160 x 600, 728 x 90, 320 x 50), from the network. None is in the game.
 3. **The privacy page** (it already carries the visit-count row; ads are a bigger change) (`packages/web/privacy.html`) says no cookies, no analytics, no third-party scripts: it must be rewritten and re-dated in the same change (CLAUDE.md "Keep the privacy page true"). `private.test.ts` and `site.test.ts` guard parts of it.
 4. **A consent banner** for visitors in the EEA, the UK and Switzerland (the networks require a certified one), shown before the title screen loads ads; and the child-related settings, because the audience is everyone.
-5. **The security policy** (`packages/server/src/securityHeaders.ts`) allows only the site's own address; the network's hosts must be added on purpose, with `tools/browser-test/csp.cjs` passing (this weakens the policy built on 16 Nov).
+5. **The security policy** (`packages/server/src/securityHeaders.ts`) allows only the site's own address. Google does NOT support a list of its hosts: it supports only a strict policy with a fresh nonce in the page's HTML on every request, and says nothing about pictures and frames, so those would have to be loosened on the game page (details in `docs/ADSENSE.md`, section 3), with `tools/browser-test/csp.cjs` passing. This weakens the policy built on 16 Nov, a little.
 6. **`ads.txt`** at the site root, if the network asks for it.
 7. **Accidental clicks.** Google's guidance for games is to keep ad units about 150 px away from the game's controls. The layout leaves 12 to 24 px between the game's picture and an ad. On a laptop the title screen's buttons are well over 100 px from the bottom banner; on a phone on its side they are closer. Raise it with the network before applying (Mediavine's rules differ from AdSense's).
 8. **Real phones.** Tested only in a headless desktop browser. Also test the page weight and the speed of the world pictures with the ad scripts loaded.
 
 ## Content around the game (built 17 Nov 2026)
 
-AdSense wants real content around a game (the game itself is a picture). `/how-to-play` and `/about` exist now, linked from the title screen, listed in `sitemap.xml` (see `docs/SITE.md`). The owner plans to apply to Google AdSense early; applying also needs the ad code, the privacy page, a consent banner and the security policy (list above). Traffic is counted with `npm run cli -- traffic` (`docs/TRAFFIC.md`).
+AdSense wants real content around a game (the game itself is a picture). `/how-to-play` and `/about` exist now, linked from the title screen, listed in `sitemap.xml` (see `docs/SITE.md`). The owner plans to apply to Google AdSense early. **What Google asks, the policy risks of this layout, and the plan are in `docs/ADSENSE.md`.** Applying does not need the ad code, the consent banner or a changed security policy (the site can be verified with a meta tag or an `ads.txt` line, which load no script); showing ads does (list above). Traffic is counted with `npm run cli -- traffic` (`docs/TRAFFIC.md`).
 
 ## Rules for whoever changes this
 
