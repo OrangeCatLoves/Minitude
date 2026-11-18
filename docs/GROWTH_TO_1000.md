@@ -1,6 +1,6 @@
 # Growing from 500 to 1,000 questions (planning note, 18 Nov 2026)
 
-The owner asked on 18 Nov 2026 to go from 500 to 1,000 questions and for suggestions on the other numbers that follow. This is a plan, not a decision: nothing in it has been done except where it says so.
+The owner asked on 18 Nov 2026 to go from 500 to 1,000 questions and for suggestions on the other numbers that follow. The owner agreed on 18 Nov 2026 (after reading this): go to 750 first, then decide on the last 250 ("750 first then 1000 is fine"), and extend the disk to 3 GB if needed. **Done so far: the Fly volume was extended from 1 GB to 3 GB on 18 Nov 2026 (`fly volumes extend vol_rnzx33p6n0nqp01r -s 3`, no restart; `df` then showed 2,990 MB with 517 MB used and 2,326 MB free; the extra 2 GB costs about $0.30 a month at $0.15 per GB-month, the first 10 GB of snapshots stay free). The next 250 questions were drafted the same night (see `docs/ANSWER_LISTS.md`, Batches 14 to 22).**
 
 ## Where we are (18 Nov 2026)
 
