@@ -340,6 +340,18 @@ export class VersusHub {
     return this.view(room, seat.seat)
   }
 
+  /**
+   * Question `index` of a match that is OVER, for a player who is in the room ("everything that counted" on the final screen). Before the match
+   * is over nothing is given: the answers would help the players who are still answering.
+   */
+  finishedQuestion(guest: string, codeRaw: string, index: number): QuestionHead {
+    const { room } = this.seatOf(guest, codeRaw)
+    if (room.status !== 'finished') throw new VersusError('The match is not over.', 409, 'not_over')
+    const q = room.questions[index]
+    if (!q) throw new VersusError('Unknown question.', 404, 'question')
+    return q
+  }
+
   /** the host takes everybody back to the room after a match */
   rematch(guest: string, codeRaw: string): VRoom {
     const { room, seat } = this.seatOf(guest, codeRaw)

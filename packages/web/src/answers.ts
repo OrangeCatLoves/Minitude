@@ -6,7 +6,7 @@
  * `/api/daily/answers` in packages/server/src/app.ts), so nothing here is available before the end.
  */
 import { GEM_TIER, TIERS, type AnswerListItem, type AnswersSummary } from '@minitude/core'
-import { ApiError, getDailyAnswerList, getDailyAnswers } from './api'
+import { ApiError, getAnswerList, getAnswers, type AnswersSource } from './api'
 
 const PAGE = 100
 
@@ -39,7 +39,7 @@ interface Group {
 }
 
 export class AnswersUi {
-  private day = ''
+  private src: AnswersSource = { kind: 'daily', day: '' }
   private index = 0
   private own: OwnAnswer | null = null
   private summary: AnswersSummary | null = null
@@ -56,16 +56,17 @@ export class AnswersUi {
   private results: HTMLElement | null = null
 
   constructor(private readonly root: HTMLElement) {
-    this.root.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.close() } })
+    // Esc closes the screen wherever the keyboard focus is: the screen is rebuilt when its numbers arrive, which drops the focus from the close button
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !this.root.hidden) { e.preventDefault(); e.stopPropagation(); this.close() } }, true)
     this.root.addEventListener('click', (e) => { if (e.target === this.root) this.close() })
   }
 
   get isOpen(): boolean { return !this.root.hidden }
 
-  /** open the screen for question `index` (0 to 6) of the Daily of `day` */
-  open(day: string, index: number, own: OwnAnswer | null): void {
+  /** open the screen for question `index` (0 to 6) of a finished Daily, solo run or multiplayer match */
+  open(src: AnswersSource, index: number, own: OwnAnswer | null): void {
     this.seq++
-    this.day = day
+    this.src = src
     this.index = index
     this.own = own
     this.summary = null
@@ -92,7 +93,7 @@ export class AnswersUi {
   private async loadSummary(): Promise<void> {
     const my = this.seq
     try {
-      const s = await getDailyAnswers(this.day, this.index)
+      const s = await getAnswers(this.src, this.index)
       if (my !== this.seq) return
       this.summary = s
       this.error = ''
@@ -100,7 +101,7 @@ export class AnswersUi {
       if (s.gem) { this.expanded.add(GEM_TIER); this.groups.set(GEM_TIER, { items: [{ name: s.gem.name, tier: GEM_TIER }], total: 1, loading: false, failed: false }) }
     } catch (e) {
       if (my !== this.seq) return
-      this.error = e instanceof ApiError && e.code === 'not_finished' ? 'Finish the Daily first.' : "Couldn't load this. Check your connection and try again."
+      this.error = e instanceof ApiError && (e.code === 'not_finished' || e.code === 'not_over') ? 'Not available until the game is over.' : "Couldn't load this. Check your connection and try again."
     }
     this.build()
   }
@@ -112,7 +113,7 @@ export class AnswersUi {
     this.groups.set(tier, g)
     this.paint()
     try {
-      const page = await getDailyAnswerList(this.day, this.index, { tier, offset: g.items.length, limit: PAGE })
+      const page = await getAnswerList(this.src, this.index, { tier, offset: g.items.length, limit: PAGE })
       if (my !== this.seq) return
       g.items = g.items.concat(page.items)
       g.total = page.total
@@ -135,7 +136,7 @@ export class AnswersUi {
     this.found = g
     this.paint()
     try {
-      const page = await getDailyAnswerList(this.day, this.index, { q: text, offset: g.items.length, limit: PAGE })
+      const page = await getAnswerList(this.src, this.index, { q: text, offset: g.items.length, limit: PAGE })
       if (my !== this.seq || text !== this.search) return
       g.items = g.items.concat(page.items)
       g.total = page.total

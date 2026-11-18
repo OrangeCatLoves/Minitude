@@ -71,17 +71,28 @@ export const startRun = (): Promise<StartRunResponse> => call('/api/run', {})
 /** how many gems each category holds (counts only: no questions, no answers) */
 export const getGemSummary = (): Promise<GemSummary> => call('/api/gems', undefined, 8000)
 export const getDaily = (): Promise<DailyState> => call('/api/daily', undefined, 8000, guestHeader())
-/** after finishing a Daily: how many accepted answers each rarity holds for question `index`, and its gem */
-export const getDailyAnswers = (day: string, index: number): Promise<AnswersSummary> =>
-  call(`/api/daily/answers?day=${encodeURIComponent(day)}&index=${index}`, undefined, 10000, guestHeader())
+/**
+ * Where "everything that counted" comes from: the Daily the player finished (by its day), a finished solo run (by its run id) or a finished
+ * multiplayer match the player is in (by its room code). The server gives nothing before the run or the match is over.
+ */
+export type AnswersSource = { kind: 'daily'; day: string } | { kind: 'solo'; runId: string } | { kind: 'room'; code: string }
+const answersBase = (src: AnswersSource, index: number): { path: string; qs: URLSearchParams } =>
+  src.kind === 'daily' ? { path: '/api/daily/answers', qs: new URLSearchParams({ day: src.day, index: String(index) }) }
+  : src.kind === 'solo' ? { path: `/api/run/${encodeURIComponent(src.runId)}/answers`, qs: new URLSearchParams({ index: String(index) }) }
+  : { path: `/api/versus/${encodeURIComponent(src.code)}/answers`, qs: new URLSearchParams({ index: String(index) }) }
+/** after the run is over: how many accepted answers each rarity holds for question `index`, and its gem */
+export const getAnswers = (src: AnswersSource, index: number): Promise<AnswersSummary> => {
+  const { path, qs } = answersBase(src, index)
+  return call(`${path}?${qs.toString()}`, undefined, 10000, guestHeader())
+}
 /** a page of the accepted answers of that question: one rarity (`tier`) or a search (`q`), A to Z */
-export const getDailyAnswerList = (day: string, index: number, p: { tier?: number; q?: string; offset?: number; limit?: number }): Promise<AnswerListPage> => {
-  const qs = new URLSearchParams({ day, index: String(index) })
+export const getAnswerList = (src: AnswersSource, index: number, p: { tier?: number; q?: string; offset?: number; limit?: number }): Promise<AnswerListPage> => {
+  const { path, qs } = answersBase(src, index)
   if (p.tier !== undefined) qs.set('tier', String(p.tier))
   if (p.q) qs.set('q', p.q)
   if (p.offset) qs.set('offset', String(p.offset))
   if (p.limit) qs.set('limit', String(p.limit))
-  return call(`/api/daily/answers/list?${qs.toString()}`, undefined, 15000, guestHeader())
+  return call(`${path}/list?${qs.toString()}`, undefined, 15000, guestHeader())
 }
 export const startDaily = (): Promise<StartRunResponse> => call('/api/daily/start', {}, 20000, guestHeader())
 /** tells the server that question `index` is on screen: its clock starts now, and the prompt comes back in the reply */

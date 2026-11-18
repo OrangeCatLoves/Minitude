@@ -12,7 +12,7 @@ import { tidyTyped } from './sanitize'
 import { normalize } from './normalize'
 import { ensureDailySet, epochDay } from './daily'
 import { POLICY_VERSION, runTotal, type DailyPlayRow, type Repo, type RunQuestionRow } from './db/repo'
-import { VersusHub } from './versus'
+import { VersusError, VersusHub } from './versus'
 import { mountVersus } from './versusRoutes'
 import { mountSite } from './siteRoutes'
 
@@ -258,29 +258,22 @@ export function createApp(deps: AppDeps) {
   }
 
   /** how many accepted answers each rarity holds for the question, and its gem */
-  app.get('/api/daily/answers', (c) => {
-    const found = finishedDailyQuestion(c)
-    if ('err' in found) return found.err
-    const q = found.q
+  const answersSummary = (q: QuestionHead): AnswersSummary => {
     const counts = repo.answerTierCounts(q.id)
     const gem = repo.gemOf(q.id)
     const gemRow = gem ? repo.getAnswer(q.id, gem.answerNorm) : undefined
     if (gemRow) counts[gemRow.tier] = Math.max(0, counts[gemRow.tier] - 1)   // the gem is counted under SINGULARITY, not under its stored rarity
     const tiers = [...counts, gemRow ? 1 : 0].map((count, tier) => ({ tier, count }))
-    const body: AnswersSummary = {
+    return {
       question: { id: q.id, category: q.category, prompt: q.prompt },
       total: tiers.reduce((a, t) => a + t.count, 0),
       tiers,
       gem: gemRow ? { name: gemRow.name, description: gem?.description ?? gemRow.description ?? '' } : null,
     }
-    return c.json(body)
-  })
+  }
 
   /** a page of the accepted answers: one rarity (`tier`), or a search across all of them (`q`); A to Z, 100 at a time */
-  app.get('/api/daily/answers/list', (c) => {
-    const found = finishedDailyQuestion(c)
-    if ('err' in found) return found.err
-    const q = found.q
+  const answersPage = (c: Context, q: QuestionHead): Response => {
     const tierText = c.req.query('tier')
     const tier = tierText === undefined || tierText === '' ? null : Number(tierText)
     const text = (c.req.query('q') ?? '').trim()
@@ -302,6 +295,41 @@ export function createApp(deps: AppDeps) {
       page = { total, offset, items }
     }
     return c.json(page)
+  }
+
+  app.get('/api/daily/answers', (c) => {
+    const found = finishedDailyQuestion(c)
+    if ('err' in found) return found.err
+    return c.json(answersSummary(found.q))
+  })
+  app.get('/api/daily/answers/list', (c) => {
+    const found = finishedDailyQuestion(c)
+    if ('err' in found) return found.err
+    return answersPage(c, found.q)
+  })
+
+  // The same two screens for a SOLO run (14 Nov 2026 for the Daily, 18 Nov 2026 for solo and multiplayer: the owner asked). The run id is a random
+  // UUID that only the browser that played holds, and nothing is given before every question of the run has a result.
+  const finishedSoloQuestion = (c: Context): { q: RunQuestionRow } | { err: Response } => {
+    if (limited(clientIp(c))) return { err: fail(c, 429, 'Too many requests. Slow down.', 'rate') }
+    const index = Number(c.req.query('index'))
+    if (!Number.isInteger(index) || index < 0 || index >= RUN_LENGTH) return { err: fail(c, 400, 'Bad request.') }
+    const run = repo.getRun(c.req.param('id') ?? '')
+    if (!run || run.mode !== 'solo') return { err: fail(c, 404, 'Unknown run.') }
+    if (run.questions.some((q) => !q.result)) return { err: fail(c, 403, 'Finish your run first.', 'not_finished') }
+    const q = run.questions[index]
+    if (!q) return { err: fail(c, 404, 'Unknown question.') }
+    return { q }
+  }
+  app.get('/api/run/:id/answers', (c) => {
+    const found = finishedSoloQuestion(c)
+    if ('err' in found) return found.err
+    return c.json(answersSummary(found.q))
+  })
+  app.get('/api/run/:id/answers/list', (c) => {
+    const found = finishedSoloQuestion(c)
+    if ('err' in found) return found.err
+    return answersPage(c, found.q)
   })
 
   // ------------------------------------------------------------------ a run
@@ -431,6 +459,32 @@ export function createApp(deps: AppDeps) {
   // ------------------------------------------------------------------ multiplayer rooms (see versus.ts)
   const hub = deps.versus ?? new VersusHub({ judge, heads: () => repo.approvedHeads(), pick: pickRun, now, rand, seconds })
   mountVersus(app, { hub, guestOf, clientIp, now })
+
+  // The same screens for a MULTIPLAYER match: only a player who is in the room, and only once the match is over (before that, the answers
+  // would help the players who are still answering).
+  const finishedRoomQuestion = (c: Context): { q: QuestionHead } | { err: Response } => {
+    if (limited(clientIp(c))) return { err: fail(c, 429, 'Too many requests. Slow down.', 'rate') }
+    const guest = guestOf(c)
+    if (!guest) return { err: fail(c, 400, 'Missing guest id.', 'guest') }
+    const index = Number(c.req.query('index'))
+    if (!Number.isInteger(index) || index < 0 || index >= RUN_LENGTH) return { err: fail(c, 400, 'Bad request.') }
+    try {
+      return { q: hub.finishedQuestion(guest, c.req.param('code') ?? '', index) }
+    } catch (e) {
+      if (e instanceof VersusError) return { err: fail(c, e.status as 400 | 403 | 404 | 409 | 429 | 503, e.message, e.code) }
+      throw e
+    }
+  }
+  app.get('/api/versus/:code/answers', (c) => {
+    const found = finishedRoomQuestion(c)
+    if ('err' in found) return found.err
+    return c.json(answersSummary(found.q))
+  })
+  app.get('/api/versus/:code/answers/list', (c) => {
+    const found = finishedRoomQuestion(c)
+    if ('err' in found) return found.err
+    return answersPage(c, found.q)
+  })
 
   // ------------------------------------------------------------------ the forms under the end-of-run report (see siteRoutes.ts)
   mountSite(app, { repo, clientIp, now })

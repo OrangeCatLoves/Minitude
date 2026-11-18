@@ -5,11 +5,13 @@ import {
 } from '@minitude/core'
 import { ApiError, getDaily, sendAbandon, sendAnswer, sendMiss, sendStart, startDaily, startRun } from './api'
 import { drawLobby, drawStandings, drawVersusPanel, itemAt, lobbyItems, type LobbyItem } from './lobbyui'
+import { standingsSquareAt } from './standingsgeo'
 import { VersusClient } from './versus'
 import type { Assets } from './assets'
 import type { AdFrame } from './ads'
 import type { Afterword } from './afterword'
 import type { AnswersUi } from './answers'
+import type { AnswersSource } from './api'
 import type { CabinetUi } from './cabinet'
 import { H, INK, INTRO, INTRO_EXIT, PRESS_AT, W, FAINT, SOFT } from './config'
 import { addCard, addCharge, addFall, addLand, addPull, addReveal, bgCharge, bgPull, bgReveal, frontIntro, frontPull, frontReveal, frontStamp, gates, makeGems, pose, titleCard, type Gems } from './celebrate'
@@ -1184,26 +1186,44 @@ export class Game {
     this.sound.frame(T, cam, tl, this.phase === 'lobby' ? 'title' : this.phase)
   }
 
-  // ------------------------------------------------------------------ the Daily's report: click an answer to see everything that counted
+  // ------------------------------------------------------------------ the report: click an answer to see everything that counted (Daily, solo, multiplayer)
   /** the Daily this report is about (the run just played, or today's result opened from the title) */
   private answersDay(): string | null {
     return this.run?.day ?? this.reportDaily?.day ?? this.daily?.day ?? null
   }
-  /** the rows of the report open the answer lists: a Daily, once the buttons are up (the same moment they can be pressed) */
+  /**
+   * Where the answers of this report come from (null while there is nothing to show): the Daily, the solo run just played, or the multiplayer match
+   * once it is over (the server gives nothing before that; the owner asked for the solo and multiplayer screens on 18 Nov 2026).
+   */
+  private answersSource(): AnswersSource | null {
+    if (this.inVersus) {
+      const code = this.versus.room?.code
+      return code && this.versus.end ? { kind: 'room', code } : null
+    }
+    if (this.mode === 'daily') {
+      const day = this.answersDay()
+      return day ? { kind: 'daily', day } : null
+    }
+    const runId = this.run?.runId
+    return runId ? { kind: 'solo', runId } : null
+  }
+  /** the rows of the report open the answer lists, once the buttons are up (the same moment they can be pressed) */
   private answersOn(): boolean {
-    return !!this.answers && this.phase === 'report' && !this.inVersus && this.mode === 'daily' && !!this.answersDay() && this.T > this.reportAt + 2.6
+    return !!this.answers && this.phase === 'report' && !!this.answersSource() && this.T > this.reportAt + 2.6
   }
   private answerRowAt(p: { x: number; y: number } | null): number {
     if (!p) return -1
     const extra = !!this.reportData?.extraLine
     for (let i = 0; i < this.tl.recs.length; i++) if (hit(reportRowBox(i, extra), p)) return i
+    // the final standings of a multiplayer match: the square of question n, in anybody's row, opens the same screen
+    if (this.inVersus && this.versus.end) return standingsSquareAt(this.versus.end.standings.length, p)
     return -1
   }
   private openAnswers(i: number): void {
-    const day = this.answersDay(), r = this.tl.recs[i]
-    if (!day || !r || !this.answers) return
+    const src = this.answersSource(), r = this.tl.recs[i]
+    if (!src || !r || !this.answers) return
     this.sound.unlock()
-    this.answers.open(day, i, r.miss || !r.known ? null : { answer: r.answer, tier: r.ti, points: r.pts })
+    this.answers.open(src, i, r.miss || !r.known ? null : { answer: r.answer, tier: r.ti, points: r.pts })
   }
 
   /** what the report shows besides the run: the second button's name and, for a daily, its standing and the countdown */

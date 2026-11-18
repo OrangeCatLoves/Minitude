@@ -79,7 +79,7 @@ With `?manual=1` the page exposes `window.__mt`:
 
 ## What counted
 
-`packages/server/test/answers.test.ts` (who may read it: no guest, another guest, an open Daily, another day; the counts add up and put the gem under SINGULARITY; A to Z, paging, search, curated aliases shown, learned typos not, `%` and `_` are letters; bad input; nothing about how answers are checked in the replies). `tools/browser-test/daily-answers.cjs` plays a Daily (three gems, four time-outs) in Chrome and checks the arrow and hover on the report, the counts, the names A to Z, SHOW MORE, search, Esc, the number keys, a timed-out question and today's result opened from the title.
+`packages/server/test/answers-solo-room.test.ts` (the same for a solo run and for a multiplayer match: nothing while the run is open or the match is not over, nothing to a guest who is not in the room, a Daily run id does not open on the solo route, a rematch closes it) and `tools/browser-test/solo-answers.cjs` (plays a solo run, opens questions 1, 3 and 4 from the report, Esc closes it); `packages/server/test/answers.test.ts` (who may read it: no guest, another guest, an open Daily, another day; the counts add up and put the gem under SINGULARITY; A to Z, paging, search, curated aliases shown, learned typos not, `%` and `_` are letters; bad input; nothing about how answers are checked in the replies). `tools/browser-test/daily-answers.cjs` plays a Daily (three gems, four time-outs) in Chrome and checks the arrow and hover on the report, the counts, the names A to Z, SHOW MORE, search, Esc, the number keys, a timed-out question and today's result opened from the title.
 
 ## Rank
 

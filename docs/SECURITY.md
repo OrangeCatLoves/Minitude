@@ -91,3 +91,7 @@ cd packages/server && PORT=8788 DATABASE_FILE=<new empty file> CLIENT_IP_HEADER=
 cd tools/security && DATABASE_FILE=<the same file> node hostile.cjs      # the attacks above, with numbers
 cd tools/browser-test && MINITUDE_URL=http://localhost:8788 MINITUDE_CHANNEL=chrome node csp.cjs
 ```
+
+## Added 18 Nov 2026: the answer lists of a solo run and of a multiplayer match
+
+`GET /api/run/:id/answers` and `/list` give the accepted answers of a question to whoever holds the id of a FINISHED solo run (a random UUID that only the player's browser has; the same routes refuse a Daily run, and a run with any open question). `GET /api/versus/:code/answers` and `/list` give them to a guest who sits in the room, once the match is over (409 before, 404 for anybody else, closed again by a rematch). Both are rate limited like the Daily's, read-only, and covered by `packages/server/test/answers-solo-room.test.ts`. What they show is what the Daily's screen already shows after the run (what counts, never how it is checked).

@@ -8,6 +8,7 @@ import { AMBER, CYAN, FAINT, LINE, OFF, OKG, SOFT } from './config'
 import { drawText, PXF, rect, SILF, stext, textWidth, type Ctx } from './draw'
 import { clamp01, lerpc, type RGB } from './util'
 import { WARN, type PlayBox } from './ui'
+import { SQUARE_DY, SQUARE_SIZE, SQUARE_STEP, SQUARE_X, STANDINGS_ROW, STANDINGS_X0, STANDINGS_Y0 } from './standingsgeo'
 import type { VersusClient } from './versus'
 
 export type LobbyAction =
@@ -284,7 +285,7 @@ export function drawStandings(c: Ctx, tr: number, end: VMatchEnd, me: number): v
   const a = clamp01((tr - 0.9) / 0.6)
   if (a <= 0.01) return
   const dark: RGB = [12, 18, 36]
-  const x0 = 930, xr = 1244
+  const x0 = STANDINGS_X0, xr = 1244
   const mine = end.standings.find((s) => s.seat === me)
   const tied = mine ? end.standings.filter((s) => s.rank === mine.rank).length > 1 : false
   drawText(c, 'MATCH RESULT', x0, 132, SILF(13), lerpc(dark, SOFT, a), 4)
@@ -292,7 +293,7 @@ export function drawStandings(c: Ctx, tr: number, end: VMatchEnd, me: number): v
   end.standings.forEach((s, k) => {
     const ra = clamp01((tr - 1.1 - 0.18 * k) / 0.35)
     if (ra <= 0) return
-    const y = 218 + k * 68
+    const y = STANDINGS_Y0 + k * STANDINGS_ROW
     const isMe = s.seat === me
     const col = lerpc(dark, isMe ? CYAN : OFF, ra)
     stext(c, String(s.rank), x0, y + 8, PXF(34, 700), lerpc(dark, s.rank === 1 ? AMBER : SOFT, ra))
@@ -301,6 +302,6 @@ export function drawStandings(c: Ctx, tr: number, end: VMatchEnd, me: number): v
     while (name.length > 3 && textWidth(f, name) > 190) name = name.slice(0, -2) + '…'
     stext(c, name, x0 + 40, y, f, col)
     stext(c, String(s.total), xr, y, PXF(24, 700), col, 0, 'r')
-    s.items.forEach((it, i) => rect(c, x0 + 40 + i * 17, y + 14, 12, 12, it.miss || it.tier === null ? lerpc(dark, [60, 70, 100], ra) : lerpc(dark, TIERS[it.tier].edge, ra)))
+    s.items.forEach((it, i) => rect(c, x0 + SQUARE_X + i * SQUARE_STEP, y + SQUARE_DY, SQUARE_SIZE, SQUARE_SIZE, it.miss || it.tier === null ? lerpc(dark, [60, 70, 100], ra) : lerpc(dark, TIERS[it.tier].edge, ra)))
   })
 }
