@@ -1,7 +1,10 @@
-// Builds index.html from src/page.template.html and catalogue.json (the catalogue is put inside the page so that it opens from a file with no server).
+// Builds index.html (the banner designs) and icons.html (the icons and the cabinet tab) from src/*.template.html and catalogue.json (the catalogue is put inside
+// the pages so that they open from a file with no server).
 //   node build.cjs
 const fs = require('fs'), path = require('path')
 const catalogue = JSON.parse(fs.readFileSync(path.join(__dirname, 'catalogue.json'), 'utf8'))
-const page = fs.readFileSync(path.join(__dirname, 'src', 'page.template.html'), 'utf8').replace('/*CATALOGUE*/null', JSON.stringify(catalogue))
-fs.writeFileSync(path.join(__dirname, 'index.html'), page)
-console.log('index.html written (' + (page.length / 1024).toFixed(0) + ' KB), ' + catalogue.achievements.length + ' achievements')
+for (const [src, out] of [['page.template.html', 'index.html'], ['icons.template.html', 'icons.html']]) {
+  const page = fs.readFileSync(path.join(__dirname, 'src', src), 'utf8').replace('/*CATALOGUE*/null', JSON.stringify(catalogue))
+  fs.writeFileSync(path.join(__dirname, out), page)
+  console.log(out + ' written (' + (page.length / 1024).toFixed(0) + ' KB), ' + catalogue.achievements.length + ' achievements')
+}

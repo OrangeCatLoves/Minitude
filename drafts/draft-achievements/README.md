@@ -8,6 +8,15 @@
 - **`designs/`**: pictures of the same. `overview.png` is the page. `zoom-<design>--<achievement>.png` are 1:1 crops of the top of the game (one game pixel = one picture pixel), the best way to judge size and legibility. `<design>--<achievement>.png` are the scaled previews, `shelf-<design>.png` the whole list in each design.
 - `catalogue.json`: the 15 achievements (id, rarity, name, text, goal). The numbers are the suggestions below; change them there, run `node build.cjs`, and the page follows. `tools/shots.cjs` takes the pictures again, `tools/context-shots.cjs` takes new game frames (needs the game running on a throw-away copy of the database; see its header).
 
+## Second round (18 Nov 2026): the owner's answers, the icons and the cabinet tab
+
+The owner's decisions on the first round: **the slim bar** for the banner; achievements count in **solo, the Daily and multiplayer**; kept **only in the browser** (accepted); the gem cabinet gets **another tab for the achievements**, and **every achievement needs its own icon**.
+
+- **`icons.html`** (open it from the folder): (1) the 15 pictograms, one drawing each (24 x 24 pixels): a pebble, a signpost, a cut gem, a flower, a crown, a lone figure under a star and the rainbow Crescent for the seven rarity firsts; a pouch, a jar, a magnifier, a shield, a pile of gems, a vault door, a half-lit cabinet and a golden full cabinet for the eight gem steps; (2) four frames for them (tile, badge, medal, plain), earned and not earned; (3) the cabinet with a **GEMS | ACHIEVEMENTS** tab bar, the achievements in two groups (firsts, gem steps) with the day each was earned and a progress bar on the gem steps that are not reached yet; (4) the slim bar with the framed icon. Two menus at the top choose the frame and how many are earned.
+- `designs/icons-pictograms.png`, `icons-frames.png`, `cabinet-tab-<frame>.png`, `slim-bar-icon-<frame>.png` are pictures of the same (`tools/icon-shots.cjs` takes them again; `node build.cjs` builds both pages from `src/*.template.html` and `catalogue.json`).
+- **My suggestion:** the **tile** frame in the cabinet (it matches the gem slots) and the **plain pictogram with the tier colour edge** on the slim bar, or the tile there too. The medal is the most "award" but the biggest and the busiest.
+- Not decided: the tab's exact look in the real game (it would be HTML over the game like the cabinet, so the icons would be drawn onto small canvases by the same code the page uses), and whether achievements that are not earned should show their text (the draft shows it: they are not secret).
+
 ## The six designs
 
 | # | Name | Idea | Cost |

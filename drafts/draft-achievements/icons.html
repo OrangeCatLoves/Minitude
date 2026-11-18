@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Achievement icons and cabinet tab (draft)</title>
+<style>
+@font-face { font-family: 'Silkscreen'; src: url('../../packages/web/public/fonts/Silkscreen-Regular.ttf') format('truetype'); font-weight: 400; }
+@font-face { font-family: 'Silkscreen'; src: url('../../packages/web/public/fonts/Silkscreen-Bold.ttf') format('truetype'); font-weight: 700; }
+@font-face { font-family: 'PixelifyFix'; src: url('../../packages/web/public/fonts/PixelifyFix-400.ttf') format('truetype'); font-weight: 400; }
+@font-face { font-family: 'PixelifyFix'; src: url('../../packages/web/public/fonts/PixelifyFix-600.ttf') format('truetype'); font-weight: 600; }
+@font-face { font-family: 'PixelifyFix'; src: url('../../packages/web/public/fonts/PixelifyFix-700.ttf') format('truetype'); font-weight: 700; }
+:root { --ink: #070b17; --panel: #0b1122; --raised: #101831; --line: rgba(110,124,170,.32); --off: #eef2ff; --body: #d3daf0; --soft: #a3b0d6; --faint: #8190bb; --cyan: #5be0ff; --amber: #ffc857; --pixel: 'Silkscreen', 'Courier New', monospace; --game: 'PixelifyFix', system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body.still .bar { position: static; }
+body { margin: 0; background: var(--ink); color: var(--body); font: 15px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+main { max-width: 1280px; margin: 0 auto; padding: 28px 24px 90px; }
+h1 { margin: 0 0 6px; font: 700 22px/1.2 var(--pixel); letter-spacing: .08em; color: var(--off); }
+h2 { margin: 38px 0 6px; font: 700 14px/1.2 var(--pixel); letter-spacing: .12em; text-transform: uppercase; color: var(--off); }
+p.lead { margin: 6px 0 14px; max-width: 900px; color: var(--soft); }
+canvas { image-rendering: pixelated; display: block; }
+.bar { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 0 -24px 18px; padding: 12px 24px; background: rgba(7,11,23,.94); border-bottom: 1px solid var(--line); }
+.bar label { display: flex; align-items: center; gap: 8px; font: 400 11px/1 var(--pixel); letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+select { font: 600 13px/1 system-ui, sans-serif; color: var(--off); background: var(--raised); border: 1px solid var(--line); padding: 9px 12px; cursor: pointer; }
+.sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); padding: 12px 8px 10px; text-align: center; }
+.card .ic { display: flex; justify-content: center; }
+.card .nm { margin-top: 8px; font: 600 14px/1.2 var(--game); color: var(--off); }
+.card .sb { margin-top: 3px; font: 12px/1.3 system-ui, sans-serif; color: var(--faint); }
+.frames { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (max-width: 900px) { .frames { grid-template-columns: 1fr; } }
+.frame { background: var(--panel); border: 1px solid var(--line); padding: 14px; }
+.frame h3 { margin: 0 0 4px; font: 700 12px/1.2 var(--pixel); letter-spacing: .12em; color: var(--off); }
+.frame p { margin: 0 0 10px; font-size: 13px; color: var(--soft); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+/* the cabinet mock-up (the real one is HTML over the game, like this) */
+.stage { position: relative; background: #0a1026; border: 1px solid var(--line); padding: 26px 0; display: flex; justify-content: center; }
+.cab { width: 920px; max-width: 100%; background: var(--panel); border: 1px solid rgba(150,164,214,.5); padding: 22px 26px 26px; }
+.cab .top { display: flex; justify-content: space-between; align-items: center; }
+.cab .ttl { font: 700 15px/1 var(--pixel); letter-spacing: .14em; color: var(--off); }
+.cab .close { font: 700 11px/1 var(--pixel); letter-spacing: .14em; color: var(--off); border: 2px solid #9aa6d0; padding: 10px 16px; }
+.tabs { display: flex; gap: 6px; margin: 16px 0 14px; border-bottom: 1px solid var(--line); }
+.tab { font: 700 11px/1 var(--pixel); letter-spacing: .14em; padding: 11px 16px 10px; color: var(--faint); border: 1px solid transparent; border-bottom: 0; }
+.tab.on { color: var(--off); background: var(--raised); border-color: var(--line); margin-bottom: -1px; border-bottom: 1px solid var(--raised); }
+.tab .n { margin-left: 8px; color: var(--soft); }
+.sum { display: flex; align-items: center; gap: 14px; margin: 0 0 14px; font: 14px/1.4 system-ui, sans-serif; color: var(--soft); }
+.sum .bigbar { flex: 1; max-width: 360px; height: 10px; background: #141c38; border: 1px solid var(--line); }
+.sum .bigbar i { display: block; height: 100%; background: linear-gradient(90deg, #5be0ff, #c4a0ff, #ff5fb0); }
+.grp { margin: 18px 0 8px; display: flex; justify-content: space-between; font: 700 11px/1 var(--pixel); letter-spacing: .14em; color: #a9b8f0; border-bottom: 1px solid var(--line); padding-bottom: 7px; }
+.list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+@media (max-width: 760px) { .list { grid-template-columns: 1fr; } }
+.ach { display: flex; gap: 12px; align-items: center; padding: 10px 12px; background: #0e152b; border: 1px solid var(--line); }
+.ach.locked { background: #0a0f20; border-style: dashed; }
+.ach .tx { min-width: 0; flex: 1; }
+.ach .nm { font: 600 16px/1.2 var(--game); color: var(--off); }
+.ach .su { font: 13px/1.35 system-ui, sans-serif; color: var(--soft); margin-top: 2px; }
+.ach .dt { font: 400 10px/1 var(--pixel); letter-spacing: .1em; color: var(--faint); margin-top: 6px; text-transform: uppercase; }
+.ach.locked .nm { color: #8d99c0; }
+.ach.locked .su { color: #66719a; }
+.prog { margin-top: 7px; height: 6px; background: #141c38; border: 1px solid var(--line); }
+.prog i { display: block; height: 100%; background: #6f7fc0; }
+.note { margin-top: 10px; font-size: 13px; color: var(--faint); }
+.pair { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+.mini { position: relative; width: 640px; max-width: 100%; height: 96px; background: #0d1530 url('context/reveal.png') center top/cover; border: 1px solid var(--line); overflow: hidden; }
+.mini .ban { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; width: 440px; height: 58px; padding: 0 16px; background: #070b17; border: 2px solid var(--edge); box-shadow: 0 0 18px var(--glow); }
+.mini .ban .lab { font: 400 10px/1 var(--pixel); letter-spacing: .14em; color: var(--edge); }
+.mini .ban .nm { font: 700 17px/1.1 var(--game); color: var(--off); margin-top: 3px; }
+.mini .ban .sub { font: 12.5px/1.2 system-ui, sans-serif; color: var(--soft); margin-top: 1px; }
+.mini .ban .chip { margin-left: auto; font: 700 11px/1 var(--pixel); color: var(--off); border: 1px solid var(--edge); padding: 6px 8px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Achievement icons and the cabinet tab</h1>
+<p class="lead">Draft, 18 Nov 2026. The owner chose the <b>slim bar</b> for the banner and asked for (1) an icon for every achievement and (2) a second tab in the gem cabinet that lists them. Below: the 15 pictograms on their own, four ways to frame them, the cabinet screen with its two tabs (pick a frame at the top), and the slim bar with the new icon. Nothing here is in the game yet.</p>
+<div class="bar">
+  <label>Frame <select id="frame"><option value="tile">Tile</option><option value="badge">Badge</option><option value="medal">Medal</option><option value="plain">Plain</option></select></label>
+  <label>Show <select id="state"><option value="mixed">Some earned, some not</option><option value="all">All earned</option><option value="none">None earned</option></select></label>
+</div>
+
+<h2>1 · The 15 pictograms</h2>
+<p class="lead">One drawing per achievement, 24 × 24 pixels, shown here four times larger. The seven rarity firsts are things that get rarer (a pebble, a signpost, a cut gem, a flower, a crown, a lone figure under a star, the rainbow Crescent). The eight gem steps grow: a pouch, a jar, a magnifier, a shield, a pile, a vault door, a half-lit cabinet, a full golden cabinet.</p>
+<div class="sheet" id="glyphs"></div>
+
+<h2>2 · Four frames</h2>
+<p class="lead">The frame takes its colour from the rarity (the gem steps all use the Singularity purple). Earned on the left of each row, not yet earned on the right (grey, a dark silhouette).</p>
+<div class="frames" id="frames"></div>
+
+<h2>3 · The cabinet with two tabs</h2>
+<p class="lead">The same screen as today's gem cabinet, with a tab bar under the title: <b>GEMS</b> (what you have now) and <b>ACHIEVEMENTS</b> (new). Achievements are not secret: every one shows its text, and the gem steps show how far along you are. Earned ones show the day.</p>
+<div class="stage"><div class="cab" id="cab"></div></div>
+<p class="note">On a phone the two columns become one.</p>
+
+<h2>4 · The slim bar with the new icon</h2>
+<p class="lead">The banner the owner picked (440 × 58 px, one line of text, one glow pulse), with the framed icon on the left. The frame here follows the choice at the top.</p>
+<div class="pair" id="bars"></div>
+</main>
+
+<script>
+const CATALOGUE = {"_about":"DRAFT, not in the game. The achievements proposed on 18 Nov 2026. 'tier' is the rarity it is about (0 COMMON ... 6 SINGULARITY); 'goal' is how many different gems the cabinet must hold ('all' = every gem there is when it is earned). The numbers are suggestions: change them here, the review page and the README follow.","groups":[{"id":"firsts","title":"Rarity firsts","note":"The first time an answer of that rarity scores. Seven of them, one per rarity."},{"id":"gems","title":"The gem ladder","note":"How many DIFFERENT gems the cabinet holds (a gem found again does not count twice). Roughly 2x to 2.5x more work for each step."}],"achievements":[{"id":"first-common","group":"firsts","tier":0,"name":"Down to Earth","text":"Score your first Common answer."},{"id":"first-uncommon","group":"firsts","tier":1,"name":"Off the Beaten Path","text":"Score your first Uncommon answer."},{"id":"first-rare","group":"firsts","tier":2,"name":"Rare Find","text":"Score your first Rare answer."},{"id":"first-exotic","group":"firsts","tier":3,"name":"Exotic Taste","text":"Score your first Exotic answer."},{"id":"first-legendary","group":"firsts","tier":4,"name":"Legend Has It","text":"Score your first Legendary answer."},{"id":"first-mythic","group":"firsts","tier":5,"name":"Almost Nobody","text":"Score your first Mythic answer."},{"id":"first-singularity","group":"firsts","tier":6,"name":"Singularity","text":"Find your first hidden gem."},{"id":"gems-5","group":"gems","tier":6,"goal":5,"name":"Pocketful","text":"Find 5 different gems."},{"id":"gems-10","group":"gems","tier":6,"goal":10,"name":"Collector","text":"Find 10 different gems."},{"id":"gems-25","group":"gems","tier":6,"goal":25,"name":"Curator","text":"Find 25 different gems."},{"id":"gems-50","group":"gems","tier":6,"goal":50,"name":"Gem Warden","text":"Find 50 different gems."},{"id":"gems-100","group":"gems","tier":6,"goal":100,"name":"A Hundred Gems","text":"Find 100 different gems."},{"id":"gems-250","group":"gems","tier":6,"goal":250,"name":"The Vault","text":"Find 250 different gems."},{"id":"gems-500","group":"gems","tier":6,"goal":500,"name":"Half the Cabinet","text":"Find 500 different gems."},{"id":"gems-all","group":"gems","tier":6,"goal":"all","name":"Complete Cabinet","text":"Find every gem in the game."}],"optional":["A gem in every category (11 categories today)","Complete one whole category of gems (11 of these)","Ten and a hundred Mythic answers","A perfect run (700 points or more)","Reach Planck Foam (the finale)","First Daily, and a 7-day and a 30-day Daily streak","10, 50 and 100 runs played"]}
+const ACH = CATALOGUE.achievements
+const TIER = [
+  { name: 'COMMON', bg: '#1e2538', fg: '#cdd6ee', edge: '#9aa6bf' }, { name: 'UNCOMMON', bg: '#0e3a22', fg: '#8dffb4', edge: '#46d078' },
+  { name: 'RARE', bg: '#0c2a52', fg: '#9ad8ff', edge: '#4fc3ff' }, { name: 'EXOTIC', bg: '#2a1850', fg: '#d8bcff', edge: '#b583ff' },
+  { name: 'LEGENDARY', bg: '#4a2c00', fg: '#ffd488', edge: '#ffb23f' }, { name: 'MYTHIC', bg: '#50102e', fg: '#ffa8d6', edge: '#ff5fb0' },
+  { name: 'SINGULARITY', bg: '#1b1245', fg: '#f0e8ff', edge: '#c4b0ff' },
+]
+const RAINBOW = ['#5be0ff', '#5bf0b0', '#ffe066', '#ff9a3c', '#ff5fb0', '#c4a0ff']
+const $ = (s, r = document) => r.querySelector(s)
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt !== undefined) e.textContent = txt; return e }
+const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${a})` }
+
+/* ---------- a tiny pixel toolkit */
+function cv(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; return [c, g] }
+const px = (g, x, y, col) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), 1, 1) }
+const rect = (g, x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x, y, w, h) }
+function ell(g, cx, cy, rx, ry, col) { for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) px(g, x, y, col) } }
+const disc = (g, cx, cy, r, col) => ell(g, cx, cy, r, r, col)
+function line(g, x0, y0, x1, y1, col, w = 1) { const dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let e = dx - dy; for (;;) { rect(g, x0, y0, w, w, col); if (x0 === x1 && y0 === y1) break; const e2 = 2 * e; if (e2 > -dy) { e -= dy; x0 += sx } if (e2 < dx) { e += dx; y0 += sy } } }
+function poly(g, pts, col) { const ys = pts.map((p) => p[1]), xs = pts.map((p) => p[0]); for (let y = Math.floor(Math.min(...ys)); y <= Math.ceil(Math.max(...ys)); y++) for (let x = Math.floor(Math.min(...xs)); x <= Math.ceil(Math.max(...xs)); x++) { let inside = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y + .5) !== (yj > y + .5) && x + .5 < ((xj - xi) * (y + .5 - yi)) / (yj - yi) + xi) inside = !inside } if (inside) px(g, x, y, col) } }
+/** a 1-pixel dark edge around whatever has been drawn */
+function outline(c, col = '#070b17') {
+  const g = c.getContext('2d'), w = c.width, h = c.height, im = g.getImageData(0, 0, w, h), d = im.data, src = new Uint8ClampedArray(d)
+  const a = (x, y) => (x < 0 || y < 0 || x >= w || y >= h ? 0 : src[(y * w + x) * 4 + 3])
+  const n = parseInt(col.slice(1), 16)
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!a(x, y) && (a(x - 1, y) || a(x + 1, y) || a(x, y - 1) || a(x, y + 1))) { const i = (y * w + x) * 4; d[i] = n >> 16; d[i + 1] = (n >> 8) & 255; d[i + 2] = n & 255; d[i + 3] = 255 }
+  g.putImageData(im, 0, 0)
+}
+/** every drawn pixel becomes one flat colour (the "not yet earned" silhouette) */
+function dim(c) {
+  const g = c.getContext('2d'), im = g.getImageData(0, 0, c.width, c.height), d = im.data
+  for (let i = 0; i < d.length; i += 4) if (d[i + 3]) { const y = (0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]) * 0.42 + 16; d[i] = y * 0.9; d[i + 1] = y * 0.95; d[i + 2] = y * 1.25 }
+  g.putImageData(im, 0, 0)
+}
+function flat(c, col) {
+  const g = c.getContext('2d'), im = g.getImageData(0, 0, c.width, c.height), d = im.data, n = parseInt(col.slice(1), 16)
+  for (let i = 0; i < d.length; i += 4) if (d[i + 3]) { d[i] = n >> 16; d[i + 1] = (n >> 8) & 255; d[i + 2] = n & 255 }
+  g.putImageData(im, 0, 0)
+}
+const crescent = (g, cx, cy, r, ox, oy, r2) => { for (let y = cy - r; y <= cy + r; y++) for (let x = cx - r; x <= cx + r; x++) { const dx = x + .5 - cx, dy = y + .5 - cy; if (dx * dx + dy * dy > r * r) continue; const ex = x + .5 - (cx + ox), ey = y + .5 - (cy + oy); if (ex * ex + ey * ey <= r2 * r2) continue; const ang = (Math.atan2(dy, dx) + Math.PI) / (2 * Math.PI); px(g, x, y, RAINBOW[Math.min(5, Math.floor(ang * 6))]) } }
+const smallGem = (g, x, y, col, lite) => { poly(g, [[x, y - 3], [x + 3, y], [x, y + 3], [x - 3, y]], col); px(g, x - 1, y - 1, lite); px(g, x, y - 2, lite) }
+
+/* ---------- the 15 pictograms, 24 x 24 */
+const GLYPH = {
+  'first-common'(g) { ell(g, 12, 14, 9, 6, '#8b97b5'); ell(g, 11, 13, 8, 5, '#cdd6ee'); ell(g, 8, 11, 2.2, 1.2, '#ffffff'); px(g, 15, 15, '#6b7696'); px(g, 17, 14, '#6b7696'); px(g, 13, 17, '#6b7696') },
+  'first-uncommon'(g) { rect(g, 11, 6, 2, 16, '#8a5a2b'); rect(g, 7, 21, 10, 2, '#2c8c4a'); poly(g, [[4, 4], [16, 4], [20, 8], [16, 12], [4, 12]], '#59d97c'); rect(g, 6, 7, 8, 1, '#1d6a35'); rect(g, 6, 9, 5, 1, '#1d6a35'); poly(g, [[20, 13], [8, 13], [4, 16], [8, 19], [20, 19]], '#46b86b'); rect(g, 10, 15, 7, 1, '#1d6a35') },
+  'first-rare'(g) { poly(g, [[6, 9], [9, 5], [15, 5], [18, 9]], '#bdf0ff'); poly(g, [[6, 9], [18, 9], [12, 20]], '#4fc3ff'); poly(g, [[12, 9], [18, 9], [12, 20]], '#2b8fb8'); px(g, 9, 6, '#fff'); px(g, 10, 6, '#fff'); line(g, 9, 5, 9, 9, '#7ed3f7'); line(g, 15, 5, 15, 9, '#7ed3f7'); rect(g, 19, 2, 1, 5, '#fff'); rect(g, 17, 4, 5, 1, '#fff') },
+  'first-exotic'(g) { const pet = ['#ff7fc0', '#ff9ccd']; for (let k = 0; k < 5; k++) { const a = (k * 72 - 90) * Math.PI / 180; disc(g, 12 + 5.5 * Math.cos(a), 12 + 5.5 * Math.sin(a), 4, pet[0]); disc(g, 12 + 6 * Math.cos(a), 12 + 6 * Math.sin(a), 2, pet[1]) } disc(g, 12, 12, 3, '#ffd866'); px(g, 12, 12, '#ff5a5a'); px(g, 13, 11, '#ff5a5a'); px(g, 11, 13, '#ff5a5a') },
+  'first-legendary'(g) { poly(g, [[3, 18], [3, 8], [8, 13], [12, 5], [16, 13], [21, 8], [21, 18]], '#ffd866'); rect(g, 3, 17, 18, 4, '#c58a1f'); rect(g, 3, 17, 18, 1, '#ffe9a0'); px(g, 12, 12, '#ff5a5a'); px(g, 12, 13, '#ff5a5a'); px(g, 7, 19, '#5be0ff'); px(g, 12, 19, '#ff5fb0'); px(g, 17, 19, '#5be0ff'); px(g, 3, 7, '#fff'); px(g, 12, 4, '#fff'); px(g, 21, 7, '#fff') },
+  'first-mythic'(g) { rect(g, 11, 1, 2, 6, '#ffa8d6'); rect(g, 9, 3, 6, 2, '#ffa8d6'); px(g, 12, 4, '#fff'); disc(g, 12, 11, 3, '#ffa8d6'); rect(g, 9, 14, 6, 5, '#ff5fb0'); rect(g, 9, 19, 2, 3, '#ff5fb0'); rect(g, 13, 19, 2, 3, '#ff5fb0'); rect(g, 7, 15, 2, 4, '#ff5fb0'); rect(g, 15, 15, 2, 4, '#ff5fb0'); rect(g, 3, 22, 18, 1, '#7d1c4d'); px(g, 4, 6, '#ff5fb0'); px(g, 20, 8, '#ff5fb0'); px(g, 3, 14, '#ffa8d6'); px(g, 21, 12, '#ffa8d6') },
+  'first-singularity'(g) { crescent(g, 12, 12, 10, 4, -3, 8); px(g, 19, 6, '#fff'); px(g, 20, 5, '#fff'); px(g, 20, 7, '#fff'); px(g, 21, 6, '#fff') },
+  'gems-5'(g) { ell(g, 12, 15, 8, 7, '#c9a064'); ell(g, 10, 14, 6, 5, '#e0b97a'); rect(g, 9, 8, 6, 3, '#a67c3d'); rect(g, 8, 10, 8, 2, '#7a5230'); smallGem(g, 9, 6, '#5be0ff', '#fff'); smallGem(g, 12, 4, '#ff5fb0', '#fff'); smallGem(g, 15, 6, '#ffe066', '#fff'); px(g, 20, 4, '#fff') },
+  'gems-10'(g) { rect(g, 6, 8, 12, 13, '#2a3a6e'); rect(g, 7, 9, 10, 11, '#142048'); rect(g, 7, 5, 10, 3, '#cdd6ee'); rect(g, 7, 5, 10, 1, '#fff'); line(g, 8, 10, 8, 17, '#7a8ed0'); smallGem(g, 11, 17, '#5be0ff', '#fff'); smallGem(g, 15, 17, '#ff9a3c', '#fff'); smallGem(g, 13, 13, '#ff5fb0', '#fff'); smallGem(g, 10, 13, '#c4a0ff', '#fff'); px(g, 15, 12, '#5bf0b0') },
+  'gems-25'(g) { disc(g, 10, 10, 8, '#cdd6ee'); disc(g, 10, 10, 6, '#142048'); line(g, 16, 16, 21, 21, '#8a5a2b', 3); line(g, 15, 15, 17, 17, '#cdd6ee', 2); crescent(g, 10, 10, 4, 2, -1, 3); px(g, 6, 6, '#fff'); px(g, 7, 5, '#fff') },
+  'gems-50'(g) { poly(g, [[4, 3], [20, 3], [20, 13], [12, 22], [4, 13]], '#c4b0ff'); poly(g, [[6, 5], [18, 5], [18, 12.5], [12, 19.5], [6, 12.5]], '#3a2790'); crescent(g, 12, 11, 5, 2, -1, 4); px(g, 7, 6, '#fff'); px(g, 8, 6, '#fff') },
+  'gems-100'(g) { smallGem(g, 12, 5, '#5be0ff', '#fff'); smallGem(g, 8, 11, '#ff5fb0', '#fff'); smallGem(g, 16, 11, '#ffe066', '#fff'); smallGem(g, 4, 18, '#5bf0b0', '#fff'); smallGem(g, 12, 18, '#c4a0ff', '#fff'); smallGem(g, 20, 18, '#ff9a3c', '#fff'); rect(g, 2, 22, 20, 1, '#6f7fc0') },
+  'gems-250'(g) { disc(g, 12, 12, 10, '#6c7899'); disc(g, 12, 12, 8, '#cdd6ee'); disc(g, 12, 12, 6, '#a3b0d6'); rect(g, 5, 11, 14, 2, '#4a5470'); rect(g, 11, 5, 2, 14, '#4a5470'); disc(g, 12, 12, 3, '#4a5470'); px(g, 12, 12, '#ffd866'); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; px(g, 12 + 9 * Math.cos(a), 12 + 9 * Math.sin(a), '#2b3350') } px(g, 8, 7, '#fff') },
+  'gems-500'(g) { rect(g, 3, 2, 18, 20, '#5a3a1b'); rect(g, 4, 3, 16, 1, '#8a5a2b'); rect(g, 5, 4, 14, 17, '#0b1122'); for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) { const lit = r * 3 + c < 5, x = 6 + c * 5, y = 5 + r * 5; rect(g, x, y, 4, 4, lit ? '#241a4a' : '#141c38'); if (lit) crescent(g, x + 2, y + 2, 2, 1, -1, 1.6) } },
+  'gems-all'(g) { rect(g, 3, 4, 18, 18, '#c58a1f'); rect(g, 4, 5, 16, 1, '#ffe9a0'); rect(g, 5, 6, 14, 15, '#0b1122'); for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) { const x = 6 + c * 5, y = 7 + r * 4.5; rect(g, x, Math.round(y), 4, 3, '#241a4a'); crescent(g, x + 2, Math.round(y) + 1.5, 2, 1, -1, 1.6) } poly(g, [[6, 4], [6, 1], [9, 3], [12, 0], [15, 3], [18, 1], [18, 4]], '#ffd866'); px(g, 12, 2, '#ff5a5a'); px(g, 1, 3, '#fff'); px(g, 22, 3, '#fff') },
+}
+function glyph(a, locked) { const [c, g] = cv(24, 24); GLYPH[a.id](g); outline(c); if (locked) dim(c); return c }
+
+/* ---------- frames (40 x 40) */
+const GREY = { bg: '#0d1328', fg: '#27304f', edge: '#323d62' }
+function framed(a, style, locked) {
+  const t = locked ? GREY : TIER[a.tier], [c, g] = cv(40, 40), gl = glyph(a, locked)
+  if (style === 'tile') {
+    rect(g, 1, 1, 38, 38, t.edge); rect(g, 2, 2, 36, 36, t.bg); rect(g, 0, 0, 1, 1, 'rgba(0,0,0,0)'); g.clearRect(0, 0, 1, 1); g.clearRect(39, 0, 1, 1); g.clearRect(0, 39, 1, 1); g.clearRect(39, 39, 1, 1)
+    if (!locked) { rect(g, 3, 3, 34, 1, 'rgba(255,255,255,.16)') } else { for (let x = 3; x < 37; x += 4) { rect(g, x, 2, 2, 1, '#070b17'); rect(g, x, 37, 2, 1, '#070b17') } }
+    g.drawImage(gl, 8, 8)
+  } else if (style === 'badge') {
+    const hex = (i) => [[10 + i, 2 + i], [30 - i, 2 + i], [38 - i, 20], [30 - i, 38 - i], [10 + i, 38 - i], [2 + i, 20]]
+    poly(g, hex(0), '#070b17'); poly(g, hex(1), t.edge); poly(g, hex(3), t.bg); if (!locked) { line(g, 12, 5, 28, 5, 'rgba(255,255,255,.28)') }
+    g.drawImage(gl, 8, 8)
+  } else if (style === 'medal') {
+    poly(g, [[11, 24], [19, 24], [14, 40], [8, 34]], locked ? '#1a2142' : t.edge); poly(g, [[21, 24], [29, 24], [32, 34], [26, 40]], locked ? '#141a36' : t.fg)
+    disc(g, 20, 19, 18, '#070b17'); disc(g, 20, 19, 17, t.edge); disc(g, 20, 19, 14.5, t.bg)
+    if (!locked) for (let a2 = 200; a2 < 250; a2 += 4) px(g, 20 + 16 * Math.cos(a2 * Math.PI / 180), 19 + 16 * Math.sin(a2 * Math.PI / 180), '#fff')
+    g.drawImage(gl, 8, 7)
+  } else { g.drawImage(gl, 8, 8) }
+  return c
+}
+function show(canvas, scale) { canvas.style.width = canvas.width * scale + 'px'; canvas.style.height = canvas.height * scale + 'px'; return canvas }
+
+/* ---------- 1 · the pictograms */
+for (const a of ACH) { const card = el('div', 'card'), ic = el('div', 'ic'); ic.append(show(glyph(a), 4)); card.append(ic, el('div', 'nm', a.name), el('div', 'sb', a.group === 'gems' ? a.text : TIER[a.tier].name + ' · ' + a.text.replace('Score your first ', 'first ').replace(' answer.', ''))); $('#glyphs').append(card) }
+
+/* ---------- 2 · four frames */
+const FRAMES = [['tile', 'Tile', 'A square tile, like the slots of the gem cabinet. Locked ones keep the dashed look the empty gem slots already have.'], ['badge', 'Badge', 'A hexagon badge. A little more like a game achievement.'], ['medal', 'Medal', 'A round medal with a ribbon. The most "award". The biggest of the four.'], ['plain', 'Plain', 'The pictogram alone with a dark edge. The lightest; no frame colour, so the rarity is only in the picture.']]
+for (const [id, name, desc] of FRAMES) {
+  const f = el('div', 'frame'); f.append(el('h3', '', name.toUpperCase()), el('p', '', desc))
+  for (const locked of [false, true]) { const row = el('div', 'row'); for (const a of ACH) row.append(show(framed(a, id, locked), locked ? 1.4 : 1.4)); f.append(row) }
+  $('#frames').append(f)
+}
+
+/* ---------- 3 · the cabinet */
+const EARNED_MIXED = new Set(['first-common', 'first-uncommon', 'first-rare', 'first-exotic', 'first-legendary', 'first-singularity', 'gems-5', 'gems-10'])
+const DAYS = { 'first-common': '12 Nov 2026', 'first-uncommon': '12 Nov 2026', 'first-rare': '13 Nov 2026', 'first-exotic': '14 Nov 2026', 'first-legendary': '15 Nov 2026', 'first-mythic': '17 Nov 2026', 'first-singularity': '16 Nov 2026', 'gems-5': '17 Nov 2026', 'gems-10': '18 Nov 2026' }
+function stateOf(a) { const m = $('#state').value; return m === 'all' ? true : m === 'none' ? false : EARNED_MIXED.has(a.id) }
+function item(a, style) {
+  const earned = stateOf(a), n = el('div', 'ach' + (earned ? '' : ' locked')), tx = el('div', 'tx')
+  n.append(show(framed(a, style, !earned), 1.6)); tx.append(el('div', 'nm', a.name), el('div', 'su', a.text))
+  if (earned) tx.append(el('div', 'dt', 'Earned ' + (DAYS[a.id] || '18 Nov 2026')))
+  else if (a.group === 'gems' && a.goal !== 'all') { const have = $('#state').value === 'none' ? 0 : 12, p = el('div', 'prog'); p.append(Object.assign(el('i'), { style: 'width:' + Math.min(100, Math.round(100 * have / a.goal)) + '%' })); tx.append(p, el('div', 'dt', have + ' / ' + a.goal + ' gems')) }
+  else tx.append(el('div', 'dt', 'Not yet'))
+  n.append(tx); return n
+}
+function cabinet() {
+  const style = $('#frame').value, cab = $('#cab'); cab.replaceChildren()
+  const n = ACH.filter(stateOf).length, top = el('div', 'top'); top.append(el('div', 'ttl', 'GEM CABINET'), el('div', 'close', 'CLOSE')); cab.append(top)
+  const tabs = el('div', 'tabs'), t1 = el('div', 'tab', 'GEMS'), t2 = el('div', 'tab on', 'ACHIEVEMENTS'); t1.append(el('span', 'n', '12 / 500')); t2.append(el('span', 'n', n + ' / ' + ACH.length)); tabs.append(t1, t2); cab.append(tabs)
+  const sum = el('div', 'sum'); sum.append(el('span', '', n + ' of ' + ACH.length + ' earned. They are kept on this device, like the gems.')); const bb = el('div', 'bigbar'); bb.append(Object.assign(el('i'), { style: 'width:' + Math.round(100 * n / ACH.length) + '%' })); sum.append(bb); cab.append(sum)
+  for (const [group, title] of [['firsts', 'FIRSTS · ONE FOR EVERY RARITY'], ['gems', 'GEM STEPS · HOW MANY DIFFERENT GEMS']]) {
+    const list = ACH.filter((a) => (a.group === 'gems' ? 'gems' : 'firsts') === group), done = list.filter(stateOf).length
+    const h = el('div', 'grp'); h.append(el('span', '', title), el('span', '', done + ' / ' + list.length)); cab.append(h)
+    const l = el('div', 'list'); for (const a of list) l.append(item(a, style)); cab.append(l)
+  }
+}
+
+/* ---------- 4 · the slim bar */
+function bars() {
+  const style = $('#frame').value, box = $('#bars'); box.replaceChildren()
+  for (const id of ['first-rare', 'first-singularity', 'gems-25']) {
+    const a = ACH.find((x) => x.id === id), t = TIER[a.tier], m = el('div', 'mini'), b = el('div', 'ban'), tx = el('div', 'tx')
+    b.style.setProperty('--edge', t.edge); b.style.setProperty('--glow', rgba(t.edge, .55))
+    tx.append(el('div', 'lab', a.group === 'gems' ? 'ACHIEVEMENT · GEMS' : 'ACHIEVEMENT · ' + t.name), el('div', 'nm', a.name), el('div', 'sub', a.text))
+    b.append(show(framed(a, style, false), 1), tx, el('div', 'chip', a.goal ? '×' + a.goal : '×1')); m.append(b); box.append(m)
+  }
+}
+const paint = () => { cabinet(); bars() }
+$('#frame').addEventListener('change', paint); $('#state').addEventListener('change', paint)
+const Q = new URLSearchParams(location.search); if (Q.has('still')) document.body.classList.add('still'); if (Q.get('frame')) $('#frame').value = Q.get('frame'); if (Q.get('state')) $('#state').value = Q.get('state')
+document.fonts.ready.then(() => { paint(); document.body.classList.add('ready') })
+</script>
+</body>
+</html>

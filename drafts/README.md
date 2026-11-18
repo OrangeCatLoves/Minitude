@@ -4,7 +4,7 @@ Every draft folder lives here. A draft is something the owner reviews (pictures,
 
 | Folder | What it is | State |
 | --- | --- | --- |
-| `draft-achievements/` | Banner designs and the catalogue for achievements (a first of each rarity, then a ladder of how many gems are found), over real game frames. Open `index.html`. | **new, 18 Nov 2026, waiting for the owner** |
+| `draft-achievements/` | Banner designs (the owner chose the slim bar), 15 icons in four frames, and the cabinet with an Achievements tab, for achievements (a first of each rarity, then a ladder of how many gems are found). Open `index.html` and `icons.html`. | **new, 18 Nov 2026, waiting for the owner** |
 | `draft-world-motion/` | The "living worlds": three movement designs for each world picture, the review page and the tools that carried the chosen ones into `packages/web/src/life/`. `tools/golden.cjs` takes the fingerprints the game's test compares. | decided and LIVE (16 Nov 2026) |
 | `draft-singularity-gems/` | 62 designs for the hidden gem, the sprites, the review sheets, the gem-picking tools and a walkthrough video (the video is not in git). | decided and LIVE (14 Nov 2026; the rainbow Crescent) |
 | `draft-favicon/` | Six drafts of the tab icon. | decided and LIVE (16 Nov 2026; the pixel M over the scale bar) |
