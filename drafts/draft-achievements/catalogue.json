@@ -19,8 +19,8 @@
     { "id": "gems-50",   "group": "gems", "tier": 6, "goal": 50,    "name": "Gem Warden",      "text": "Find 50 different gems." },
     { "id": "gems-100",  "group": "gems", "tier": 6, "goal": 100,   "name": "A Hundred Gems",  "text": "Find 100 different gems." },
     { "id": "gems-250",  "group": "gems", "tier": 6, "goal": 250,   "name": "The Vault",       "text": "Find 250 different gems." },
-    { "id": "gems-500",  "group": "gems", "tier": 6, "goal": 500,   "name": "Half the Cabinet", "text": "Find 500 different gems." },
-    { "id": "gems-all",  "group": "gems", "tier": 6, "goal": "all", "name": "Complete Cabinet", "text": "Find every gem in the game." }
+    { "id": "gems-500",  "group": "gems", "tier": 6, "goal": 500,   "name": "Five Hundred Strong", "text": "Find 500 different gems." },
+    { "id": "gems-all",  "group": "gems", "tier": 6, "goal": "all", "name": "Singularity Complete", "text": "Find every gem in the game." }
   ],
   "optional": [
     "A gem in every category (11 categories today)",

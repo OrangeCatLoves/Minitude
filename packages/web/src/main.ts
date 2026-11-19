@@ -4,6 +4,7 @@ import { Sfx } from './audio'
 import { ADS_ENABLED, AdFrame } from './ads'
 import { Afterword } from './afterword'
 import { CabinetUi } from './cabinet'
+import { AchievementsUi } from './achievements'
 import { AnswersUi } from './answers'
 import { trackVisit } from './visit'
 import './site.css'
@@ -36,6 +37,13 @@ async function main(): Promise<void> {
   if (afterEl) game.after = new Afterword(afterEl)
   const cabEl = document.getElementById('cabinet'), cabBtn = document.getElementById('cabbtn') as HTMLButtonElement | null
   if (cabEl && cabBtn) game.cabinet = new CabinetUi(cabEl, cabBtn, assets.gems[6])
+  if (game.cabinet) {
+    const ach = new AchievementsUi(canvas)
+    ach.onChime = (gem) => sfx.achievement(gem)
+    game.achievements = ach
+    game.cabinet.achievements = ach
+    ach.sync(game.cabinet.gemDays, game.cabinet.knownTotal)
+  }
   const ansEl = document.getElementById('answers')
   if (ansEl) game.answers = new AnswersUi(ansEl)
 

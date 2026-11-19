@@ -6,8 +6,9 @@
  * cabinet can be shown without asking the server anything. Gems that are not found yet are only counted: the questions are not sent to the
  * browser before they are asked, so a hidden slot shows nothing but its category and a question mark.
  */
-import { addGem, cabinetView, emptyCabinet, parseCabinet, serializeCabinet, type Cabinet, type GemEntry, type GemSummary } from '@minitude/core'
+import { ACHIEVEMENTS, addGem, cabinetView, emptyCabinet, parseCabinet, serializeCabinet, type Cabinet, type GemEntry, type GemSummary } from '@minitude/core'
 import { getGemSummary } from './api'
+import type { AchievementsUi } from './achievements'
 
 const KEY = 'minitude.gems'
 
@@ -27,6 +28,9 @@ export class CabinetUi {
   private opener: HTMLElement | null = null
   private picked: string | null = null
   private shown = false
+  private tab: 'gems' | 'ach' = 'gems'
+  /** the achievements: the cabinet's second tab (set by main.ts) */
+  achievements: AchievementsUi | null = null
 
   constructor(private readonly root: HTMLElement, private readonly button: HTMLButtonElement, private readonly icon: HTMLCanvasElement | HTMLImageElement) {
     this.cab = this.load()
@@ -42,6 +46,10 @@ export class CabinetUi {
   /** how many gems there are in all, as far as the browser knows (never less than it holds) */
   get total(): number { return Math.max(this.summary?.total ?? 0, this.cab.gems.length) }
   get isOpen(): boolean { return !this.root.hidden }
+  /** how many gems there are in all IF THE SERVER SAID SO (null until then: "every gem" must never be judged against a guess) */
+  get knownTotal(): number | null { return this.summary && this.summary.total > 0 ? this.summary.total : null }
+  /** the days the gems were found, in the order they were found */
+  get gemDays(): string[] { return this.cab.gems.map((g) => g.day) }
 
   /** a gem was found. Returns whether it is new and the counts after it. */
   add(entry: GemEntry): { isNew: boolean; found: number; total: number } {
@@ -65,7 +73,7 @@ export class CabinetUi {
     this.summaryAt = Date.now()
     try {
       const s = await getGemSummary()
-      if (s && typeof s.total === 'number' && Array.isArray(s.categories)) { this.summary = s; this.paintButton(); if (this.isOpen) this.render() }
+      if (s && typeof s.total === 'number' && Array.isArray(s.categories)) { this.summary = s; this.paintButton(); this.achievements?.sync(this.gemDays, this.knownTotal); if (this.isOpen) this.render() }
     } catch { /* the cabinet still shows what is in it */ }
   }
 
@@ -84,6 +92,7 @@ export class CabinetUi {
   open(): void {
     this.opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
     this.picked = null
+    this.tab = 'gems'
     this.root.hidden = false
     this.render()
     void this.refreshSummary()
@@ -115,6 +124,12 @@ export class CabinetUi {
     close.addEventListener('click', () => this.close())
     head.append(close)
     box.append(head)
+    box.append(this.tabs(view.found, view.total))
+    if (this.tab === 'ach' && this.achievements) {
+      this.achievements.renderTab(box, view.found, this.knownTotal)
+      this.finish(box)
+      return
+    }
     box.append(el('p', 'cab-intro', 'Every question hides one gem: a very rare answer worth 120 points. Find one and it is kept here, on this device only.'))
 
     const picked = this.cab.gems.find((g) => g.id === this.picked)
@@ -144,10 +159,30 @@ export class CabinetUi {
       sec.append(grid)
       box.append(sec)
     }
+    this.finish(box)
+  }
+  private finish(box: HTMLElement): void {
     this.root.replaceChildren(box)
     this.root.setAttribute('role', 'dialog')
     this.root.setAttribute('aria-modal', 'true')
     this.root.setAttribute('aria-label', 'Gem cabinet')
+  }
+  /** GEMS | ACHIEVEMENTS */
+  private tabs(found: number, total: number): HTMLElement {
+    const row = el('div', 'cab-tabs')
+    row.setAttribute('role', 'tablist')
+    const make = (id: 'gems' | 'ach', label: string, n: string) => {
+      const b = el('button', 'cab-tab')
+      b.type = 'button'
+      b.setAttribute('role', 'tab')
+      b.setAttribute('aria-selected', String(this.tab === id))
+      b.append(document.createTextNode(label), el('span', 'n', n))
+      b.addEventListener('click', () => { if (this.tab === id) return; this.tab = id; this.picked = null; this.render(); this.root.querySelector<HTMLElement>('.cab-tab[aria-selected="true"]')?.focus() })
+      return b
+    }
+    row.append(make('gems', 'GEMS', `${found} / ${total || '?'}`))
+    if (this.achievements) row.append(make('ach', 'ACHIEVEMENTS', `${this.achievements.earned} / ${ACHIEVEMENTS.length}`))
+    return row
   }
 
   private card(g: GemEntry): HTMLElement {

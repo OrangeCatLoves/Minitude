@@ -13,6 +13,7 @@ import type { Afterword } from './afterword'
 import type { AnswersUi } from './answers'
 import type { AnswersSource } from './api'
 import type { CabinetUi } from './cabinet'
+import type { AchievementsUi } from './achievements'
 import { H, INK, INTRO, INTRO_EXIT, PRESS_AT, W, FAINT, SOFT } from './config'
 import { addCard, addCharge, addFall, addLand, addPull, addReveal, bgCharge, bgPull, bgReveal, frontIntro, frontPull, frontReveal, frontStamp, gates, makeGems, pose, titleCard, type Gems } from './celebrate'
 import { ctxOf, mkCanvas, shade, SILF, stext, vignette, vscrim, type Ctx } from './draw'
@@ -50,9 +51,11 @@ export interface SoundHook {
   /** every frame */
   frame(T: number, cam: Cam, tl: Timeline, phase: 'title' | 'run' | 'report'): void
   reset(): void
+  /** an achievement was earned: one short chime (true for a gem achievement) */
+  achievement(gem: boolean): void
 }
 export const NULL_SOUND: SoundHook = {
-  unlock() {}, press() {}, question() {}, key() {}, invalid() {}, lock() {}, scheduled() {}, miss() {}, skip() {}, report() {}, frame() {}, reset() {},
+  unlock() {}, press() {}, question() {}, key() {}, invalid() {}, lock() {}, scheduled() {}, miss() {}, skip() {}, report() {}, frame() {}, reset() {}, achievement() {},
 }
 
 type Phase = 'title' | 'lobby' | 'run' | 'report'
@@ -69,6 +72,8 @@ export class Game {
   after: Afterword | null = null
   /** the gem cabinet (what the player has found, kept in this browser); set by main.ts */
   cabinet: CabinetUi | null = null
+  /** the achievements (earned on this device; the banner and the list in the cabinet); set by main.ts */
+  achievements: AchievementsUi | null = null
   /** "everything that counted" for the Daily's questions (what is accepted, by rarity); set by main.ts */
   answers: AnswersUi | null = null
   /** room for ads around the game on the title screen (src/ads.ts); null while the feature is off, so nothing changes; set by main.ts */
@@ -850,6 +855,8 @@ export class Game {
       r.desc = resp.description ?? ''
       if (resp.tier === GEM_TIER) this.recordGem(r)
       schedule(r, core, { lock: this.lockT, respondedAt: this.T })
+      // achievements: solo, the Daily and multiplayer all score an answer here. The banner waits until the answer's own show is over (its card, or the dive's end).
+      this.achievements?.onScored(resp.tier, this.cabinet?.count ?? 0, this.cabinet?.knownTotal ?? null, (r.cardOn ? r.card + r.clen : r.fe) + 0.25)
       if (core.post === 1) {
         this.lastPostVariant = pickPostFirst(this.lastPostVariant)
         r.postVariant = this.lastPostVariant
@@ -937,6 +944,7 @@ export class Game {
       if (this.inVersus) this.versusStep()
     }
     this.syncAfter()
+    this.achievements?.tick(T, this.phase === 'run' || this.phase === 'report')
     // the cabinet button is on the title screen and the report only (not while a question is being answered)
     this.cabinet?.setButtonVisible(this.phase === 'title' || this.phase === 'report')
     // ads only while the title screen is up with nothing on top of it: not once PLAY is pressed, not in the lobby, not on the report, not over the gem cabinet

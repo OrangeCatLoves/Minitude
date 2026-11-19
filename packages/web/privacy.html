@@ -25,7 +25,7 @@
   <main class="doc-main" id="top">
     <h1>Privacy and how Minitude works</h1>
     <p class="doc-lede">Minitude is a pixel-art trivia game about getting very, very small. This page explains how the game works, what information it handles and why, and who owns what. We have tried to write it so that it can be read.</p>
-    <p class="doc-updated">Last updated <span id="updated">17 November 2026</span></p>
+    <p class="doc-updated">Last updated <span id="updated">19 November 2026</span></p>
 
     <nav class="doc-toc" aria-label="On this page">
       <b>On this page</b>
@@ -67,6 +67,8 @@
       <p>Two to four players can play the same seven questions together in a room, either private (you share its code with friends) or public (anyone can join from the list of rooms). Players choose a display name for the room.</p>
       <h3>Your gem cabinet</h3>
       <p>Every gem you find is kept in your gem cabinet, which you can open from the title screen and from the end-of-run report. For each gem it keeps the question you were asked, the answer you gave and the one line the game showed about it. It is kept only in your browser: we cannot see it, and clearing this site’s data empties it.</p>
+      <h3>Your achievements</h3>
+      <p>The game gives you small achievements: the first time you score an answer of each rarity, and for how many different gems you have found. For each one it keeps that you earned it and the day. They are kept only in your browser, next to your gem cabinet: we cannot see them, and clearing this site’s data empties them.</p>
       <h3>Your logbook</h3>
       <p>The logbook that appears when a run ends shows your streak (the number of days in a row on which you finished a run of any kind), how many runs you have played, your average score and your best score. It is kept only in your browser: we cannot see it.</p>
     </section>
@@ -126,6 +128,7 @@
         <li><code>minitude.guest</code>: a random ID made up by your browser the first time you play. It is how the Daily knows it is you again. It is not linked to your name or anything else about you.</li>
         <li><code>minitude.logbook</code>: your logbook: runs played, average, best and the days you played.</li>
         <li><code>minitude.gems</code>: your gem cabinet: the gems you have found, each with its question, your answer and a line about it.</li>
+        <li><code>minitude.achievements</code>: your achievements: which ones you have earned and the day.</li>
         <li><code>minitude.muted</code>: whether you turned the sound off.</li>
         <li><code>minitude.name</code>: the last display name you used in a multiplayer room.</li>
       </ul>

@@ -13,7 +13,7 @@ Added 13 Nov 2026 at the owner's request ("I want my website to look genuinely p
 
 Leaving the report (HOME, PLAY AGAIN, Esc) closes the sheet and scrolls back to the top. While a run is being played there is nothing to scroll to.
 
-**The privacy page**, `/privacy` (a new tab from the footer). How the game works, what is stored and why (a table), what stays in the browser (the four local-storage keys, and the visitor's own anonymous ID shown so they can quote it), who else is involved (Fly.io, Cloudflare for the domain name), rights and deletion, children, trademarks and credits, changes, contact. It must say nothing about how answers are checked: `packages/web/test/private.test.ts` guards that (the page is scanned too).
+**The privacy page**, `/privacy` (19 Nov 2026: a section "Your achievements" and a row for `minitude.achievements` were added; the date is in `src/site.ts` and in the page) (a new tab from the footer). How the game works, what is stored and why (a table), what stays in the browser (the four local-storage keys, and the visitor's own anonymous ID shown so they can quote it), who else is involved (Fly.io, Cloudflare for the domain name), rights and deletion, children, trademarks and credits, changes, contact. It must say nothing about how answers are checked: `packages/web/test/private.test.ts` guards that (the page is scanned too).
 
 ## The logbook
 

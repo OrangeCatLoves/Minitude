@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Singularity Complete: six designs (draft)</title>
+<style>
+@font-face { font-family: 'Silkscreen'; src: url('../../packages/web/public/fonts/Silkscreen-Regular.ttf') format('truetype'); font-weight: 400; }
+@font-face { font-family: 'Silkscreen'; src: url('../../packages/web/public/fonts/Silkscreen-Bold.ttf') format('truetype'); font-weight: 700; }
+@font-face { font-family: 'PixelifyFix'; src: url('../../packages/web/public/fonts/PixelifyFix-600.ttf') format('truetype'); font-weight: 600; }
+:root { --ink: #070b17; --panel: #0b1122; --raised: #101831; --line: rgba(110,124,170,.32); --off: #eef2ff; --body: #d3daf0; --soft: #a3b0d6; --faint: #8190bb; --pixel: 'Silkscreen', 'Courier New', monospace; --game: 'PixelifyFix', system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ink); color: var(--body); font: 15px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 26px 22px 70px; }
+h1 { margin: 0 0 6px; font: 700 22px/1.2 var(--pixel); letter-spacing: .08em; color: var(--off); }
+p.lead { margin: 6px 0 18px; max-width: 880px; color: var(--soft); }
+canvas { image-rendering: pixelated; display: block; }
+#sheet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 980px) { #sheet { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { #sheet { grid-template-columns: 1fr; } }
+.card { background: var(--panel); border: 1px solid var(--line); padding: 14px 12px 12px; }
+.card .big { display: flex; justify-content: center; background: #0a1026; padding: 12px 0; }
+.card h2 { margin: 12px 0 2px; font: 700 13px/1.2 var(--pixel); letter-spacing: .1em; color: var(--off); }
+.card h2 b { color: #ffd866; margin-right: 8px; }
+.card p { margin: 0; font-size: 13px; color: var(--soft); }
+.sizes { display: flex; align-items: flex-end; gap: 14px; margin-top: 10px; padding: 10px; background: #0a1026; }
+.sizes .lab { font: 400 10px/1 var(--pixel); letter-spacing: .1em; color: var(--faint); margin-top: 5px; text-align: center; }
+.tile { background: #1b1245; border: 1px solid #c4b0ff; padding: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>SINGULARITY COMPLETE · SIX DESIGNS</h1>
+  <p class="lead">The last achievement: every gem found. Draft, nothing is in the game. Each design is 31 x 31 pixels (the other achievements are 24), so the last card of the cabinet would have a larger picture. Each shows "1000" (the goal is all gems; the bank has 1,000 today). Under each: the picture at the size it would have in the game (tile and 2x). Tell me a letter, or mix: "the wings of A with the trophy of B".</p>
+  <div id="sheet"></div>
+</main>
+<script>
+const RAINBOW = ['#5be0ff', '#5bf0b0', '#ffe066', '#ff9a3c', '#ff5fb0', '#c4a0ff']
+const $ = (s, r = document) => r.querySelector(s)
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt !== undefined) e.textContent = txt; return e }
+const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${a})` }
+
+/* ---------- a tiny pixel toolkit */
+function cv(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; return [c, g] }
+const px = (g, x, y, col) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), 1, 1) }
+const rect = (g, x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x, y, w, h) }
+function ell(g, cx, cy, rx, ry, col) { for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) px(g, x, y, col) } }
+const disc = (g, cx, cy, r, col) => ell(g, cx, cy, r, r, col)
+function line(g, x0, y0, x1, y1, col, w = 1) { const dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let e = dx - dy; for (;;) { rect(g, x0, y0, w, w, col); if (x0 === x1 && y0 === y1) break; const e2 = 2 * e; if (e2 > -dy) { e -= dy; x0 += sx } if (e2 < dx) { e += dx; y0 += sy } } }
+function poly(g, pts, col) { const ys = pts.map((p) => p[1]), xs = pts.map((p) => p[0]); for (let y = Math.floor(Math.min(...ys)); y <= Math.ceil(Math.max(...ys)); y++) for (let x = Math.floor(Math.min(...xs)); x <= Math.ceil(Math.max(...xs)); x++) { let inside = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y + .5) !== (yj > y + .5) && x + .5 < ((xj - xi) * (y + .5 - yi)) / (yj - yi) + xi) inside = !inside } if (inside) px(g, x, y, col) } }
+/** a 1-pixel dark edge around whatever has been drawn */
+function outline(c, col = '#070b17') {
+  const g = c.getContext('2d'), w = c.width, h = c.height, im = g.getImageData(0, 0, w, h), d = im.data, src = new Uint8ClampedArray(d)
+  const a = (x, y) => (x < 0 || y < 0 || x >= w || y >= h ? 0 : src[(y * w + x) * 4 + 3])
+  const n = parseInt(col.slice(1), 16)
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!a(x, y) && (a(x - 1, y) || a(x + 1, y) || a(x, y - 1) || a(x, y + 1))) { const i = (y * w + x) * 4; d[i] = n >> 16; d[i + 1] = (n >> 8) & 255; d[i + 2] = n & 255; d[i + 3] = 255 }
+  g.putImageData(im, 0, 0)
+}
+/** every drawn pixel becomes one flat colour (the "not yet earned" silhouette) */
+function dim(c) {
+  const g = c.getContext('2d'), im = g.getImageData(0, 0, c.width, c.height), d = im.data
+  for (let i = 0; i < d.length; i += 4) if (d[i + 3]) { const y = (0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]) * 0.42 + 16; d[i] = y * 0.9; d[i + 1] = y * 0.95; d[i + 2] = y * 1.25 }
+  g.putImageData(im, 0, 0)
+}
+function flat(c, col) {
+  const g = c.getContext('2d'), im = g.getImageData(0, 0, c.width, c.height), d = im.data, n = parseInt(col.slice(1), 16)
+  for (let i = 0; i < d.length; i += 4) if (d[i + 3]) { d[i] = n >> 16; d[i + 1] = (n >> 8) & 255; d[i + 2] = n & 255 }
+  g.putImageData(im, 0, 0)
+}
+const crescent = (g, cx, cy, r, ox, oy, r2) => { for (let y = cy - r; y <= cy + r; y++) for (let x = cx - r; x <= cx + r; x++) { const dx = x + .5 - cx, dy = y + .5 - cy; if (dx * dx + dy * dy > r * r) continue; const ex = x + .5 - (cx + ox), ey = y + .5 - (cy + oy); if (ex * ex + ey * ey <= r2 * r2) continue; const ang = (Math.atan2(dy, dx) + Math.PI) / (2 * Math.PI); px(g, x, y, RAINBOW[Math.min(5, Math.floor(ang * 6))]) } }
+const smallGem = (g, x, y, col, lite) => { poly(g, [[x, y - 3], [x + 3, y], [x, y + 3], [x - 3, y]], col); px(g, x - 1, y - 1, lite); px(g, x, y - 2, lite) }
+
+const mix = (hex, to, t) => { const a = parseInt(hex.slice(1), 16), b = parseInt(to.slice(1), 16); const c = (s) => Math.round(((a >> s) & 255) * (1 - t) + ((b >> s) & 255) * t); return '#' + ((1 << 24) | (c(16) << 16) | (c(8) << 8) | c(0)).toString(16).slice(1) }
+const rainAt = (t) => RAINBOW[Math.max(0, Math.min(5, Math.floor(t * 6)))]
+function inPoly(pts, x, y) { let inside = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside } return inside }
+function polyFn(g, pts, fn) { const ys = pts.map((p) => p[1]), xs = pts.map((p) => p[0]); for (let y = Math.floor(Math.min(...ys)); y <= Math.ceil(Math.max(...ys)); y++) for (let x = Math.floor(Math.min(...xs)); x <= Math.ceil(Math.max(...xs)); x++) if (inPoly(pts, x + .5, y + .5)) px(g, x, y, fn(x, y)) }
+const sparkle = (g, x, y, col, big) => { px(g, x, y, col); px(g, x - 1, y, col); px(g, x + 1, y, col); px(g, x, y - 1, col); px(g, x, y + 1, col); if (big) { px(g, x - 2, y, col); px(g, x + 2, y, col); px(g, x, y - 2, col); px(g, x, y + 2, col) } }
+
+
+
+const W = 31
+const NAVY = '#141c42'
+function mk() { const [c, g] = cv(W, W); return [c, g] }
+const DG = { 1: ['010', '110', '010', '010', '111'], 0: ['111', '101', '101', '101', '111'] }
+/** "1000" in a 3 x 5 pixel face, 15 wide, rainbow with a lighter top edge */
+function numeral(g, x0, y0, shadow) {
+  const cells = []
+  ;[...'1000'].forEach((ch, i) => DG[ch].forEach((row, ry) => [...row].forEach((v, rx) => { if (v === '1') cells.push([x0 + i * 4 + rx, y0 + ry]) })))
+  if (shadow) for (const [x, y] of cells) px(g, x + 1, y + 1, shadow)
+  for (const [x, y] of cells) px(g, x, y, mix(rainAt((x - x0) / 15), '#ffffff', y === y0 ? .5 : .12))
+}
+function mirrorLeft(g) {
+  const im = g.getImageData(0, 0, W, W), src = new Uint8ClampedArray(im.data), d = im.data
+  for (let y = 0; y < W; y++) for (let x = 0; x < 15; x++) { const a = (y * W + x) * 4, b = (y * W + (W - 1 - x)) * 4; d[b] = src[a]; d[b + 1] = src[a + 1]; d[b + 2] = src[a + 2]; d[b + 3] = src[a + 3] }
+  g.putImageData(im, 0, 0)
+}
+const crown = (g, top, base, w) => { /* a small crown, symmetric about the centre column */ const l = 15.5 - w / 2, r = 15.5 + w / 2, h = base - top; polyFn(g, [[l, base], [l, top + h * .35], [l + w * .24, top + h * .6], [15.5, top], [r - w * .24, top + h * .6], [r, top + h * .35], [r, base]], () => '#ffd866'); rect(g, Math.round(l), Math.round(base - 1), Math.round(w) + 1, 1, '#c58a1f'); px(g, 15, Math.round(top + 2), '#ff5a5a'); px(g, 15, Math.round(top + 1), '#ffffff') }
+
+const rainS = (t) => { t = Math.max(0, Math.min(.999, t)) * 5; const i = Math.floor(t); return mix(RAINBOW[i], RAINBOW[i + 1], t - i) }
+function moon(g, cx, cy, r, ox, oy, r2) { for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) { const dx = x + .5 - cx, dy = y + .5 - cy; if (dx * dx + dy * dy > r * r) continue; const ex = x + .5 - (cx + ox), ey = y + .5 - (cy + oy); if (ex * ex + ey * ey <= r2 * r2) continue; px(g, x, y, mix(rainS(((Math.atan2(dy, dx) + Math.PI) / (2 * Math.PI) + .08) % 1), '#ffffff', .12)) } }
+
+/* A · winged crest */
+function A() {
+  const [c, g] = mk()
+  const root = [11, 14], tips = [[260, 13], [243, 14], [226, 14], [209, 13], [192, 11.5], [175, 10], [158, 8.5]]
+  for (const pass of [0, 1]) tips.forEach(([deg, len], k) => {
+    const a = deg * Math.PI / 180, tx = Math.round(root[0] + len * Math.cos(a)), ty = Math.round(root[1] + len * Math.sin(a))
+    if (pass === 0) line(g, root[0], root[1] + 1, tx, ty + 1, '#c58a1f', 2)
+    else line(g, root[0], root[1], tx, ty, k % 2 ? '#ffe9a0' : '#ffffff', 2)
+  })
+  mirrorLeft(g)
+  polyFn(g, [[5, 12], [26, 12], [26, 22], [15.5, 30.5], [5, 22]], (x, y) => x + y * .5 < 19 ? '#fff2b0' : x + y * .5 > 30 ? '#c58a1f' : '#ffd866')
+  polyFn(g, [[6.6, 13.6], [24.4, 13.6], [24.4, 21.3], [15.5, 28.4], [6.6, 21.3]], () => NAVY)
+  numeral(g, 8, 16)
+  moon(g, 15, 24, 3.2, 1.3, -1, 2.6)
+  crown(g, 2.5, 12.5, 11)
+  rect(g, 10, 10, 11, 2, '#e0a82e'); px(g, 12, 11, '#5be0ff'); px(g, 15, 11, '#ff5fb0'); px(g, 18, 11, '#5bf0b0')
+  outline(c)
+  return [c, (p) => { sparkle(p, 3, 27, '#ffe9a0'); sparkle(p, 27, 27, '#bdf0ff'); sparkle(p, 28, 3, '#fff', true) }]
+}
+
+/* B · trophy cup with the Crescent rising from it */
+function B() {
+  const [c, g] = mk()
+  for (let y = 0; y < W; y++) for (let x = 0; x < 15; x++) { const e = ((x + .5 - 3.7) / 3.8) ** 2 + ((y + .5 - 17.5) / 5.2) ** 2; if (e <= 1 && e >= .4) px(g, x, y, x + y < 19 ? '#fff2b0' : '#e0a82e') }
+  mirrorLeft(g)
+  polyFn(g, [[5, 12], [26, 12], [26, 19], [22, 24], [9, 24], [5, 19]], (x) => x < 9 ? '#fff2b0' : x < 21 ? '#ffd866' : '#e0a82e')
+  rect(g, 5, 12, 21, 1, '#fff6d0'); rect(g, 5, 13, 21, 1, '#c58a1f')
+  rect(g, 7, 15, 17, 7, NAVY); numeral(g, 8, 16)
+  rect(g, 13, 24, 5, 2, '#e0a82e'); rect(g, 13, 24, 5, 1, '#ffd866'); rect(g, 11, 26, 9, 1, '#fff2b0')
+  rect(g, 9, 27, 13, 2, '#ffd866'); rect(g, 9, 27, 13, 1, '#fff2b0'); rect(g, 6, 29, 19, 2, '#c58a1f'); rect(g, 6, 29, 19, 1, '#e0a82e')
+  moon(g, 15, 6, 6, 2.6, -1.6, 4.8)
+  outline(c)
+  return [c, (p) => { sparkle(p, 4, 4, '#fff', true); sparkle(p, 26, 4, '#ffe9a0'); sparkle(p, 23, 9, '#bdf0ff'); px(p, 8, 9, '#ffc0e4') }]
+}
+
+/* C · medal on a rainbow ribbon */
+function C() {
+  const [c, g] = mk()
+  const strip = (pts, mir) => polyFn(g, pts, (x, y) => { const xx = mir ? W - x : x, u = (xx - (5 + y * 5 / 14)) / 8; return mix(rainS(Math.max(0, Math.min(.99, u))), '#000000', .05) })
+  strip([[26, 0], [18, 0], [13, 14], [21, 14]], true); strip([[5, 0], [13, 0], [18, 14], [10, 14]], false)
+  const cx = 15.5, cy = 18.5
+  for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+    const dx = x + .5 - cx, dy = y + .5 - cy, d = Math.sqrt(dx * dx + dy * dy), lit = dx + dy < 0
+    if (d <= 8) px(g, x, y, d > 7 ? '#1b2558' : NAVY)
+    else if (d <= 8.8) px(g, x, y, lit ? '#fff2b0' : '#c58a1f')
+    else if (d <= 10.4) { const t = (Math.atan2(dy, dx) + Math.PI) / (2 * Math.PI); px(g, x, y, mix(rainS(Math.abs(2 * t - 1)), d > 9.8 ? '#ffffff' : '#000000', d > 9.8 ? .22 : .12)) }
+    else if (d <= 11.6) px(g, x, y, lit ? '#fff2b0' : d > 11 ? '#c58a1f' : '#ffd866')
+  }
+  numeral(g, 8, 16)
+  crown(g, 10.5, 14.5, 7)
+  moon(g, 15, 24, 3, 1.2, -1, 2.4)
+  outline(c)
+  return [c, (p) => { sparkle(p, 3, 25, '#fff', true); sparkle(p, 28, 25, '#fff', true); sparkle(p, 2, 10, '#ffe9a0'); sparkle(p, 29, 10, '#bdf0ff') }]
+}
+
+/* D · crystal monument on a plinth that carries the number */
+function D() {
+  const [c, g] = mk()
+  const spire = (pts, t0, t1, y0, y1, xl, xm, xr) => polyFn(g, pts, (x, y) => { const base = rainS(t0 + (y - y0) / (y1 - y0) * (t1 - t0)); return x < xl ? mix(base, '#ffffff', .4) : x < xm ? mix(base, '#ffffff', .14) : x < xr ? mix(base, '#000000', .12) : mix(base, '#000000', .3) })
+  spire([[6.2, 7], [9.8, 10.5], [9.8, 20.5], [2.6, 20.5], [2.6, 10.5]], .3, .85, 7, 20.5, 4.4, 6.2, 8.2)
+  spire([[24.8, 7], [21.2, 10.5], [21.2, 20.5], [28.4, 20.5], [28.4, 10.5]], .45, 1, 7, 20.5, 22.8, 24.8, 26.6)
+  spire([[15.5, 0], [20.5, 5.5], [20.5, 20.5], [10.5, 20.5], [10.5, 5.5]], 0, .9, 0, 20.5, 12.8, 15.5, 18.2)
+  const L = 'rgba(255,255,255,.55)'
+  line(g, 15, 1, 11, 5, L); line(g, 16, 1, 19, 4, 'rgba(255,255,255,.25)'); rect(g, 11, 5, 10, 1, 'rgba(255,255,255,.3)')
+  px(g, 12, 7, '#fff'); px(g, 12, 8, '#fff'); px(g, 13, 7, '#fff'); px(g, 12, 9, 'rgba(255,255,255,.6)'); px(g, 5, 12, '#fff'); px(g, 5, 13, 'rgba(255,255,255,.6)'); px(g, 25, 12, 'rgba(255,255,255,.6)')
+  rect(g, 4, 20, 23, 2, '#fff2b0'); rect(g, 4, 21, 23, 1, '#e0a82e')
+  rect(g, 3, 22, 25, 9, '#ffd866'); rect(g, 3, 22, 25, 1, '#fff2b0'); rect(g, 3, 30, 25, 1, '#c58a1f')
+  rect(g, 5, 23, 21, 7, NAVY); numeral(g, 8, 24)
+  outline(c)
+  return [c, (p) => { sparkle(p, 3, 4, '#fff', true); sparkle(p, 28, 4, '#fff', true); sparkle(p, 17, 2, '#ffe9a0'); sparkle(p, 24, 12, '#bdf0ff'); sparkle(p, 7, 3, '#ffc0e4') }]
+}
+
+/* E · prize rosette with rainbow tails */
+function E() {
+  const [c, g] = mk()
+  polyFn(g, [[8, 16], [15.5, 16], [15.5, 30.5], [11.75, 27], [8, 30.5]], (x) => mix(rainAt((x - 8) / 7.5), '#000000', .05))
+  polyFn(g, [[23, 16], [15.5, 16], [15.5, 30.5], [19.25, 27], [23, 30.5]], (x) => mix(rainAt((23 - x) / 7.5), '#000000', .05))
+  const cx = 15.5, cy = 12.5
+  for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+    const dx = x + .5 - cx, dy = y + .5 - cy, d = Math.sqrt(dx * dx + dy * dy), th = Math.atan2(dy, dx), u = (th + Math.PI) / (2 * Math.PI)
+    if (d <= 8) px(g, x, y, d > 7 ? '#1b2558' : NAVY)
+    else if (d <= 9.2) px(g, x, y, dx + dy < 0 ? '#fff2b0' : '#c58a1f')
+    else if (d <= 11.4 + 1.1 * Math.abs(Math.cos(8 * th))) { const odd = Math.floor(u * 32) % 2 === 1; px(g, x, y, mix(rainAt((u * 2) % 1), odd ? '#ffffff' : '#000000', odd ? .3 : .12)) }
+  }
+  numeral(g, 8, 10)
+  crown(g, 5.5, 9.5, 7)
+  moon(g, 15, 18, 2.6, 1, -.8, 2.1)
+  outline(c)
+  return [c, (p) => { sparkle(p, 2, 3, '#fff', true); sparkle(p, 29, 3, '#fff', true); sparkle(p, 2, 24, '#ffe9a0'); sparkle(p, 29, 24, '#bdf0ff') }]
+}
+
+/* F · great star over a banner */
+function F() {
+  const [c, g] = mk()
+  // the banner with folded rainbow tails
+  polyFn(g, [[0, 23], [5, 23], [5, 30.5], [0, 30.5], [2.6, 26.8]], (x, y) => mix(rainS(.1), '#000000', y > 27 ? .25 : .05))
+  polyFn(g, [[31, 23], [26, 23], [26, 30.5], [31, 30.5], [28.4, 26.8]], (x, y) => mix(rainS(.92), '#000000', y > 27 ? .25 : .05))
+  rect(g, 4, 21, 23, 9, '#ffd866'); rect(g, 4, 21, 23, 1, '#fff6d0'); rect(g, 4, 29, 23, 1, '#c58a1f')
+  rect(g, 6, 22, 19, 7, NAVY); numeral(g, 8, 23)
+  // the star
+  const cx = 15.5, cy = 11.2, pts = []
+  for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4, r = k % 2 === 0 ? 11.8 : 9.8; pts.push([cx + r * Math.sin(a), cy - r * Math.cos(a)]); const b = a + Math.PI / 8; pts.push([cx + 5.5 * Math.sin(b), cy - 5.5 * Math.cos(b)]) }
+  const SHORT = { 1: '#5be0ff', 3: '#ff5fb0', 5: '#5bf0b0', 7: '#c4a0ff' }
+  polyFn(g, pts, (x, y) => {
+    const dx = x + .5 - cx, dy = y + .5 - cy, ang = (Math.atan2(dx, -dy) + 2 * Math.PI) % (2 * Math.PI), k = Math.round(ang / (Math.PI / 4)) % 8, off = ang - k * Math.PI / 4, side = ((off + Math.PI) % (2 * Math.PI)) - Math.PI
+    const base = k % 2 === 0 ? '#ffd866' : SHORT[k]
+    return side < 0 ? mix(base, '#ffffff', .42) : mix(base, '#000000', .16)
+  })
+  for (let y = 0; y < 24; y++) for (let x = 0; x < W; x++) {
+    const dx = x + .5 - cx, dy = y + .5 - cy, d = Math.sqrt(dx * dx + dy * dy)
+    if (d <= 2.9) { const t = ((Math.atan2(dy, dx) + Math.PI) / (2 * Math.PI) + d / 3 * .4) % 1; px(g, x, y, mix(rainAt(t), '#ffffff', .55 * (1 - d / 3))) }
+    else if (d <= 3.9) px(g, x, y, dx + dy < 0 ? '#fff6d0' : '#c58a1f')
+  }
+  outline(c)
+  return [c, (p) => { sparkle(p, 2, 3, '#fff', true); sparkle(p, 29, 3, '#fff', true); sparkle(p, 2, 16, '#ffe9a0'); sparkle(p, 29, 16, '#bdf0ff'); sparkle(p, 15, 0, '#fff') }]
+}
+
+const DESIGNS = [
+  ['A', 'Winged crest', 'Heraldic: a gold crown, a shield with 1000 and a Crescent, and two great wings.', A],
+  ['B', 'The trophy', 'A gold cup with 1000 on its body and the Crescent rising from it like a prize.', B],
+  ['C', 'Medal and ribbon', 'A medal of honour on a rainbow ribbon: gold rim, a ring of rainbow, 1000 inside.', C],
+  ['D', 'Crystal monument', 'A cluster of rainbow crystals rising from a plinth that has 1000 carved into it.', D],
+  ['E', 'Prize rosette', 'A first-prize rosette: a ruffle in the Crescent colours, 1000 in the middle, rainbow tails.', E],
+  ['F', 'Star and banner', 'A great eight-point star, gold and rainbow, over a banner that carries 1000.', F],
+]
+const draw = (canvas, post) => { const g = canvas.getContext('2d'); if (post) post(g); return canvas }
+const show = (canvas, s) => { canvas.style.width = canvas.width * s + 'px'; canvas.style.height = canvas.height * s + 'px'; return canvas }
+const clone = (src, scale) => { const [c, g] = cv(src.width, src.height); g.drawImage(src, 0, 0); return show(c, scale) }
+for (const [id, name, text, fn] of DESIGNS) {
+  const [canvas, post] = fn(); draw(canvas, post)
+  const card = el('div', 'card'), big = el('div', 'big'); big.append(show(canvas, 9))
+  const sizes = el('div', 'sizes'), t1 = el('div'), tile = el('div', 'tile'); tile.append(clone(canvas, 3)); t1.append(tile, el('div', 'lab', 'TILE 3X'))
+  const t2 = el('div'); t2.append(clone(canvas, 1.5), el('div', 'lab', 'SMALL'))
+  sizes.append(t1, t2)
+  const h = el('h2'); h.append(el('b', '', id), name)
+  card.append(big, h, el('p', '', text), sizes)
+  document.getElementById('sheet').append(card)
+}
+document.body.classList.add('ready')
+</script>
+</body>
+</html>

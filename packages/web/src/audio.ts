@@ -549,6 +549,13 @@ export class Sfx implements SoundHook {
     const g = this.cardPads.get(r.i)
     if (g && this.ctx) { g.gain.setTargetAtTime(0, this.ctx.currentTime, 0.12); this.cardPads.delete(r.i) }
   }
+  /** an achievement banner dropped in: three rising bells, and a little sparkle on top for a gem achievement */
+  achievement(gem: boolean): void {
+    this.live((R, d, at) => {
+      ;[1318.5, 1568, 2093].forEach((f, i) => bell(R, d, at + 0.08 * i, f, 0.9, 0.13, 0.3, -0.2 + 0.2 * i))
+      if (gem) sparkles(R, d, at + 0.1, 1.2, 8, [2093, 2637, 3136, 3520], 0.05, 41)
+    })
+  }
   report(at: number, perfect: boolean): void {
     this.put(at, (R, d, t0) => { swish(R, d, t0, 0.6, 0.13) })
     this.put(at + 0.4, (R, d, t0) => swish(R, d, t0, 0.5, 0.1, 0.4))

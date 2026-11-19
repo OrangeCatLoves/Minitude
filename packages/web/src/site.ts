@@ -16,7 +16,7 @@ export const SITE = {
   /** the year in the copyright line */
   year: 2026,
   /** when the privacy page was last changed */
-  privacyUpdated: '17 November 2026',
+  privacyUpdated: '19 November 2026',
 }
 
 export interface FooterLink { label: string; href: string; external: boolean }

@@ -73,6 +73,10 @@ With `?manual=1` the page exposes `window.__mt`:
 - `nomodel.test.ts`: the live game never reaches a language model (the start-up code and routes are checked), edit distance (a swapped pair is one slip), the typo budget, and `looseKey` (spacing, British spelling, numerals).
 - `expand.test.ts`: the answer-list builder's merge (new answers, aliases, what a person ruled out), tiers from how well known something is, and the `answers add / alias / unknown / import-expansion` commands.
 
+## Achievements
+
+`packages/core/test/achievements.test.ts` (20 tests: the catalogue, a first of each rarity once, the gem steps in order, "every gem" never judged against an unknown total, the quiet backfill and its days, damaged storage, the tab's view), `packages/web/test/achievements.test.ts` (a picture for every achievement, the day format), and `tools/browser-test/achievements.cjs`: plays a Common and a Rare answer on a throw-away server (the seed bank is enough) and checks the banner appears after the answer's show, under the progress squares, and slides away; a second Rare answer shows nothing; twelve gems in the cabinet are backfilled quietly; a first gem queues Singularity, Pocketful, Collector and Curator in order; the cabinet's two tabs and the 15 cards; no page errors. `fonttest.cjs` draws the game's text font at several weights (the "fi" and "C" findings).
+
 ## Gems
 
 `packages/core/test/gems.test.ts` (the tier, 840, perfect runs, the share square, the cabinet's add / save / damaged input / layout), `packages/server/test/gems.test.ts` (migration 4, the checker, `/api/gems` leaks nothing, a run scored 120, the `gems` commands, the audit), a gem round in `versus.test.ts`, a gem marker in `banksheet.test.ts`, and the gem schedule in `packages/web/test/timeline.test.ts`. `tools/browser-test/gem.cjs` plays a whole run of gems in Chrome against a server whose database has the gems (use a throw-away copy), saves a picture at each stage of the reveal, the report and the cabinet, and checks 840 points and the cabinet's storage.
