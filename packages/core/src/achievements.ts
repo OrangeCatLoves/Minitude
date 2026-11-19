@@ -38,7 +38,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'gems-25', group: 'gems', tier: GEM_TIER, goal: 25, name: 'Curator', text: 'Find 25 different gems.' },
   { id: 'gems-50', group: 'gems', tier: GEM_TIER, goal: 50, name: 'Gem Warden', text: 'Find 50 different gems.' },
   { id: 'gems-100', group: 'gems', tier: GEM_TIER, goal: 100, name: 'A Hundred Gems', text: 'Find 100 different gems.' },
-  { id: 'gems-250', group: 'gems', tier: GEM_TIER, goal: 250, name: 'The Vault', text: 'Find 250 different gems.' },
+  { id: 'gems-250', group: 'gems', tier: GEM_TIER, goal: 250, name: 'The Hoard', text: 'Find 250 different gems.' },
   { id: 'gems-500', group: 'gems', tier: GEM_TIER, goal: 500, name: 'Five Hundred Strong', text: 'Find 500 different gems.' },
   { id: 'gems-all', group: 'gems', tier: GEM_TIER, goal: 'all', name: 'Singularity Complete', text: 'Find every gem in the game.' },
 ]

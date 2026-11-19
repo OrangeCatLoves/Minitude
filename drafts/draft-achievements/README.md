@@ -38,7 +38,7 @@ Seven "firsts" and eight steps of the gem ladder (15 in all).
 | --- | --- | --- |
 | Rarity firsts | Down to Earth, Off the Beaten Path, Rare Find, Exotic Taste, Legend Has It, Almost Nobody | the first answer scored at Common, Uncommon, Rare, Exotic, Legendary, Mythic |
 | | Singularity | the first hidden gem |
-| Gem ladder | Pocketful 5, Collector 10, Curator 25, Gem Warden 50, A Hundred Gems 100, The Vault 250, Five Hundred Strong 500, Singularity Complete (all) | how many DIFFERENT gems the cabinet holds (a gem found again does not count twice) |
+| Gem ladder | Pocketful 5, Collector 10, Curator 25, Gem Warden 50, A Hundred Gems 100, The Hoard 250, Five Hundred Strong 500, Singularity Complete (all) | how many DIFFERENT gems the cabinet holds (a gem found again does not count twice) |
 
 Why these numbers: the owner suggested 1, 10 and 50. Each step is about 2 to 2.5 times the work of the one before, so the early ones come quickly (1, 5, 10 reward a new player within a few sessions) and the later ones are a long goal. 250 and 500 are half of today's bank and half of the 1,000 questions planned; the last step is "every gem there is", so it grows with the bank (it is earned when the cabinet is complete at that moment, and an achievement is never taken back). We have **no data yet on how often a player finds a gem** (gems are kept only in the player's browser), so the top steps may take a long time; they can be trimmed to 1, 5, 10, 25, 50, 100 and "all" without any change to the design.
 
@@ -63,11 +63,11 @@ Also worth considering, not drawn here: a gem in every category (11 today), a wh
 The owner: "I dislike 100, 250, 500 and 1000 achievement logo design ... the logo can't look this dull and boring". The old ledge of six gems, the vault door, the half-lit cabinet and the framed cabinet are gone. The four now follow the Crescent's story (still 24 x 24 pixels, same frames):
 
 - **100 A Hundred Gems:** one large prism gem, every facet a colour of the Crescent, in a burst of rays with sparkles.
-- **250 The Vault:** an open treasure chest heaped with gems, light pouring out of it.
+- **250 The Hoard** (was "The Vault"): an open treasure chest heaped with gems, light pouring out of it.
 - **500 Five Hundred Strong** (was "Half the Cabinet", then "Halfway There"; the picture was redrawn to match the new name, a half-dark orb before): the number itself, chunky and in the Crescent's colours, under a small Crescent, on a gold line.
 - **1000 Singularity Complete** (was "Complete Cabinet", then "Every Last One"; the owner asked three times for a better picture: a winged orb, a Crescent in a gold-sealed ring, a dark singularity (rejected on 19 Nov 2026: "a little sad and even disrespectful" after collecting 1K singularities, a black core reads as an empty hole), now a triumph): the whole Crescent as a glowing rainbow orb in a gold ring, crowned, inside a solid gold laurel wreath, with sparkles. Lesson: the last achievement must be bright, warm and golden, never dark. `designs/zoom-gems-all.png` shows it at 22 times (`tools/zoom-one.cjs`).
 
-`designs/zoom-big4.png` shows the four at 12 times (`tools/zoom-big4.cjs`); `icons.html` and the other pictures are rebuilt. The glyphs may now return a function that is drawn after the dark outline (sparkles and glows). Renamed the same day: the two "Cabinet" names became "Five Hundred Strong" and "Singularity Complete", both picked by the owner. "The Vault" is kept; "The Hoard" would match the chest better if the owner likes.
+`designs/zoom-big4.png` shows the four at 12 times (`tools/zoom-big4.cjs`); `icons.html` and the other pictures are rebuilt. The glyphs may now return a function that is drawn after the dark outline (sparkles and glows). Renamed the same day: the two "Cabinet" names became "Five Hundred Strong" and "Singularity Complete", both picked by the owner. "The Vault" became "The Hoard" on the owner's word (19 Nov 2026).
 
 ## Fourth round (19 Nov 2026): six designs for Singularity Complete, each with "1000"
 
