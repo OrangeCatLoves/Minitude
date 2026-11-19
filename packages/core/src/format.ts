@@ -1,4 +1,4 @@
-import { sizeOfU } from './scoring'
+import { POINTS_PER_WORLD, sizeOfU } from './scoring'
 
 const UNITS: [number, string][] = [
   [1.0, 'm'], [1e-2, 'cm'], [1e-3, 'mm'], [1e-6, 'µm'], [1e-9, 'nm'], [1e-12, 'pm'], [1e-15, 'fm'],
@@ -60,7 +60,7 @@ export function niceBar(sizeM: number): number {
 export function factorLabel(tierFactor: string, points: number, u0: number, u1: number): string | null {
   const d = u1 - u0
   if (d < 1e-9) return null
-  if (Math.abs(d - points / 20) < 1e-9) return tierFactor
+  if (Math.abs(d - points / POINTS_PER_WORLD) < 1e-9) return tierFactor
   const x = Math.pow(10, d)
   if (x < 1e6) {
     const sig = x >= 100 ? Math.pow(10, Math.floor(Math.log10(x)) - 1) : 1

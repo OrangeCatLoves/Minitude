@@ -2,18 +2,23 @@
  * Points -> size -> world.
  *
  * Size is always 1.7 m divided by 10^u, where u is the "depth in powers of ten".
- *  - Worlds 1 to 20: u = points / 20 (every 20 points is 10x smaller). World n spans points 20(n-1) .. 20n - 1.
- *  - Unexplored (nothing measured): points 400 .. 554. It crosses 15 powers of ten (from 10^20 to 10^35) in 155 points,
- *    so u = 20 + (points - 400) * 15 / 155, i.e. a little under one power of ten every 10 points (one dark picture every 10.3 points).
- *    (Until 16 Nov 2026 Planck Foam started at 440 and the stretch was 40 points wide: 3 powers of ten every 8 points.)
- *  - Planck Foam (world 21): from 555 points. u = 35, size 1.7 x 10^-35 m (the Planck length). Points above 555 still count for the score.
+ *  - Worlds 1 to 20: u = points / 30 (every 30 points is 10x smaller). World n spans points 30(n-1) .. 30n - 1. Each world is still one power
+ *    of ten, so its picture and its honesty label ("the LHC reaches this small", at 1.7 x 10^-20 m) stay true.
+ *    (Until 18 Nov 2026 a world took 20 points and Unexplored began at 400; the owner stretched the worlds over 0 to 600 and raised Common to 20,
+ *    so that two Common answers always reach the next world.)
+ *  - Unexplored (nothing measured): points 600 .. 699. It crosses 15 powers of ten (from 10^20 to 10^35) in 100 points,
+ *    so u = 20 + (points - 600) * 15 / 100, i.e. one power of ten every 6.67 points (one dark picture every 6.67 points).
+ *  - Planck Foam (world 21): from 700 points. u = 35, size 1.7 x 10^-35 m (the Planck length). Points above 700 still count for the score.
+ *    (Seven Mythic answers make exactly 700; a gem or two lifts a near-perfect run over it.)
  *
  * The picture is a chain of 36 "slots", one per power of ten: slot j is drawn when floor(u) = j.
  * Slots 0..19 = worlds 1..20, slots 20..34 = the unexplored stretch (15 dark variants), slot 35 = Planck Foam.
  */
 export const START_SIZE_M = 1.7
-export const VOID_START_POINTS = 400
-export const PLANCK_POINTS = 555
+/** points that shrink you to a tenth inside worlds 1 to 20: the width of one world */
+export const POINTS_PER_WORLD = 30
+export const VOID_START_POINTS = 600
+export const PLANCK_POINTS = 700
 export const VOID_FIRST_SLOT = 20
 export const VOID_LAST_SLOT = 34
 export const PLANCK_SLOT = 35
@@ -23,7 +28,7 @@ export const N_WORLDS = 21
 export const VOID_DECADES_PER_POINT = (PLANCK_SLOT - VOID_FIRST_SLOT) / (PLANCK_POINTS - VOID_START_POINTS)
 
 export function pointsToU(points: number): number {
-  if (points <= VOID_START_POINTS) return points / 20
+  if (points <= VOID_START_POINTS) return points / POINTS_PER_WORLD
   if (points >= PLANCK_POINTS) return PLANCK_SLOT
   return VOID_FIRST_SLOT + (points - VOID_START_POINTS) * VOID_DECADES_PER_POINT
 }

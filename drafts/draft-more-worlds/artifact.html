@@ -1,0 +1,1436 @@
+<title>More Worlds Draft</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080f; --panel:#0e1020; --panel2:#151832; --line:#262a52; --text:#e3e8ff; --dim:#9aa3d6; --faint:#6a72a8;
+  --cyan:#76e6ff; --amber:#ffc65c; --mag:#ff7ad0; --lilac:#b79bff; --green:#7dffb0;
+  --font:'Pixelify Sans','Courier New',ui-monospace,monospace; --body:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+}
+:root{ color-scheme: dark }
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+h1,h2,h3,.seg b,.tag,button,.pill{font-family:var(--font);letter-spacing:.04em}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.05;margin:6px 0 10px;font-weight:600}
+h1 em{font-style:normal;color:var(--cyan)}
+.lead{max-width:780px;color:var(--dim);margin:0 0 22px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 18px}
+.box h2{margin:0 0 8px;font-size:18px;color:var(--cyan)}
+.box p{margin:.4em 0}
+.box code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:.92em;color:var(--amber)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:6px}
+.legend div{font-size:14px;color:var(--dim)}
+.tag{display:inline-block;font-size:12px;line-height:1.35;color:var(--dim);margin:4px 0 2px}
+.tag span{display:inline-block;padding:0 7px;border-radius:3px;color:#05060d;font-weight:600;margin-right:6px}
+.k-measured span{background:var(--cyan)} .k-limit span{background:var(--amber)} .k-theory span{background:var(--mag)} .k-plan span{background:var(--lilac)}
+.toolbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);padding:10px 0;margin:0 0 10px;border-bottom:1px solid var(--line)}
+button{font-size:13px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 12px;cursor:pointer;min-height:36px}
+button:hover{border-color:var(--cyan)} button:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.picks{font-size:14px;color:var(--dim);flex:1;min-width:200px}
+.picks b{color:var(--text);font-family:ui-monospace,Consolas,monospace}
+/* the ladder */
+.ladder-bar{display:flex;gap:3px;margin:8px 0 2px;overflow-x:auto;padding-bottom:6px}
+.seg{flex:1 1 0;min-width:62px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 6px;text-align:center;color:var(--text);text-decoration:none;display:flex;flex-direction:column;gap:2px}
+.seg b{font-size:15px;font-weight:600} .seg small{color:var(--faint);font-size:12px}
+a.seg:hover{border-color:var(--cyan)}
+.seg.unex{flex:5 1 0;min-width:120px;background:#04040a;color:#8b93c9;border-style:dashed}
+.seg.planck{flex:1.6 1 0;min-width:110px;background:linear-gradient(135deg,#1a1050,#3a1170);color:#fff}
+.note{font-size:13px;color:var(--faint);margin:2px 0 0}
+/* the rows */
+.row{margin:34px 0 0;scroll-margin-top:70px}
+.row header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin:0 0 10px}
+.row h2{margin:0;font-size:26px;font-weight:600}
+.row header p{margin:0;color:var(--dim);font-size:14px;display:flex;flex-wrap:wrap;gap:2px 14px}
+.row header b{color:var(--text);font-weight:600}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 10px 14px}
+.card.kept{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}
+.pic{display:block;width:100%;padding:0;border:0;background:#000;border-radius:6px;overflow:hidden;cursor:zoom-in;min-height:0}
+.pic canvas{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;aspect-ratio:16/9}
+.card h3{margin:10px 4px 0;font-size:20px;font-weight:600}
+.card h3 i{font-style:normal;color:var(--faint);font-size:15px;margin-right:6px}
+.card .tag{margin:4px 4px 0}
+.card .desc{margin:6px 4px 10px;color:var(--text);font-size:15px}
+.actions{display:flex;gap:8px;margin:0 4px}
+.keep[aria-pressed="true"]{border-color:var(--green);color:var(--green)}
+/* the big view */
+dialog{padding:0;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);width:min(1180px,96vw);max-height:94vh;overflow:auto}
+dialog::backdrop{background:rgba(2,3,10,.82)}
+.big-in{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:0}
+@media (max-width:860px){.big-in{grid-template-columns:1fr}}
+.big-pic{background:#000;display:grid;place-items:center;min-width:0;overflow:hidden}
+.big-pic canvas{width:100%;max-width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;display:block;aspect-ratio:16/9}
+.big-info{padding:18px 20px 22px}
+.big-info h2{margin:0 0 4px;font-size:26px;font-weight:600} .big-info h2 i{font-style:normal;color:var(--faint);font-size:17px;margin-right:6px}
+.big-info p{margin:.5em 0;font-size:15px}
+.big-info .kindnote{color:var(--faint);font-size:13px;margin:0 0 10px}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:12px 0;font-size:14px}
+dt{color:var(--faint)} dd{margin:0}
+.src{color:var(--faint);font-size:13px}
+.real h3{margin:16px 0 4px;font-size:15px;color:var(--cyan);font-weight:600}
+.bigbar{display:flex;gap:8px;margin-top:16px}
+footer{margin-top:50px;color:var(--faint);font-size:13px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+</style>
+<div class="wrap">
+  <p class="pill" style="margin:0;color:var(--faint);font-size:13px">DRAFT · NOTHING IS IN THE GAME YET</p>
+  <h1>Worlds <em>21 to 30</em></h1>
+  <p class="lead">Twenty candidate worlds, two for each new stretch of size. Every picture moves a little, like the worlds already in the game. Click a picture for the facts behind it. Keep the ones you like and paste the list into the chat.</p>
+
+  <section class="box">
+    <h2>First, the numbers</h2>
+    <p>World 20 (Collision Hall) covers <b>380 to 400 points</b>. The 440 you remember was the old Planck Foam threshold, which became 555 on 16 November. From 400, each 20 points shrinks you by a factor of ten.</p>
+    <p>So reaching <b>600</b> needs <b>10 new worlds</b> (400 + 10 × 20), not 8. With 8 worlds, the unexplored band would start at 560. These twenty designs are two per world, for ten worlds.</p>
+    <p>A nice fact: with your own formula (size = 1.7 m ÷ 10<sup>points ÷ 20</sup>), <b>700 points is 1.7 × 10⁻³⁵ m, the Planck length</b>. A finale at 700 is the physically honest place for it.</p>
+  </section>
+
+  <section class="box">
+    <h2>The ladder</h2>
+    <div id="ladder"></div>
+    <p class="note">Each world is 20 points, one factor of ten. After world 30 the unexplored stretch is 100 points (five powers of ten, 1.7 × 10⁻³⁰ m down to the Planck length), then Planck Foam at 700.</p>
+  </section>
+
+  <section class="box">
+    <h2>What “real” means down here</h2>
+    <p>No experiment has looked below about 10⁻²⁰ m with a collider, so nothing here is a place anyone has seen. Each world is anchored to something that genuinely exists in physics at that energy, and says so in its tag. Energy and length are linked by <span class="mono">length ≈ 2 × 10⁻¹⁶ GeV·m ÷ energy</span>.</p>
+    <div class="legend">
+      <div><span class="tag k-measured"><span>MEASURED</span></span> a particle of this energy was seen</div>
+      <div><span class="tag k-limit"><span>LIMIT</span></span> experiments found nothing, which rules things out</div>
+      <div><span class="tag k-theory"><span>THEORY</span></span> a published idea, untested</div>
+      <div><span class="tag k-plan"><span>PLAN</span></span> a machine that is proposed, not built</div>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <button id="pause" type="button" aria-pressed="false">⏸ PAUSE MOTION</button>
+    <div class="picks"><b>Kept:</b> <b id="picks-list">nothing kept yet</b> <span id="picks-note"></span></div>
+    <button id="copy" type="button">COPY LIST</button>
+    <button id="clear" type="button">CLEAR</button>
+  </div>
+
+  <div id="rows"></div>
+
+  <footer>Pictures are drawn by code at 320 × 180 pixels and shown larger, in the game’s style. Sources are listed in each world’s facts. Facts were checked against the published papers named there.</footer>
+</div>
+
+<dialog id="big" aria-labelledby="big-name">
+  <div class="big-in">
+    <div class="big-pic"><canvas id="big-canvas" width="320" height="180"></canvas></div>
+    <div class="big-info">
+      <h2 id="big-name"></h2>
+      <div id="big-tag" class="tag"></div>
+      <p class="kindnote" id="big-kind"></p>
+      <p id="big-desc"></p>
+      <dl id="big-scale"></dl>
+      <div class="real"><h3>What is real</h3><div id="big-real"></div></div>
+      <div class="bigbar"><button id="big-keep" type="button">☆ KEEP</button><button id="big-close" type="button">CLOSE</button></div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+/* gfx.js */
+/*
+ * gfx.js: a tiny pixel-art toolkit for the draft worlds (320 x 180, drawn fresh every frame as a pure function of time).
+ * Colours are [r, g, b] (0..255). Everything is drawn into a float buffer, then `present` quantises it with an ordered (Bayer) dither,
+ * so glows and gradients band like the game's own pictures and the pattern never shimmers (the dither is fixed to the pixel grid).
+ */
+(function (root) {
+  const W = 320, H = 180
+  const BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]].map((r) => r.map((v) => (v + 0.5) / 16))
+  const LEVELS = 13
+
+  function hash(n) { n = Math.imul(n ^ (n >>> 15), 0x2c1b3c6d); n = Math.imul(n ^ (n >>> 12), 0x297a2d39); return ((n ^ (n >>> 15)) >>> 0) / 4294967296 }
+  const rnd = (seed, i) => hash(seed * 7919 + i * 104729 + 12345)
+  function vnoise(x, y, seed) {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf)
+    const h = (a, b) => hash(Math.imul(a, 374761393) + Math.imul(b, 668265263) + seed * 1013)
+    const a = h(xi, yi), b = h(xi + 1, yi), c = h(xi, yi + 1), d = h(xi + 1, yi + 1)
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
+  }
+  function fbm(x, y, seed, oct = 4) { let s = 0, a = 0.5, f = 1; for (let i = 0; i < oct; i++) { s += a * vnoise(x * f, y * f, seed + i * 17); a *= 0.5; f *= 2 } return s }
+  const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
+  const sc = (c, k) => [c[0] * k, c[1] * k, c[2] * k]
+  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
+
+  class Gfx {
+    constructor() { this.w = W; this.h = H; this.f = new Float32Array(W * H * 3); this.img = new ImageData(W, H) }
+    clear(c) { const f = this.f; for (let i = 0; i < W * H; i++) { f[i * 3] = c[0]; f[i * 3 + 1] = c[1]; f[i * 3 + 2] = c[2] } }
+    /** blend colour c over the pixel with opacity a */
+    set(x, y, c, a = 1) {
+      x = Math.round(x); y = Math.round(y)
+      if (x < 0 || y < 0 || x >= W || y >= H) return
+      const i = (y * W + x) * 3, f = this.f
+      if (a >= 1) { f[i] = c[0]; f[i + 1] = c[1]; f[i + 2] = c[2] } else { f[i] += (c[0] - f[i]) * a; f[i + 1] += (c[1] - f[i + 1]) * a; f[i + 2] += (c[2] - f[i + 2]) * a }
+    }
+    /** add light */
+    add(x, y, c, k = 1) {
+      x = Math.round(x); y = Math.round(y)
+      if (x < 0 || y < 0 || x >= W || y >= H) return
+      const i = (y * W + x) * 3, f = this.f
+      f[i] += c[0] * k; f[i + 1] += c[1] * k; f[i + 2] += c[2] * k
+    }
+    get(x, y) { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= W || y >= H) return [0, 0, 0]; const i = (y * W + x) * 3; return [this.f[i], this.f[i + 1], this.f[i + 2]] }
+    rect(x, y, w, h, c, a = 1) { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) this.set(x + i, y + j, c, a) }
+    vgrad(y0, y1, c0, c1, curve = 1) { for (let y = y0; y <= y1; y++) { const t = Math.pow((y - y0) / Math.max(1, y1 - y0), curve), c = mix(c0, c1, t); for (let x = 0; x < W; x++) this.set(x, y, c) } }
+    line(x0, y0, x1, y1, c, a = 1, th = 1) {
+      x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1)
+      const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1
+      let err = dx + dy, guard = 4000
+      for (;;) {
+        if (th <= 1) this.set(x0, y0, c, a); else this.disc(x0, y0, th / 2, c, a)
+        if ((x0 === x1 && y0 === y1) || guard-- < 0) break
+        const e2 = 2 * err
+        if (e2 >= dy) { err += dy; x0 += sx }
+        if (e2 <= dx) { err += dx; y0 += sy }
+      }
+    }
+    /** a line that adds light (for beams) */
+    beam(x0, y0, x1, y1, c, k = 1, th = 1) {
+      const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), 1)
+      for (let i = 0; i <= n; i++) { const t = i / n, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t; if (th <= 1) this.add(x, y, c, k); else this.discAdd(x, y, th / 2, c, k) }
+    }
+    disc(cx, cy, r, c, a = 1) {
+      const r2 = r * r
+      for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) { const dx = x - cx, dy = y - cy; if (dx * dx + dy * dy <= r2 + 0.25) this.set(x, y, c, a) }
+    }
+    discAdd(cx, cy, r, c, k) {
+      const r2 = r * r
+      for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) { const dx = x - cx, dy = y - cy; if (dx * dx + dy * dy <= r2 + 0.25) this.add(x, y, c, k) }
+    }
+    ring(cx, cy, r, c, a = 1, th = 1) {
+      const o = r + th / 2, i2 = Math.max(0, r - th / 2) ** 2, o2 = o * o
+      for (let y = Math.floor(cy - o); y <= Math.ceil(cy + o); y++) for (let x = Math.floor(cx - o); x <= Math.ceil(cx + o); x++) { const dx = x - cx, dy = y - cy, d = dx * dx + dy * dy; if (d <= o2 && d >= i2) this.set(x, y, c, a) }
+    }
+    ellipse(cx, cy, rx, ry, c, a = 1) {
+      for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) { const dx = (x - cx) / rx, dy = (y - cy) / ry; if (dx * dx + dy * dy <= 1) this.set(x, y, c, a) }
+    }
+    /** an ellipse outline, optionally dashed (dash = on-length in radians; gap the same) and rotated slowly by `phase` */
+    ellipseRing(cx, cy, rx, ry, c, a = 1, dash = 0, phase = 0, glowK = 0) {
+      const n = Math.ceil(Math.PI * 2 * Math.max(rx, ry) * 1.6)
+      for (let i = 0; i < n; i++) {
+        const th = (i / n) * Math.PI * 2
+        if (dash > 0 && Math.floor((th + phase) / dash) % 2 === 1) continue
+        const x = cx + Math.cos(th) * rx, y = cy + Math.sin(th) * ry
+        this.set(x, y, c, a); if (glowK) this.add(x, y, c, glowK)
+      }
+    }
+    poly(pts, c, a = 1) {
+      let y0 = Infinity, y1 = -Infinity
+      for (const p of pts) { if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1] }
+      for (let y = Math.max(0, Math.floor(y0)); y <= Math.min(H - 1, Math.ceil(y1)); y++) {
+        const xs = []
+        for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; if ((p[1] <= y && q[1] > y) || (q[1] <= y && p[1] > y)) xs.push(p[0] + ((y - p[1]) / (q[1] - p[1])) * (q[0] - p[0])) }
+        xs.sort((a, b) => a - b)
+        for (let k = 0; k + 1 < xs.length; k += 2) for (let x = Math.ceil(xs[k]); x <= Math.floor(xs[k + 1]); x++) this.set(x, y, c, a)
+      }
+    }
+    /** soft light: (1 - d/r)^pow, added */
+    glow(cx, cy, r, c, k = 1, pow = 2) {
+      const r2 = r * r
+      for (let y = Math.max(0, Math.floor(cy - r)); y <= Math.min(H - 1, Math.ceil(cy + r)); y++) for (let x = Math.max(0, Math.floor(cx - r)); x <= Math.min(W - 1, Math.ceil(cx + r)); x++) {
+        const dx = x - cx, dy = y - cy, d2 = dx * dx + dy * dy
+        if (d2 >= r2) continue
+        const f = Math.pow(1 - Math.sqrt(d2) / r, pow) * k, i = (y * W + x) * 3
+        this.f[i] += c[0] * f; this.f[i + 1] += c[1] * f; this.f[i + 2] += c[2] * f
+      }
+    }
+    /** a stretched soft light (an ellipse of light) */
+    glowE(cx, cy, rx, ry, c, k = 1, pow = 2) {
+      for (let y = Math.max(0, Math.floor(cy - ry)); y <= Math.min(H - 1, Math.ceil(cy + ry)); y++) for (let x = Math.max(0, Math.floor(cx - rx)); x <= Math.min(W - 1, Math.ceil(cx + rx)); x++) {
+        const dx = (x - cx) / rx, dy = (y - cy) / ry, d2 = dx * dx + dy * dy
+        if (d2 >= 1) continue
+        const f = Math.pow(1 - Math.sqrt(d2), pow) * k, i = (y * W + x) * 3
+        this.f[i] += c[0] * f; this.f[i + 1] += c[1] * f; this.f[i + 2] += c[2] * f
+      }
+    }
+    /** a shaded ball: base colour c, light from the upper left, a dark rim and a small highlight */
+    sphere(cx, cy, r, c, a = 1) {
+      for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) {
+        const dx = (x - cx) / r, dy = (y - cy) / r, d2 = dx * dx + dy * dy
+        if (d2 > 1) continue
+        const nz = Math.sqrt(1 - d2), l = clamp01(-0.45 * dx - 0.55 * dy + 0.7 * nz)
+        const k = 0.28 + 0.9 * Math.pow(l, 1.3)
+        this.set(x, y, [c[0] * k + (l > 0.93 ? 70 : 0), c[1] * k + (l > 0.93 ? 70 : 0), c[2] * k + (l > 0.93 ? 70 : 0)], a)
+      }
+    }
+    stars(seed, n, y0, y1, t, c = [255, 255, 255], twinkle = 0.35, dim = 1) {
+      for (let i = 0; i < n; i++) {
+        const x = Math.floor(rnd(seed, i * 3) * W), y = y0 + Math.floor(rnd(seed, i * 3 + 1) * (y1 - y0)), b = 0.35 + 0.65 * rnd(seed, i * 3 + 2)
+        let k = b
+        if (rnd(seed, i * 3 + 7) < twinkle) k *= 0.55 + 0.45 * Math.sin(t * (0.9 + 2.2 * rnd(seed, i * 3 + 9)) + rnd(seed, i * 3 + 11) * 6.283)
+        k *= dim
+        this.add(x, y, c, k * 0.9)
+        if (b > 0.93) { this.add(x - 1, y, c, k * 0.35); this.add(x + 1, y, c, k * 0.35); this.add(x, y - 1, c, k * 0.35); this.add(x, y + 1, c, k * 0.35) }
+      }
+    }
+    /** quantise with a Bayer dither into the ImageData, then paint it on the canvas */
+    present(ctx) {
+      const d = this.img.data, f = this.f
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 3, o = (y * W + x) * 4, th = BAYER[y & 3][x & 3]
+        for (let k = 0; k < 3; k++) {
+          const v = clamp01(f[i + k] / 255) * (LEVELS - 1)
+          d[o + k] = (Math.floor(v + th) / (LEVELS - 1)) * 255
+        }
+        d[o + 3] = 255
+      }
+      ctx.putImageData(this.img, 0, 0)
+    }
+  }
+
+  /** a skyline from layered noise: returns the top y of the silhouette at every x */
+  function ridge(base, amp, scale, seed, oct = 4) { const out = new Float32Array(W); for (let x = 0; x < W; x++) out[x] = base - amp * fbm(x * scale, seed * 3.7, seed, oct); return out }
+  function fillRidge(g, top, bottomY, c, a = 1) { for (let x = 0; x < W; x++) for (let y = Math.max(0, Math.floor(top[x])); y <= bottomY; y++) g.set(x, y, c, a) }
+
+  const api = { Gfx, W, H, hash, rnd, vnoise, fbm, mix, sc, clamp01, ridge, fillRidge }
+  if (typeof module !== 'undefined') module.exports = api
+  root.Gfx = api
+})(typeof window !== 'undefined' ? window : globalThis)
+
+;
+/* scenelib.js */
+/*
+ * scenelib.js: the registry of the draft worlds and the little pieces several scenes share (desert ground, tank arrays, mountains, aurora, Milky Way).
+ * A world is { id, world, slot, name, desc, kind, label, scale, real, draw(g, t) }.  `draw` paints a whole frame from the time t (seconds).
+ */
+(function (root) {
+  const { W, H, fbm, vnoise, rnd, hash, mix, sc, clamp01, ridge, fillRidge } = root.Gfx
+  const Worlds = []
+  const def = (w) => { Worlds.push(w); return w }
+
+  /** the Milky Way as a slanted band of dithered light */
+  function milkyWay(g, t, y0, slope, width, c, k = 0.5, seed = 5) {
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const d = (y - (y0 + x * slope)) / width
+      if (d < -1.4 || d > 1.4) continue
+      const n = fbm(x * 0.03 + t * 0.004, y * 0.05, seed, 4)
+      const f = Math.exp(-d * d * 2.2) * (0.25 + 1.2 * n * n) * k
+      g.add(x, y, c, f)
+    }
+  }
+
+  /** a ridge line that lights up a little at its top edge */
+  function mountains(g, base, amp, scale, seed, c, rim, bottom = H) {
+    const top = ridge(base, amp, scale, seed, 4)
+    fillRidge(g, top, bottom - 1, c)
+    if (rim) for (let x = 0; x < W; x++) g.add(x, Math.floor(top[x]), rim, 0.5)
+    return top
+  }
+
+  /** green and teal curtains of aurora; `y` is the lower edge */
+  function aurora(g, t, y, h, c1, c2, k = 0.8, seed = 21) {
+    for (let x = 0; x < W; x++) {
+      const sway = Math.sin(x * 0.03 + t * 0.5) * 8 + Math.sin(x * 0.011 - t * 0.31) * 12
+      const ray = 0.4 + 0.6 * vnoise(x * 0.12 + t * 0.35, t * 0.2, seed)
+      const top = y - h * (0.55 + 0.45 * vnoise(x * 0.02 + t * 0.1, 3, seed + 1)) + sway * 0.4
+      for (let yy = Math.floor(top); yy < y; yy++) {
+        const f = (yy - top) / Math.max(1, y - top)
+        const col = mix(c2, c1, f)
+        g.add(x, yy, col, Math.pow(f, 1.4) * ray * k * 0.9)
+      }
+    }
+  }
+
+  /** an array of small detector tanks on flat ground, in perspective. Returns the tank list (for flashes) */
+  function tankField(g, horizonY, cx, rows, spread, c = [225, 232, 240], flash) {
+    const tanks = []
+    for (let r = 0; r < rows; r++) {
+      const z = r / (rows - 1)
+      const y = horizonY + 3 + Math.pow(z, 1.55) * (H - horizonY - 6)
+      const s = 0.5 + z * 3.2
+      const step = spread * s
+      const n = Math.ceil(W / step) + 2
+      for (let i = -n; i <= n; i++) {
+        const off = (r % 2) * step * 0.5
+        const x = cx + i * step + off - (cx - W / 2) * 0
+        if (x < -6 || x > W + 6) continue
+        tanks.push({ x, y, s })
+      }
+    }
+    for (const k of tanks) {
+      const w = Math.max(1, Math.round(k.s * 1.5)), h = Math.max(1, Math.round(k.s * 1.0))
+      const lit = flash ? flash(k) : 0
+      const base = mix([60, 72, 92], c, 0.55)
+      g.rect(Math.round(k.x - w / 2), Math.round(k.y - h), w, h, base)
+      if (w > 2) g.rect(Math.round(k.x - w / 2), Math.round(k.y - h), w, 1, mix(base, [255, 255, 255], 0.35))
+      if (lit > 0.02) { g.add(k.x, k.y - h / 2, [90, 200, 255], lit * 1.2); g.glow(k.x, k.y - h / 2, 3 + k.s * 2.4, [60, 170, 255], lit * 0.8, 2) }
+    }
+    return tanks
+  }
+
+
+  /** textured ground between y0 and y1: colour from c0 (far) to c1 (near), broken up by fields of noise */
+  function ground(g, y0, y1, c0, c1, seed = 3, tex = 0.4, scale = 0.05) {
+    for (let y = y0; y <= y1; y++) {
+      const dz = (y - y0) / Math.max(1, y1 - y0), base = mix(c0, c1, dz), s = scale * (1.6 - dz * 1.2)
+      for (let x = 0; x < W; x++) {
+        const n = fbm(x * s * 2.2, y * s * 5.5, seed, 3)
+        const k = 1 + (n - 0.5) * 2 * tex
+        g.set(x, y, [base[0] * k, base[1] * k, base[2] * k])
+      }
+    }
+  }
+
+  /** a conifer silhouette (for foreground framing) */
+  function tree(g, x, y, h, c) {
+    for (let i = 0; i < h; i++) { const w = Math.max(0, Math.round((i / h) * h * 0.22)); for (let k = -w; k <= w; k++) g.set(x + k, y - h + i, c) }
+    g.rect(x, y, 1, 2, c)
+  }
+
+  /** low mist: soft horizontal bands that drift slowly */
+  function mist(g, t, y0, y1, c, k = 0.3, seed = 31) {
+    for (let y = y0; y <= y1; y++) {
+      const f = 1 - Math.abs((y - (y0 + y1) / 2) / ((y1 - y0) / 2))
+      for (let x = 0; x < W; x++) { const n = fbm(x * 0.012 + t * 0.012, y * 0.09, seed, 3); g.add(x, y, c, Math.max(0, n - 0.35) * 2.2 * f * k) }
+    }
+  }
+
+  /** a small hut with a lit window (x, y = bottom left) */
+  function hut(g, x, y, w, h, c, win) {
+    g.rect(x, y - h, w, h, c); g.rect(x - 1, y - h - 1, w + 2, 2, mix(c, [255, 255, 255], 0.12))
+    if (win) { g.rect(x + 2, y - h + 2, Math.max(2, w >> 2), 2, win); g.glow(x + 3, y - h + 3, 6, win, 0.3, 2) }
+  }
+
+  /** sharp, ridged peaks: returns the top y of the silhouette at every x */
+  function peaks(base, amp, scale, seed) { const out = new Float32Array(W); for (let x = 0; x < W; x++) { let sum = 0, a = 1, f = 1; for (let o = 0; o < 5; o++) { const n = 1 - Math.abs(2 * vnoise(x * scale * f, seed * 5.1, seed + o * 13) - 1); sum += a * n * n; a *= 0.5; f *= 2.1 } out[x] = base - amp * Math.pow(Math.min(1, sum / 1.55), 1.5) } return out }
+
+  /** soft pulsing 0..1 */
+  const pulse = (t, period, phase = 0) => 0.5 + 0.5 * Math.sin(((t + phase) / period) * Math.PI * 2)
+  /** position inside a repeating cycle, 0..1 */
+  const cyc = (t, period, phase = 0) => (((t + phase) % period) + period) % period / period
+  const ease = (x) => x * x * (3 - 2 * x)
+  const seg = (p, a, b) => clamp01((p - a) / (b - a))
+
+  root.Scene = { Worlds, def, milkyWay, mountains, aurora, tankField, ground, tree, mist, hut, peaks, pulse, cyc, ease, seg }
+})(typeof window !== 'undefined' ? window : globalThis)
+
+;
+/* scenes_a.js */
+/* Worlds 21 and 22 (design A and B of each) and 23A. */
+(function (root) {
+  const { W, H, fbm, vnoise, rnd, hash, mix, sc, clamp01, ridge, fillRidge } = root.Gfx
+  const { def, milkyWay, mountains, aurora, tankField, ground, tree, mist, hut, peaks, pulse, cyc, ease, seg } = root.Scene
+  const TAU = Math.PI * 2
+
+  // ============================================================================================================== 21 A  THE NEXT RING
+  def({
+    id: '21A', world: 21, name: 'THE NEXT RING',
+    desc: 'A tunnel three times the length of the LHC is proposed to reach this small. It has not been built.',
+    kind: 'PLAN', label: 'FCC · 85–100 TEV · NOT BUILT',
+    scale: { energy: '85–100 TeV', length: '≈ 2 × 10⁻²¹ m' },
+    real: [
+      'The Future Circular Collider is a real CERN proposal: a ring about 91 km round under the Geneva basin, more than three times the LHC’s 27 km.',
+      'Its proton stage would collide at roughly 85 to 100 TeV, which probes about 2 × 10⁻²¹ m. Nothing has been decided or built.',
+    ],
+    source: 'CERN FCC Feasibility Study Report (2025).',
+    draw(g, t) {
+      const HZ = 64
+      g.vgrad(0, HZ, [3, 5, 22], [92, 64, 120], 1.7)
+      g.glowE(190, HZ, 230, 30, [255, 140, 100], 0.4, 2)
+      g.stars(11, 130, 0, 52, t, [255, 255, 255], 0.4, 0.9)
+      // far ranges: the Jura to the left, the Alps to the right with snow on the high tops
+      const jura = peaks(62, 18, 0.018, 4), alps = peaks(60, 46, 0.011, 9)
+      for (let x = 0; x < W; x++) {
+        const k = clamp01((x - 120) / 90), top = jura[x] * (1 - k) + alps[x] * k
+        for (let y = Math.max(0, Math.floor(top)); y <= HZ + 4; y++) {
+          const depth = y - top, snow = top < 44 ? clamp01((44 - top) / 12) * clamp01(1 - depth / (5 + (44 - top) * 0.7)) : 0
+          const lit = 0.5 + 0.5 * vnoise(x * 0.2, y * 0.4, 5)
+          const base = mix([20, 22, 52], [44, 40, 84], clamp01(depth / 26)); g.set(x, y, mix(base, [214, 220, 250], snow * (0.55 + 0.45 * lit)))
+        }
+        g.add(x, Math.floor(top), [255, 180, 160], 0.25)
+      }
+      // ground, fields, lake
+      ground(g, HZ + 5, H - 1, [26, 44, 52], [8, 16, 20], 7, 0.9, 0.06)
+      for (let y = HZ + 5; y < H; y += 3) for (let x = 0; x < W; x++) { const f = fbm(x * 0.02, y * 0.06, 12, 3); if (f > 0.58) g.add(x, y, [36, 70, 40], 0.1) }
+      const crescent = (x, y) => { const a1 = ((x - 236) / 104) ** 2 + ((y - 98) / 20) ** 2, a2 = ((x - 252) / 98) ** 2 + ((y - 90) / 18) ** 2; return a1 < 1 && a2 > 1 }
+      for (let y = 70; y <= 120; y++) for (let x = 120; x <= 345; x++) {
+        if (!crescent(x, y)) continue
+        const sh = vnoise(x * 0.09 + t * 0.4, y * 0.9, 2), refl = mix([120, 84, 130], [12, 24, 58], clamp01((y - 76) / 40))
+        g.set(x, y, refl); g.add(x, y, [170, 200, 255], 0.04 + 0.2 * sh * sh)
+      }
+      mist(g, t, HZ - 2, HZ + 12, [170, 150, 200], 0.3)
+      // Geneva and the villages
+      for (let i = 0; i < 150; i++) { const cl = i % 3, cx = [150, 112, 188][cl], cyy = [100, 118, 120][cl], sp = [20, 26, 16][cl], x = cx + (rnd(3, i) - 0.5) * 2 * sp, y = cyy + (rnd(3, i + 500) - 0.5) * 8; g.add(x, y, [255, 196, 110], 0.4 + 0.45 * (0.5 + 0.5 * Math.sin(t * 1.1 + i * 1.7))) }
+      for (let k = 0; k < 7; k++) { const a = [90, 100], b = [260, 104 + k * 7]; for (let i = 0; i < 60; i++) { const s = i / 60; g.add(a[0] + (b[0] - a[0]) * s + Math.sin(s * 9 + k) * 6, 112 + k * 6 + s * 8, [255, 200, 120], 0.12) } }
+      // the rings
+      const ring = (cx, cy, rx, ry, col, bright, n, speed, tube) => {
+        for (let i = 0; i < n; i++) {
+          const th = (i / n) * TAU, near = (Math.sin(th) + 1) / 2, x = cx + Math.cos(th) * rx, y = cy + Math.sin(th) * ry
+          g.add(x, y, col, 0.35 + 0.5 * near); if (tube && near > 0.4) g.add(x, y + 1, col, 0.4 * near); g.glow(x, y, 3.2, col, 0.05 + 0.08 * near, 2)
+        }
+        for (const dir of [1, -1]) {
+          const th0 = dir * speed * t + (dir === -1 ? 2.1 : 0)
+          for (let k = 0; k < 18; k++) { const th = th0 - dir * k * 0.04, x = cx + Math.cos(th) * rx, y = cy + Math.sin(th) * ry, near = (Math.sin(th) + 1) / 2; g.add(x, y, bright, (1 - k / 18) * (0.6 + 0.6 * near)); if (k < 3) g.glow(x, y, 6, bright, 0.55 * (1 - k / 3), 2) }
+        }
+      }
+      ring(172, 124, 150, 38, [50, 170, 220], [190, 255, 255], 520, 0.5, true)
+      ring(120, 113, 41, 10.5, [210, 120, 40], [255, 225, 150], 190, 1.45, false)
+      // the eight surface sites of the big ring send up a pale light
+      for (let k = 0; k < 8; k++) { const th = (k / 8) * TAU + 0.4, x = 172 + Math.cos(th) * 150, y = 124 + Math.sin(th) * 38, bl = 0.5 + 0.5 * Math.sin(t * 1.2 + k * 1.3); g.rect(Math.round(x) - 1, Math.round(y) - 1, 3, 2, [200, 250, 255]); for (let h = 1; h < 12; h++) g.add(x, y - h, [150, 230, 255], 0.5 * (1 - h / 12) * (0.4 + 0.6 * bl)); g.glow(x, y, 8, [90, 200, 255], 0.35 * bl, 2) }
+      // dark conifers frame the bottom
+      for (let i = 0; i < 40; i++) { const x = rnd(8, i) * W, h = 9 + rnd(8, i + 100) * 24; tree(g, Math.round(x), H + 1, Math.round(h * (0.7 + 0.5 * (i % 2))), [3, 7, 10]) }
+    },
+  })
+
+  // ============================================================================================================== 21 B  NATURE'S COLLIDER
+  def({
+    id: '21B', world: 21, name: 'NATURE’S COLLIDER',
+    desc: 'Cosmic rays hit the air harder than the LHC ever does. One experiment measured it at 57 TeV.',
+    kind: 'MEASURED', label: 'PIERRE AUGER · 57 TEV',
+    scale: { energy: '57 TeV', length: '≈ 3.5 × 10⁻²¹ m' },
+    real: [
+      'In 2012 the Pierre Auger Observatory measured how likely a cosmic-ray proton is to hit an air nucleus, at a collision energy of 57 TeV. That was four times what the LHC reached then.',
+      'The shower of particles that follows is what the tanks on the ground catch.',
+    ],
+    source: 'Pierre Auger Collaboration, Phys. Rev. Lett. 109, 062002 (2012).',
+    draw(g, t) {
+      const HZ = 116
+      g.vgrad(0, HZ, [4, 2, 26], [96, 44, 112], 1.7)
+      g.glowE(160, HZ, 250, 40, [255, 140, 110], 0.38, 2)
+      g.stars(21, 170, 0, 96, t, [255, 255, 255], 0.4, 0.9)
+      for (const [y, a] of [[44, 0.05], [70, 0.06], [92, 0.07]]) for (let x = 0; x < W; x++) g.add(x, y, [140, 120, 230], a)
+      mountains(g, HZ - 2, 16, 0.014, 15, [26, 12, 40], [190, 100, 130], HZ + 2)
+      ground(g, HZ + 1, H - 1, [64, 40, 56], [18, 12, 26], 9, 0.45)
+      const p = cyc(t, 8), P = [150, 12], G = [150, 138]
+      // the proton comes in from far away
+      if (p < 0.3) {
+        const k = ease(seg(p, 0, 0.3)), x = 330 + (P[0] - 330) * k, y = -34 + (P[1] + 34) * k
+        for (let i = 0; i < 46; i++) { const kk = Math.max(0, k - i * 0.01), xx = 330 + (P[0] - 330) * kk, yy = -34 + (P[1] + 34) * kk; g.add(xx, yy, [255, 215, 120], (1 - i / 46) * 0.85) }
+        g.glow(x, y, 8, [255, 235, 160], 1, 2)
+      }
+      // the collision, then the shower in lines and sparks
+      if (p >= 0.28) {
+        const q = p - 0.28, flash = Math.exp(-q * 12), prog = clamp01(q / 0.3), life = Math.exp(-Math.max(0, p - 0.62) * 6)
+        g.glow(P[0], P[1], 28, [255, 240, 200], 1.2 * flash, 2); g.ring(P[0], P[1], 4 + q * 80, [255, 220, 160], 0.6 * flash, 1)
+        for (let i = 0; i < 70; i++) {
+          const spread = (rnd(5, i) - 0.5) * 2, ex = G[0] + spread * (18 + 60 * rnd(5, i + 90)), ey = G[1] + (rnd(5, i + 40) - 0.5) * 8
+          const sp = 0.7 + 0.5 * rnd(5, i + 200), len = clamp01(prog * sp)
+          const col = i % 3 === 0 ? [255, 255, 255] : i % 3 === 1 ? [110, 215, 255] : [190, 140, 255]
+          for (let s = Math.max(0, len - 0.32); s < len; s += 0.012) { const x = P[0] + (ex - P[0]) * s, y = P[1] + (ey - P[1]) * s; g.add(x, y, col, life * (0.3 + 0.6 * (s - (len - 0.32)) / 0.32) * 0.5) }
+        }
+        for (let i = 0; i < 700; i++) {
+          const s = rnd(6, i * 2); if (s > prog) continue
+          const lat = (rnd(6, i * 2 + 1) - 0.5) * 2 * (3 + s * 64) * (0.3 + 0.7 * rnd(6, i + 900)), x = P[0] + (G[0] - P[0]) * s + lat, y = P[1] + (G[1] - P[1]) * s
+          g.add(x, y, rnd(6, i + 300) < 0.4 ? [255, 255, 255] : [130, 200, 255], life * (0.3 + 0.7 * Math.sin(s * 3.14)) * (0.4 + 0.6 * rnd(6, i + 600)))
+        }
+        for (let s = 0; s < prog; s += 0.03) { const x = P[0] + (G[0] - P[0]) * s, y = P[1] + (G[1] - P[1]) * s; g.glow(x, y, 10 + s * 40, [110, 150, 255], 0.09 * life, 2) }
+      }
+      // the tanks
+      const front = seg(p, 0.5, 0.74), dec = Math.exp(-Math.max(0, p - 0.74) * 6)
+      tankField(g, HZ + 1, 160, 15, 11, [150, 158, 176], (k) => { const dx = (k.x - G[0]) / 96, dy = (k.y - G[1]) / 16, d = Math.hypot(dx, dy); return front > 0 && d < 1 ? (1 - d) * dec * (d < front * 1.1 ? 1 : 0) : 0 })
+      for (let i = 0; i < 30; i++) { const x = rnd(9, i) * W, y = HZ + 6 + rnd(9, i + 60) * 60; g.rect(Math.round(x), Math.round(y), 2, 1, [10, 6, 14]) }
+    },
+  })
+
+  // ============================================================================================================== 22 A  THE RECORD HIT
+  def({
+    id: '22A', world: 22, name: 'THE RECORD HIT',
+    desc: 'In 1991 a cosmic ray hit the air with about sixty times the LHC’s collision energy. No harder hit has been recorded.',
+    kind: 'MEASURED', label: 'FLY’S EYE · 1991 · 3×10²⁰ EV',
+    scale: { energy: '≈ 770 TeV (collision)', length: '≈ 2.6 × 10⁻²² m' },
+    real: [
+      'On 15 October 1991 the Fly’s Eye detector in Utah recorded a cosmic ray of 3.2 × 10²⁰ eV, the “Oh-My-God particle”. It was probably a proton.',
+      'Hitting a nucleus in the air, it collided at about 770 TeV, around 57 times the LHC’s 13.6 TeV. No harder collision has been recorded.',
+    ],
+    source: 'D. J. Bird et al., Astrophys. J. 441, 144 (1995).',
+    draw(g, t) {
+      const HZ = 120
+      g.vgrad(0, HZ, [2, 4, 16], [34, 26, 70], 1.6)
+      milkyWay(g, t, 4, 0.26, 24, [170, 150, 215], 0.7, 8)
+      g.stars(31, 230, 0, 112, t, [255, 255, 255], 0.35)
+      g.glowE(160, HZ, 240, 26, [200, 110, 140], 0.28, 2)
+      mountains(g, HZ - 2, 14, 0.016, 12, [10, 8, 20], [110, 60, 110], HZ + 3)
+      ground(g, HZ + 2, H - 1, [58, 42, 62], [14, 10, 20], 5, 0.7)
+      for (let k = 0; k < 2; k++) for (let i = 0; i < 80; i++) { const s = i / 80, x = 120 + s * (k ? 240 : 110) + Math.sin(s * 6 + k) * 6, y = HZ + 6 + s * s * 50; g.add(x, y, [160, 130, 170], 0.1) }
+      // far station
+      hut(g, 262, HZ + 4, 8, 4, [16, 14, 26], [255, 190, 110]); g.line(268, HZ, 268, HZ - 8, [30, 28, 44]); g.add(268, HZ - 9, [255, 70, 60], 0.5 + 0.5 * pulse(t, 1.7))
+      // the near station: a dome of round mirrors, like an insect's eye
+      const cx = 78, cy = 168, R = 50
+      for (let y = -R; y <= 0; y++) for (let x = -R; x <= R; x++) { const d = Math.hypot(x, y); if (d > R) continue; const nz = Math.sqrt(1 - (d / R) ** 2), l = clamp01(0.38 - 0.5 * (x / R) + 0.5 * (y / R) + 0.45 * nz); g.set(cx + x, cy + y, [10 + 26 * l, 12 + 28 * l, 22 + 40 * l]) }
+      const N = 140
+      for (let i = 0; i < N; i++) {
+        const ph = i * 2.399963, z = 1 - (i + 0.5) / N, rr = Math.sqrt(1 - z * z), nx = Math.cos(ph) * rr, ny = -Math.abs(Math.sin(ph) * rr) * 0.0 - z, nz = Math.sin(ph) * rr
+        if (nz < 0.12) continue
+        const px = cx + nx * R, py = cy + ny * R * 0.0 + (-z) * R * 0.98 + 0 * 0
+        const rad = 3.2 + 3.8 * nz, shine = clamp01(0.5 - 0.5 * nx + 0.3 * z), k = 0.35 + 0.8 * shine
+        g.disc(px, py, rad, [18 + 60 * k, 22 + 66 * k, 40 + 110 * k]); g.ring(px, py, rad, [8, 8, 16], 0.9, 1)
+        g.add(px - rad * 0.3, py - rad * 0.3, [230, 235, 255], 0.5 * shine)
+      }
+      for (let x = -R - 4; x <= R + 4; x++) { g.set(cx + x, cy, [12, 12, 22]); g.set(cx + x, cy + 1, [12, 12, 22]) }
+      g.line(cx, cy - R, cx, cy - R - 10, [60, 60, 80]); g.add(cx, cy - R - 11, [255, 70, 60], 0.5 + 0.5 * pulse(t, 1.4)); g.glow(cx, cy - R - 11, 6, [255, 60, 50], 0.45 * pulse(t, 1.4), 2)
+      hut(g, 150, 170, 40, 14, [20, 18, 30], [255, 200, 120]); hut(g, 196, 172, 22, 10, [16, 14, 24], null)
+      // sagebrush
+      for (let i = 0; i < 70; i++) { const x = rnd(4, i) * W, y = HZ + 8 + Math.pow(rnd(4, i + 70), 1.4) * 56, s = 1 + Math.floor((y - HZ) / 22); g.rect(Math.round(x), Math.round(y), s + 1, s, [20, 20, 28]); g.add(x, y, [150, 140, 190], 0.1) }
+      // the shower track
+      const p = cyc(t, 8), A = [318, 0], B = [136, 112]
+      const head = ease(seg(p, 0.1, 0.36)), fade = Math.exp(-Math.max(0, p - 0.36) * 4.2)
+      if (p > 0.1) {
+        for (let i = 0; i < 120; i++) {
+          const s = i / 120; if (s > head) break
+          const x = A[0] + (B[0] - A[0]) * s, y = A[1] + (B[1] - A[1]) * s
+          const body = Math.exp(-Math.pow((s - 0.6) / 0.28, 2)), tail = 1 - clamp01((head - s) * 2.6), k = body * (p < 0.36 ? tail : fade)
+          g.add(x, y, [160, 160, 255], 0.95 * k); g.glow(x, y, 5, [110, 120, 255], 0.4 * k, 2)
+        }
+        if (p < 0.36) { const x = A[0] + (B[0] - A[0]) * head, y = A[1] + (B[1] - A[1]) * head; g.glow(x, y, 10, [230, 230, 255], 0.9, 2) }
+        const seen = seg(p, 0.22, 0.36) * fade
+        for (let i = 0; i < 40; i++) { const th = rnd(2, i) * 3.14 + 3.14, r = rnd(2, i + 50) * R * 0.9; g.glow(cx + Math.cos(th) * r, cy + Math.sin(th) * r * 0.9, 5, [130, 140, 255], 0.5 * seen * rnd(2, i + 99), 2) }
+      }
+    },
+  })
+
+  // ============================================================================================================== 22 B  THE WIMP LIMIT
+  def({
+    id: '22B', world: 22, name: 'THE WIMP LIMIT',
+    desc: 'Theory says a relic dark-matter particle cannot weigh more than about 340 TeV. None has been found at any weight.',
+    kind: 'THEORY', label: 'UNITARITY BOUND · 340 TEV',
+    scale: { energy: '340 TeV', length: '≈ 6 × 10⁻²² m' },
+    real: [
+      'Dark matter may be a heavy particle left over from the early universe. In 1990 Griest and Kamionkowski showed such a relic cannot be heavier than about 340 TeV, or the sums stop working.',
+      'No dark-matter particle has been detected, at this weight or any other.',
+    ],
+    source: 'K. Griest & M. Kamionkowski, Phys. Rev. Lett. 64, 615 (1990).',
+    draw(g, t) {
+      g.vgrad(0, H - 1, [6, 3, 22], [34, 14, 60], 1.1)
+      g.stars(41, 140, 0, 130, t, [215, 205, 255], 0.35, 0.8)
+      // the halo: dotted ellipses that turn slowly, and the invisible mass as drifting specks
+      for (let k = 0; k < 4; k++) g.ellipseRing(160, 150, 90 + k * 44, 24 + k * 22, [120, 90, 220], 0.28 - k * 0.04, 0.09, t * (0.05 + k * 0.02) * (k % 2 ? -1 : 1))
+      g.glowE(160, 150, 220, 90, [80, 50, 170], 0.42, 1.8)
+      for (let i = 0; i < 220; i++) { const a = rnd(6, i) * TAU + t * 0.03, r = 20 + rnd(6, i + 300) * 150, x = 160 + Math.cos(a) * r * 1.5, y = 150 + Math.sin(a) * r * 0.62; g.add(x, y, [190, 160, 255], 0.22 + 0.2 * rnd(6, i + 600)) }
+      // the galaxy edge-on
+      g.glowE(160, 152, 130, 12, [255, 214, 160], 0.62, 1.3); g.glowE(160, 152, 34, 22, [255, 232, 190], 0.8, 1.6)
+      for (let i = 0; i < 360; i++) { const x = 34 + rnd(2, i) * 252, d = Math.abs(x - 160), y = 152 + (rnd(2, i + 400) - 0.5) * (3 + 7 * Math.exp(-d / 40)); g.add(x, y, [255, 235, 205], 0.3 + 0.4 * rnd(2, i + 900)) }
+      for (let x = 40; x < 280; x++) g.add(x, 152 + Math.round(Math.sin(x * 0.3) * 0.5), [14, 6, 24], 0.55 * Math.exp(-Math.pow((x - 160) / 95, 2)))
+      // the wall: a pane of light that no relic may pass
+      const wall = [[212, 4], [244, 16], [244, 132], [212, 146]]
+      g.poly(wall, [255, 90, 190], 0.16 + 0.05 * pulse(t, 2.6))
+      for (let k = 0; k <= 8; k++) { const f = k / 8, y0 = 4 + f * 142, y1 = 16 + f * 116; g.line(212, y0, 244, y1, [255, 130, 210], 0.28 + 0.2 * Math.sin(t * 2.4 - k * 0.7)) }
+      for (let k = 0; k <= 4; k++) { const x = 212 + k * 8, ya = 4 + k * 3, yb = 146 - k * 3.5; g.line(x, ya, x, yb, [255, 130, 210], 0.22) }
+      g.line(212, 4, 212, 146, [255, 190, 235], 0.95); g.line(244, 16, 244, 132, [255, 150, 215], 0.8); g.glowE(228, 75, 30, 80, [255, 70, 180], 0.3, 2)
+      // the ladder of heavier and heavier relics
+      for (let k = 0; k < 6; k++) {
+        const r = 5 + k * 3.3, x = 28 + k * 30, y = 124 - k * 14 + Math.sin(t * 0.9 + k * 1.3) * 2.4, col = [90 + 22 * k, 205 - 11 * k, 255 - 13 * k]
+        g.glow(x, y, r * 3, col, 0.28, 2); g.sphere(x, y, r, col)
+        const sw = pulse(t, 3.6, k * 0.7); g.ring(x, y, r + 3 + 3 * sw, col, 0.3 * (1 - sw), 1)
+      }
+      // beyond the wall: weights that cannot be
+      for (let k = 0; k < 2; k++) {
+        const r = 24 + k * 8, x = 276 + k * 4 - k * 6, y = 50 + k * 54, f = 0.35 + 0.35 * Math.sin(t * 1.1 + k * 2.2)
+        for (let i = 0; i < 60; i++) { if (i % 2) continue; const th = (i / 60) * TAU + t * 0.12; g.add(x + Math.cos(th) * r, y + Math.sin(th) * r, [255, 150, 215], 0.95 * f) }
+        g.glow(x, y, r * 1.5, [255, 90, 190], 0.1 * f, 2)
+      }
+    },
+  })
+
+  // ============================================================================================================== 23 A  GLASHOW'S FLASH
+  def({
+    id: '23A', world: 23, name: 'GLASHOW’S FLASH',
+    desc: 'A neutrino with 6.3 PeV turned into a W boson inside a cubic kilometre of ice, just as predicted in 1960.',
+    kind: 'MEASURED', label: 'ICECUBE · 2021 · 6.3 PEV',
+    scale: { energy: '6.3 PeV', length: '≈ 3 × 10⁻²³ m' },
+    real: [
+      'In 1960 Sheldon Glashow predicted that an antineutrino of exactly 6.3 PeV hitting an electron would make a W boson. IceCube, a cubic kilometre of Antarctic ice with 5,160 light sensors, saw one in 2016 and reported it in 2021.',
+      'In event pictures the colours show timing: red lights first, blue last. The flash drawn here follows that code.',
+    ],
+    source: 'IceCube Collaboration, Nature 591, 220 (2021).',
+    draw(g, t) {
+      g.vgrad(0, 50, [2, 6, 16], [8, 30, 44], 1.2)
+      milkyWay(g, t, 2, 0.04, 12, [120, 150, 200], 0.28, 14)
+      g.stars(51, 100, 0, 44, t, [220, 240, 255], 0.35, 0.9)
+      aurora(g, t, 46, 44, [90, 255, 170], [30, 120, 170], 0.7)
+      aurora(g, t * 0.8 + 9, 40, 26, [140, 255, 200], [50, 150, 190], 0.4, 33)
+      // the surface: snow, the laboratory on its stilts, a mast, drifts
+      for (let y = 47; y < 60; y++) for (let x = 0; x < W; x++) { const n = fbm(x * 0.03, y * 0.4, 6, 3), k = 0.4 + 0.6 * n, f = 1 - (y - 47) / 13; g.set(x, y, mix([30, 50, 74], [168, 204, 226], k * (0.4 + 0.6 * f))); g.add(x, y, [70, 255, 170], 0.03 * Math.sin(x * 0.02 + t * 0.4) + 0.03) }
+      g.rect(112, 38, 40, 9, [52, 58, 76]); g.rect(112, 38, 40, 1, [150, 158, 190]); g.rect(116, 42, 5, 3, [255, 210, 130]); g.glow(118, 43, 8, [255, 200, 110], 0.35, 2); g.rect(110, 47, 2, 3, [40, 44, 58]); g.rect(152, 47, 2, 3, [40, 44, 58])
+      g.line(138, 38, 138, 14, [180, 184, 200]); g.line(133, 20, 143, 20, [180, 184, 200]); g.add(138, 13, [255, 70, 60], 0.45 + 0.55 * pulse(t, 1.6)); g.glow(138, 13, 7, [255, 60, 50], 0.5 * pulse(t, 1.6), 2)
+      for (let i = 0; i < 6; i++) { const x = 190 + i * 16; g.line(x, 47, x, 41, [120, 120, 140]); g.rect(x, 41, 4, 2, [255, 120, 70], 0.7) }
+      // the ice below: layers, bubbles, a cold glow
+      for (let y = 60; y < H; y++) for (let x = 0; x < W; x++) { const lay = 0.5 + 0.5 * Math.sin(y * 0.33 + Math.sin(x * 0.02) * 2.1 + vnoise(x * 0.01, y * 0.2, 4) * 3); const d = (y - 60) / 120; g.set(x, y, mix([8, 52, 104], [2, 8, 28], Math.pow(d, 0.7))); g.add(x, y, [40, 110, 190], 0.05 * lay * (1 - d)) }
+      for (let i = 0; i < 200; i++) g.add(rnd(7, i) * W, 62 + rnd(7, i + 300) * 116, [150, 210, 255], 0.1 * (0.5 + 0.5 * Math.sin(t * 0.6 + i)))
+      for (let k = 0; k < 4; k++) { const x0 = 40 + k * 90; for (let y = 60; y < H; y++) g.add(x0 + (y - 60) * 0.25, y, [60, 130, 220], 0.05 * (1 - (y - 60) / 120)) }
+      // strings of sensors: three depths, plus the dense core
+      const C = [170, 116], cyc8 = cyc(t, 9), tau = cyc8 * 9 / 1.2, R = tau * 80
+      const hue = (h) => (h < 0.25 ? mix([255, 64, 48], [255, 190, 40], h / 0.25) : h < 0.5 ? mix([255, 190, 40], [90, 255, 120], (h - 0.25) / 0.25) : mix([90, 255, 120], [60, 130, 255], clamp01((h - 0.5) / 0.5)))
+      const strings = []
+      for (let s = 0; s < 14; s++) strings.push({ x: 18 + s * 22 + (s % 2) * 7, near: 0.45 + 0.55 * (((s * 5) % 7) / 6), gap: 9 })
+      for (let s = 0; s < 6; s++) strings.push({ x: C[0] - 30 + s * 12, near: 1, gap: 4, core: true })
+      strings.sort((a, b) => a.near - b.near)
+      for (const st of strings) {
+        const dim = st.near
+        g.line(st.x, 58, st.x, H - 1, mix([12, 26, 56], [40, 70, 124], dim), 0.9)
+        for (let y = 68; y < H - 3; y += st.gap) {
+          const d = Math.hypot(st.x - C[0], y - C[1]), hit = d / 80, age = tau - hit
+          const spark = 0.28 + 0.2 * Math.sin(t * 1.4 + st.x * 0.7 + y * 0.4)
+          g.rect(st.x - 1, y - 1, 3, 3, mix([20, 30, 56], [90, 130, 190], dim * 0.8)); g.add(st.x, y - 1, [200, 230, 255], 0.18 * dim); g.add(st.x, y, [90, 150, 230], spark * dim * 0.7)
+          if (age >= 0) { const lit = Math.exp(-age * 1.2) * Math.min(1, 150 / (d + 30)), col = hue(clamp01(hit / 1.8)); g.add(st.x, y, col, 1.5 * lit); g.glow(st.x, y, 5 + 8 * lit, col, 0.9 * lit, 2) }
+        }
+      }
+      if (tau < 3.4) { g.glow(C[0], C[1], 10 + R * 0.5, [215, 238, 255], 1 * Math.exp(-tau * 0.85), 2.2); g.ring(C[0], C[1], R, [200, 230, 255], 0.4 * Math.exp(-tau * 0.8), 1) }
+    },
+  })
+})(typeof window !== 'undefined' ? window : globalThis)
+
+;
+/* scenes_b.js */
+/* Worlds 23B, 24 (A and B) and 25 (A and B). */
+(function (root) {
+  const { W, H, fbm, vnoise, rnd, hash, mix, sc, clamp01, ridge, fillRidge } = root.Gfx
+  const { def, milkyWay, mountains, aurora, tankField, ground, tree, mist, hut, peaks, pulse, cyc, ease, seg } = root.Scene
+  const TAU = Math.PI * 2
+
+  // ============================================================================================================== 23 B  PEVATRON SKY
+  def({
+    id: '23B', world: 23, name: 'PEVATRON SKY',
+    desc: 'Light from our own Galaxy carries a thousand trillion times the energy of what your eyes see.',
+    kind: 'MEASURED', label: 'LHAASO · 2021 · 1.4 PEV',
+    scale: { energy: '1.4 PeV (one photon)', length: '≈ 1.4 × 10⁻²² m' },
+    real: [
+      'In 2021 LHAASO, an array of detectors high on the Tibetan plateau, found twelve sources in our Galaxy that send out photons above 100 TeV. The top one was 1.4 PeV, about 10¹⁵ times a visible photon.',
+      'A photon’s shower contains few muons, so the muon detectors stay dark while the surface ones light up. That is how it is told from a proton.',
+    ],
+    source: 'LHAASO Collaboration, Nature 594, 33 (2021).',
+    draw(g, t) {
+      const HZ = 112
+      g.vgrad(0, HZ, [2, 4, 18], [20, 26, 62], 1.4)
+      // the Milky Way as an arch over the plateau
+      for (let y = 0; y < HZ; y++) for (let x = 0; x < W; x++) {
+        const cl = 118 - 96 * Math.sin((x / W) * Math.PI) ** 0.9, d = (y - cl) / 20
+        if (Math.abs(d) > 1.6) continue
+        const n = fbm(x * 0.03 + t * 0.004, y * 0.06, 8, 4); g.add(x, y, [175, 170, 225], Math.exp(-d * d * 2) * (0.2 + 1.3 * n * n) * 0.75)
+      }
+      g.stars(61, 260, 0, 104, t, [255, 255, 255], 0.4)
+      const top = peaks(HZ - 6, 38, 0.015, 17)
+      for (let x = 0; x < W; x++) for (let y = Math.floor(top[x]); y < HZ + 6; y++) { const d = y - top[x], snow = clamp01(1 - d / 8) * clamp01((HZ - top[x] - 10) / 18); g.set(x, y, mix([16, 18, 38], [150, 170, 215], snow * 0.8)) }
+      ground(g, HZ + 6, H - 1, [46, 52, 70], [12, 14, 22], 3, 0.7)
+      // pools of water for the Cherenkov detectors, in perspective
+      for (const [x0, y0, w, h] of [[34, 128, 76, 26], [200, 124, 84, 24]]) {
+        g.poly([[x0 + 8, y0], [x0 + w - 8, y0], [x0 + w, y0 + h], [x0, y0 + h]], [10, 34, 70])
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const sh = vnoise(x * 0.2 + t * 0.7, y * 0.5 + t * 0.2, 4); if (sh > 0.62) g.add(x0 + 8 * (1 - y / h) + x * (1 - 16 * (1 - y / h) / w), y0 + y, [90, 190, 255], (sh - 0.62) * 0.9) }
+        g.line(x0 + 8, y0, x0 + w - 8, y0, [150, 200, 240], 0.7); g.line(x0, y0 + h, x0 + w, y0 + h, [90, 130, 180], 0.7)
+      }
+      // the array of surface detectors and, between them, the muon detectors
+      const p = cyc(t, 7), C = [168, 144], flash = seg(p, 0.35, 0.5), dec = Math.exp(-Math.max(0, p - 0.5) * 5)
+      for (let r = 0; r < 16; r++) {
+        const z = r / 15, y = HZ + 10 + Math.pow(z, 1.5) * 56, s = 0.6 + z * 2.4, step = 7 * s
+        for (let x = ((r * 3) % 2) * step * 0.5 - step; x < W + step; x += step) {
+          const d = Math.hypot((x - C[0]) / 58, (y - C[1]) / 12), lit = p > 0.35 && d < 1 ? (1 - d) * dec * (d < flash * 1.1 ? 1 : 0) : 0
+          g.rect(Math.round(x), Math.round(y), Math.max(1, Math.round(s)), Math.max(1, Math.round(s * 0.7)), [96, 106, 124])
+          if (lit > 0) { g.add(x, y, [110, 230, 255], lit * 1.4); g.glow(x, y, 3 + s * 2, [70, 190, 255], lit * 0.9, 2) }
+        }
+      }
+      for (let k = 0; k < 8; k++) { const x = 20 + k * 40 + ((k * 17) % 9), y = 160 + (k % 3) * 6; g.rect(x, y, 3, 2, [40, 44, 56]) }
+      // telescopes and a cabin
+      for (let k = 0; k < 4; k++) { const x = 118 + k * 16; g.rect(x, 116, 7, 5, [168, 172, 190]); g.rect(x, 116, 7, 1, [230, 232, 245]); g.rect(x + 1, 118, 5, 3, [20, 26, 46]) }
+      hut(g, 300, 128, 14, 7, [58, 52, 66], [255, 200, 110])
+      // the photon coming down
+      if (p < 0.38) { const k = ease(seg(p, 0.05, 0.38)); for (let i = 0; i < 30; i++) { const kk = Math.max(0, k - i * 0.014); g.add(206 + (C[0] - 206) * kk, -10 + (C[1] + 10) * kk, [190, 150, 255], (1 - i / 30) * 0.9) } g.glow(206 + (C[0] - 206) * k, -10 + (C[1] + 10) * k, 7, [220, 190, 255], 0.9, 2) }
+      if (p > 0.3) { const q = clamp01((p - 0.3) / 0.15); g.glowE(C[0], C[1], 44 * q + 4, 10 * q + 2, [140, 220, 255], 0.35 * dec, 2) }
+    },
+  })
+
+  // ============================================================================================================== 24 A  THE IRON KNEE
+  def({
+    id: '24A', world: 24, name: 'THE IRON KNEE',
+    desc: 'The heavy atoms in cosmic rays stop reaching us above about 80 PeV. Our Galaxy cannot hold them any longer.',
+    kind: 'MEASURED', label: 'KASCADE-GRANDE · 80 PEV',
+    scale: { energy: '≈ 80 PeV', length: '≈ 2.5 × 10⁻²⁴ m' },
+    real: [
+      'Cosmic rays of each kind of atom thin out at an energy that grows with its electric charge. For protons the “knee” is near 3 PeV. In 2011 KASCADE-Grande saw the same bend for the heaviest atoms, at about 80 PeV, 26 times higher, as iron’s charge predicts.',
+      'It fits the idea that our Galaxy’s magnetic field stops holding the particles beyond that.',
+    ],
+    source: 'KASCADE-Grande Collaboration, Phys. Rev. Lett. 107, 171104 (2011).',
+    draw(g, t) {
+      g.vgrad(0, H - 1, [2, 3, 14], [10, 8, 34], 1.1)
+      g.stars(71, 200, 0, H - 1, t, [225, 225, 255], 0.35, 0.85)
+      // far galaxies outside
+      for (let i = 0; i < 16; i++) { const x = rnd(3, i) * W, y = rnd(3, i + 40) * H; if (Math.abs(y - 90) < 30) continue; g.glowE(x, y, 4, 2, [170, 160, 230], 0.5, 2) }
+      // the Milky Way edge-on with its field
+      g.glowE(160, 90, 170, 40, [70, 60, 160], 0.35, 1.6); g.glowE(160, 90, 150, 14, [200, 180, 220], 0.45, 1.5); g.glowE(160, 90, 44, 22, [255, 220, 170], 0.7, 1.5)
+      for (let i = 0; i < 380; i++) { const x = 14 + rnd(4, i) * 292, d = Math.abs(x - 160) / 150, y = 90 + (rnd(4, i + 400) - 0.5) * (4 + 14 * Math.exp(-d * 2.2)); g.add(x, y, [255, 235, 210], 0.25 + 0.5 * rnd(4, i + 900)) }
+      for (let x = 20; x < 300; x++) g.add(x, 90 + Math.round(Math.sin(x * 0.2) * 0.6), [10, 4, 20], 0.55 * Math.exp(-Math.pow((x - 160) / 110, 2)))
+      for (let k = -3; k <= 3; k++) { g.ellipseRing(160, 90, 56 + Math.abs(k) * 22, 34 + Math.abs(k) * 4, [60, 210, 200], 0.14, 0.12, t * 0.04 * (k % 2 ? 1 : -1)); }
+      // the sun
+      g.add(212, 90, [255, 235, 140], 1.2); g.glow(212, 90, 5, [255, 220, 110], 0.8, 2)
+      // protons leave in spirals, iron nuclei stay and circle
+      for (let k = 0; k < 6; k++) {
+        const per = 7, ph = cyc(t, per, k * 1.17), x0 = 120 + (k * 29) % 90, dir = k % 2 ? 1 : -1
+        for (let i = 0; i < 24; i++) {
+          const s = Math.max(0, ph - i * 0.004), r = 10 + s * 12, ang = s * per * 4.6 * dir, x = x0 + dir * s * 120 + Math.cos(ang) * 4, y = 90 - s * s * 110 * (k % 3 === 0 ? 1 : -1) * 0.9 + Math.sin(ang) * r * 0.3
+          if (s <= 0) break; const fade = (1 - i / 24) * (1 - clamp01((s - 0.7) / 0.3)); g.add(x, y, [255, 150, 70], fade * 0.9); if (i === 0) g.glow(x, y, 6, [255, 170, 90], 0.8 * (1 - clamp01((s - 0.7) / 0.3)), 2)
+        }
+      }
+      for (let k = 0; k < 5; k++) {
+        const w = t * (0.5 + 0.12 * k) + k * 2.1, cx = 160 + Math.cos(k * 1.3 + t * 0.05) * (30 + 18 * k), cy = 90 + Math.sin(k * 2.1) * 8
+        for (let i = 0; i < 26; i++) { const a = w - i * 0.16, x = cx + Math.cos(a * 0.45) * (40 + 10 * k) + Math.cos(a * 4) * 3, y = cy + Math.sin(a * 4) * 7 + Math.sin(a * 0.45 + k) * 6; g.add(x, y, [120, 180, 255], (1 - i / 26) * 0.9); if (i === 0) { g.disc(x, y, 1.6, [200, 225, 255]); g.glow(x, y, 7, [110, 170, 255], 0.8, 2) } }
+      }
+    },
+  })
+
+  // ============================================================================================================== 24 B  THE FIELD OF HUTS (KASCADE-Grande)
+  def({
+    id: '24B', world: 24, name: 'THE MEADOW ARRAY',
+    desc: 'A field of small huts in Germany counted cosmic-ray showers for a decade, and found the iron knee.',
+    kind: 'MEASURED', label: 'KASCADE-GRANDE · KARLSRUHE',
+    scale: { energy: '≈ 80 PeV', length: '≈ 2.5 × 10⁻²⁴ m' },
+    real: [
+      'KASCADE-Grande stood on the grounds of a research centre near Karlsruhe, Germany. It had 252 detector stations spread over a field, and later 37 larger ones across 0.5 km².',
+      'Each shower spreads over hundreds of metres. Counting the particles in each hut gave the energy and what kind of atom started it.',
+    ],
+    source: 'KASCADE-Grande Collaboration, Phys. Rev. Lett. 107, 171104 (2011).',
+    draw(g, t) {
+      const HZ = 92
+      g.vgrad(0, HZ, [32, 40, 100], [250, 150, 110], 1.8)
+      g.glowE(110, HZ, 140, 60, [255, 190, 120], 0.6, 2)
+      for (let c = 0; c < 4; c++) for (let x = 0; x < W; x++) { const y = 20 + c * 15 + Math.sin(x * 0.02 + c) * 3, n = fbm(x * 0.012 + t * 0.01 * (c + 1), c * 3, 9, 3); if (n > 0.52) g.add(x, y + n * 6, [255, 170, 140], (n - 0.52) * (0.3 + 0.12 * c)) }
+      g.add(244, 70, [255, 245, 200], 0.9); g.glow(244, 70, 26, [255, 200, 130], 0.5, 2)
+      for (let x = 0; x < W; x++) { const top = 86 + 3 * Math.sin(x * 0.04) + 3 * fbm(x * 0.05, 1, 6, 3); for (let y = Math.floor(top); y <= HZ + 4; y++) g.set(x, y, [24, 34, 38]) }
+      for (let i = 0; i < 90; i++) tree(g, Math.round(rnd(6, i) * W), 92, 5 + Math.round(rnd(6, i + 90) * 7), [16, 28, 26])
+      // the meadow
+      for (let y = HZ + 3; y < H; y++) for (let x = 0; x < W; x++) { const z = (y - HZ) / (H - HZ), n = fbm(x * (0.05 - 0.03 * z), y * 0.16, 8, 3), l = 0.6 + 0.6 * n; g.set(x, y, mix([54 * l, 88 * l, 52 * l], [26 * l, 52 * l, 28 * l], z)); if (n > 0.6) g.add(x, y, [255, 190, 120], 0.05) }
+      // the huts: a grid, with the big central ones
+      const p = cyc(t, 7), C = [150, 142], grow = seg(p, 0.3, 0.55), dec = Math.exp(-Math.max(0, p - 0.55) * 5)
+      const huts = []
+      for (let r = 0; r < 11; r++) { const z = r / 10, y = HZ + 8 + Math.pow(z, 1.5) * 70, s = 0.55 + z * 2.7, step = 15 * s; for (let x = ((r % 2) * 0.5 - 1) * step; x < W + step; x += step) huts.push({ x, y, s }) }
+      for (const h of huts) {
+        const w = Math.max(2, Math.round(h.s * 3)), hh = Math.max(2, Math.round(h.s * 2)), d = Math.hypot((h.x - C[0]) / 78, (h.y - C[1]) / 15), lit = p > 0.3 && d < 1 ? (1 - d) * dec * (d < grow * 1.1 ? 1 : 0) : 0
+        g.rect(Math.round(h.x - w / 2 + h.s), Math.round(h.y), w, 1, [14, 24, 18], 0.7)
+        g.rect(Math.round(h.x - w / 2), Math.round(h.y - hh), w, hh, [150, 152, 160]); g.rect(Math.round(h.x - w / 2), Math.round(h.y - hh), w, 1, [226, 226, 232])
+        if (lit > 0) { g.glow(h.x, h.y - hh / 2, 3 + h.s * 2.6, [90, 220, 255], lit * 0.95, 2); g.ring(h.x, h.y - hh / 2, 2 + h.s * 2, [150, 235, 255], lit * 0.6, 1) }
+      }
+      if (p < 0.34) { const k = ease(seg(p, 0.05, 0.34)); for (let i = 0; i < 24; i++) { const kk = Math.max(0, k - i * 0.016); g.add(200 + (C[0] - 200) * kk, -10 + (C[1] + 10) * kk, [190, 230, 255], (1 - i / 24) * 0.8) } }
+    },
+  })
+
+  // ============================================================================================================== 25 A  THE DEEP-SEA FLASH (KM3NeT)
+  def({
+    id: '25A', world: 25, name: 'THE DEEP-SEA FLASH',
+    desc: 'In 2023 a neutrino of about 220 PeV crossed a detector under the Mediterranean. Nothing more energetic has been seen.',
+    kind: 'MEASURED', label: 'KM3NET · 2023 · 220 PEV',
+    scale: { energy: '≈ 220 PeV', length: '≈ 9 × 10⁻²⁵ m' },
+    real: [
+      'On 13 February 2023 KM3NeT, still being built 3.5 km down off Sicily, recorded a muon from a neutrino of roughly 220 PeV, about thirty times the best IceCube had seen. It was reported in Nature in 2025.',
+      'The muon lit up thousands of sensors as it crossed the detector, in nearly a straight line. Where it came from is not yet known.',
+    ],
+    source: 'KM3NeT Collaboration, Nature 638, 376 (2025).',
+    draw(g, t) {
+      g.vgrad(0, H - 1, [8, 34, 70], [0, 3, 12], 0.7)
+      for (let k = 0; k < 5; k++) { const x0 = 40 + k * 70 + Math.sin(t * 0.2 + k) * 10; for (let y = 0; y < 90; y++) g.add(x0 + y * 0.45, y, [60, 130, 200], 0.05 * (1 - y / 90)) }
+      // the sea floor
+      for (let y = 154; y < H; y++) for (let x = 0; x < W; x++) { const n = fbm(x * 0.05, y * 0.2, 4, 3); g.set(x, y, mix([28, 30, 40], [8, 10, 16], (y - 154) / 26)); g.add(x, y, [90, 110, 140], 0.07 * n) }
+      for (let x = 0; x < W; x++) g.add(x, 154 + Math.round(2 * fbm(x * 0.03, 8, 3, 3)), [80, 120, 170], 0.25)
+      // the track: a nearly horizontal muon crossing the detector
+      const p = cyc(t, 7.5), A = [-30, 128], B = [350, 40], head = clamp01((p - 0.1) / 0.28), dec = Math.exp(-Math.max(0, p - 0.38) * 4)
+      const along = (x, y) => { const dx = B[0] - A[0], dy = B[1] - A[1], s = ((x - A[0]) * dx + (y - A[1]) * dy) / (dx * dx + dy * dy), px = A[0] + dx * s, py = A[1] + dy * s; return { s, d: Math.hypot(x - px, y - py) } }
+      // strings of glass spheres, in three depths
+      const strings = [[34, 0.55], [92, 0.8], [150, 1], [208, 0.8], [264, 0.6], [306, 0.45], [64, 0.5]].sort((a, b) => a[1] - b[1])
+      for (const [x, dim] of strings) {
+        g.line(x, 30, x, 156, mix([10, 24, 50], [40, 80, 130], dim), 0.8); g.rect(x - 2, 154, 5, 3, [60, 60, 70])
+        g.rect(x - 1, 26, 3, 5, [200, 120, 40], 0.8)
+        for (let y = 44; y < 150; y += 14) {
+          const r = 2.6 + 2.4 * dim, a = along(x, y), lit = a.s >= 0 && a.s <= head ? Math.exp(-a.d * 0.04) * dec * clamp01(1 - (head - a.s) * 3) : 0
+          g.disc(x, y, r, mix([14, 30, 54], [60, 110, 160], dim), 0.9); g.ring(x, y, r, [140, 200, 240], 0.5 * dim, 1); g.add(x - r * 0.35, y - r * 0.4, [230, 245, 255], 0.5 * dim)
+          for (let k = 0; k < 5; k++) { const th = k * 1.25 + 0.3; g.add(x + Math.cos(th) * r * 0.55, y + Math.sin(th) * r * 0.55, [20, 40, 70], 0.9) }
+          if (lit > 0.02) { g.glow(x, y, 8 + 12 * dim, [120, 200, 255], lit * 1.1, 2); g.add(x, y, [220, 240, 255], lit) }
+        }
+      }
+      // the Cherenkov light along the track
+      if (p > 0.1) for (let i = 0; i < 300; i++) { const s = i / 300; if (s > head) break; const x = A[0] + (B[0] - A[0]) * s, y = A[1] + (B[1] - A[1]) * s, tail = clamp01(1 - (head - s) * 3.2) * (p < 0.38 ? 1 : dec); g.add(x, y, [190, 235, 255], 0.9 * tail); g.glow(x, y, 4, [100, 190, 255], 0.35 * tail, 2) }
+      // marine snow and a little bioluminescence
+      for (let i = 0; i < 150; i++) { const x = (rnd(3, i) * W + Math.sin(t * 0.3 + i) * 5) % W, y = ((rnd(3, i + 200) * H - t * (3 + 5 * rnd(3, i + 500))) % H + H) % H; g.add(x, y, [170, 200, 230], 0.18 + 0.2 * rnd(3, i + 700)) }
+      for (let i = 0; i < 14; i++) { const x = rnd(5, i) * W, y = 20 + rnd(5, i + 30) * 130, f = Math.max(0, Math.sin(t * 0.7 + i * 2.3)) ** 6; g.glow(x, y, 6, [90, 255, 220], 0.5 * f, 2) }
+    },
+  })
+
+  // ============================================================================================================== 25 B  SN 1987A
+  def({
+    id: '25B', world: 25, name: 'THE QUIET STAR',
+    desc: 'A star exploded in 1987. How quietly it cooled rules out a whole family of light particles.',
+    kind: 'LIMIT', label: 'SN 1987A · AXION LIMIT',
+    scale: { energy: '> 4 × 10⁸ GeV', length: '< 5 × 10⁻²⁵ m' },
+    real: [
+      'Supernova 1987A, in a small galaxy next to ours, sent about two dozen neutrinos to Earth over some ten seconds. If axions lighter than a certain mass existed, they would have drained its heat faster and shortened that burst.',
+      'The burst’s length sets a limit: the axion’s energy scale must be above about 4 × 10⁸ GeV. The rings in the picture are the real glow of gas the star lit up.',
+    ],
+    source: 'G. Raffelt, Lect. Notes Phys. 741, 51 (2008); Hubble images of SN 1987A.',
+    draw(g, t) {
+      g.vgrad(0, H - 1, [1, 1, 8], [8, 4, 20], 1)
+      g.glowE(40, 150, 130, 50, [130, 90, 200], 0.28, 1.6); g.glowE(300, 18, 60, 28, [255, 110, 150], 0.22, 1.6)
+      for (let i = 0; i < 130; i++) { const a = rnd(8, i) * TAU, r = Math.sqrt(rnd(8, i + 70)) * 60; g.add(40 + Math.cos(a) * r * 2.1, 150 + Math.sin(a) * r * 0.8, [255, 220, 240], 0.3 * rnd(8, i + 300)) }
+      for (let i = 0; i < 240; i++) { const x = rnd(9, i) * W, y = rnd(9, i + 300) * H, tw = 0.6 + 0.4 * Math.sin(t * (1 + rnd(9, i + 9) * 2) + i); const c = rnd(9, i + 55) < 0.3 ? [255, 190, 150] : rnd(9, i + 55) < 0.6 ? [170, 200, 255] : [255, 255, 255]; g.add(x, y, c, (0.25 + 0.6 * rnd(9, i + 700)) * tw) }
+      for (let i = 0; i < 5; i++) { const x = 20 + rnd(10, i) * 280, y = 15 + rnd(10, i + 9) * 150; if (Math.hypot(x - 160, y - 88) < 80) continue; g.glow(x, y, 6, [255, 240, 220], 0.9, 2); for (let k = 1; k < 14; k++) { const a = 0.9 * (1 - k / 14); g.add(x + k, y, [255, 240, 220], a * 0.7); g.add(x - k, y, [255, 240, 220], a * 0.7); g.add(x, y + k, [255, 240, 220], a * 0.7); g.add(x, y - k, [255, 240, 220], a * 0.7) } }
+      // the two outer rings and the inner ring of the real picture
+      const cx = 160, cy = 90
+      const outer = (ox, oy, rx, ry, c, k) => { for (let i = 0; i < 360; i++) { const th = (i / 360) * TAU, x = ox + Math.cos(th) * rx, y = oy + Math.sin(th) * ry; g.add(x, y, c, 0.35 * k * (0.6 + 0.4 * Math.sin(th * 3 + t * 0.4))); g.glow(x, y, 4, c, 0.05 * k, 2) } }
+      outer(cx - 4, cy - 40, 62, 28, [150, 170, 255], 1); outer(cx + 6, cy + 36, 70, 30, [255, 150, 190], 1)
+      g.glowE(cx, cy, 52, 26, [230, 120, 90], 0.22, 1.8)
+      const rx = 27, ry = 13, tilt = -0.14
+      for (let i = 0; i < 480; i++) { const th = (i / 480) * TAU, x = cx + Math.cos(th) * rx, y = cy + Math.sin(th) * ry + Math.cos(th) * rx * tilt; g.add(x, y, [255, 170, 90], 0.45); g.glow(x, y, 3.5, [255, 130, 70], 0.07, 2) }
+      for (let k = 0; k < 34; k++) { const th = (k / 34) * TAU + 0.2, x = cx + Math.cos(th) * rx, y = cy + Math.sin(th) * ry + Math.cos(th) * rx * tilt, w = 0.5 + 0.5 * Math.sin(t * 1.6 + k * 2.7) * Math.sin(t * 0.7 + k * 1.1); g.disc(x, y, 1.2, [255, 220, 170], 0.8); g.glow(x, y, 6, [255, 190, 120], 0.35 + 0.6 * w * w, 2) }
+      g.glow(cx, cy, 16, [255, 120, 80], 0.7 + 0.15 * pulse(t, 3.2), 2); g.glow(cx, cy, 7, [255, 200, 150], 0.8, 2)
+    },
+  })
+})(typeof window !== 'undefined' ? window : globalThis)
+
+;
+/* scenes_c.js */
+/* Worlds 26 (A and B), 27 (A and B) and 28A. */
+(function (root) {
+  const { W, H, fbm, vnoise, rnd, hash, mix, sc, clamp01, ridge, fillRidge } = root.Gfx
+  const { def, milkyWay, mountains, aurora, tankField, ground, tree, mist, hut, peaks, pulse, cyc, ease, seg } = root.Scene
+  const TAU = Math.PI * 2
+
+  // ============================================================================================================== 26 A  THE ANKLE (Auger)
+  def({
+    id: '26A', world: 26, name: 'THE ANKLE',
+    desc: 'Above about 5 EeV the cosmic rays change character: the ones from far outside our Galaxy take over.',
+    kind: 'MEASURED', label: 'PIERRE AUGER · 5 EEV',
+    scale: { energy: '≈ 5 EeV', length: '≈ 4 × 10⁻²⁶ m' },
+    real: [
+      'The Pierre Auger Observatory in Argentina covers 3,000 km² of pampa with 1,660 water tanks, watched at night by telescopes for the faint blue light of each shower.',
+      'Its spectrum of cosmic rays flattens at about 5 EeV. This is the “ankle”, and it is where particles from beyond our Galaxy are thought to take over.',
+    ],
+    source: 'Pierre Auger Collaboration, Phys. Rev. D 102, 062005 (2020).',
+    draw(g, t) {
+      const HZ = 96
+      g.vgrad(0, HZ, [3, 4, 26], [120, 70, 104], 1.8)
+      g.glowE(90, HZ, 220, 40, [255, 150, 90], 0.45, 2)
+      g.stars(81, 170, 0, 80, t, [255, 255, 255], 0.4, 0.95)
+      // the Southern Cross and the Magellanic Clouds
+      for (const [x, y, b] of [[224, 20, 1], [224, 44, 0.8], [210, 33, 0.7], [238, 32, 0.6], [236, 40, 0.3]]) { g.add(x, y, [255, 255, 255], b); g.glow(x, y, 4, [200, 220, 255], 0.5 * b, 2) }
+      g.glowE(268, 64, 14, 8, [190, 200, 255], 0.35, 2); g.glowE(300, 52, 7, 5, [190, 200, 255], 0.3, 2)
+      // the Andes in the last of the light
+      const top = peaks(HZ + 2, 62, 0.012, 22)
+      for (let x = 0; x < W; x++) { const sd = Math.max(0, (HZ - top[x] - 30) * 0.5); for (let y = Math.floor(top[x]); y <= HZ + 4; y++) { const d = y - top[x], snow = sd > 0 && d < sd ? 1 - d / sd : 0, lit = 0.5 + 0.5 * vnoise(x * 0.3, y * 0.5, 4); g.set(x, y, mix(mix([22, 16, 42], [56, 36, 70], clamp01(d / 34)), [255, 190, 180], snow * (0.55 + 0.4 * lit))) } }
+      ground(g, HZ + 5, H - 1, [58, 40, 48], [18, 12, 22], 5, 0.5)
+      // a telescope building on a low rise, left
+      g.poly([[0, 118], [34, 108], [78, 112], [110, 122], [110, 136], [0, 136]], [24, 18, 32]); g.rect(30, 94, 36, 14, [150, 150, 170]); g.rect(30, 94, 36, 2, [230, 230, 240]); for (let k = 0; k < 4; k++) { g.rect(33 + k * 8, 99, 5, 6, [12, 14, 30]); g.add(35 + k * 8, 101, [110, 150, 255], 0.35) }
+      // the carpet of tanks to the horizon
+      const p = cyc(t, 8), C = [210, 148], wave = seg(p, 0.42, 0.72), dec = Math.exp(-Math.max(0, p - 0.72) * 6)
+      tankField(g, HZ + 6, 160, 13, 10, [190, 194, 206], (k) => { const dx = (k.x - C[0]) / 140, dy = (k.y - C[1]) / 24, d = Math.hypot(dx, dy); return p > 0.42 && d < 1.1 ? Math.max(0, 1 - Math.abs(d - wave * 1.0) * 3.2) * dec : 0 })
+      // the track of fluorescence light
+      const head = ease(seg(p, 0.12, 0.44)), fade = Math.exp(-Math.max(0, p - 0.44) * 5), A = [150, 2], B = [200, 132]
+      if (p > 0.12) for (let i = 0; i < 80; i++) { const s = i / 80; if (s > head) break; g.add(A[0] + (B[0] - A[0]) * s, A[1] + (B[1] - A[1]) * s, [150, 170, 255], 0.8 * clamp01(1 - (head - s) * 2.2) * (p < 0.44 ? 1 : fade)) }
+      for (let k = 0; k < 18; k++) { const x = rnd(7, k) * W, y = HZ + 8 + rnd(7, k + 40) * 70; g.rect(Math.round(x), Math.round(y), 2, 1, [14, 8, 20]) }
+    },
+  })
+
+  // ============================================================================================================== 26 B  THE LOPSIDED SKY
+  def({
+    id: '26B', world: 26, name: 'THE LOPSIDED SKY',
+    desc: 'The highest-energy cosmic rays come from one side of the sky a little more often: about 6.5 % more.',
+    kind: 'MEASURED', label: 'AUGER · 2017 · >8 EEV',
+    scale: { energy: '> 8 EeV', length: '≈ 2.5 × 10⁻²⁶ m' },
+    real: [
+      'In 2017 the Auger Collaboration mapped about 30,000 cosmic rays above 8 EeV and found a gentle dipole: 6.5 % more arrive from one half of the sky. The direction points away from our Galactic centre, so these rays come from outside the Galaxy.',
+      'The glow in the picture is exaggerated so that you can see it. The real difference is small.',
+    ],
+    source: 'Pierre Auger Collaboration, Science 357, 1266 (2017).',
+    draw(g, t) {
+      g.vgrad(0, H - 1, [2, 3, 14], [8, 10, 34], 1)
+      g.stars(91, 90, 0, H - 1, t, [200, 210, 255], 0.3, 0.5)
+      const cx = 160, cy = 92, RX = 148, RY = 74
+      const inside = (x, y) => ((x - cx) / RX) ** 2 + ((y - cy) / RY) ** 2 < 1
+      // the sky map: a faint disc with the dipole glow
+      for (let y = cy - RY; y <= cy + RY; y++) for (let x = cx - RX; x <= cx + RX; x++) {
+        if (!inside(x, y)) continue
+        const dx = (x - (cx + 52)) / 110, dy = (y - (cy - 8)) / 80, d = Math.hypot(dx, dy), gl = Math.exp(-d * d * 1.5)
+        g.set(x, y, mix([6, 8, 26], [28, 20, 56], 0.5)); g.add(x, y, [255, 170, 90], 0.36 * gl * (0.85 + 0.15 * Math.sin(t * 0.5))); g.add(x, y, [90, 120, 255], 0.14 * (1 - gl))
+      }
+      // the graticule
+      for (let k = -4; k <= 4; k++) { const yy = k * 17; for (let i = 0; i < 300; i++) { const th = (i / 300) * Math.PI, x = cx + Math.cos(th) * RX * Math.sqrt(Math.max(0, 1 - (yy / RY) ** 2)), y = cy + yy; if (inside(x, y)) g.add(x, y, [60, 190, 190], 0.16) } }
+      for (let k = -4; k <= 4; k++) { const f = k / 4; for (let i = 0; i < 120; i++) { const v = (i / 120) * 2 - 1, y = cy + v * RY, x = cx + f * RX * Math.sqrt(Math.max(0, 1 - v * v)); g.add(x, y, [60, 190, 190], 0.15) } }
+      for (let i = 0; i < 500; i++) { const th = (i / 500) * TAU, x = cx + Math.cos(th) * RX, y = cy + Math.sin(th) * RY; g.set(x, y, [110, 230, 240], 0.8); g.add(x, y, [110, 230, 240], 0.2) }
+      // the plane of our Galaxy as a wave of stars
+      for (let i = 0; i < 600; i++) { const u = (i / 600) * 2 - 1, x = cx + u * RX * 0.98, y = cy + Math.sin(u * 4.2 + 0.7) * 20 * Math.cos(u * 1.2) + (rnd(3, i) - 0.5) * 7; if (inside(x, y)) g.add(x, y, [190, 180, 255], 0.35 * rnd(3, i + 600)) }
+      // the events arrive one at a time and stay: a long exposure
+      const N = 260, n = Math.floor(((t % 24) / 24) * N * 1.4)
+      let placed = 0
+      for (let i = 0; i < N * 3 && placed < N; i++) {
+        const x = cx + (rnd(5, i * 2) * 2 - 1) * RX, y = cy + (rnd(5, i * 2 + 1) * 2 - 1) * RY; if (!inside(x, y)) continue
+        const dx = (x - (cx + 52)) / 110, dy = (y - (cy - 8)) / 80, keep = 0.4 + 0.6 * Math.exp(-(dx * dx + dy * dy) * 1.5)
+        if (rnd(5, i + 3000) > keep) continue
+        placed++
+        if (placed > n) break
+        const age = n - placed, fresh = Math.exp(-age * 0.4)
+        g.set(x, y, [255, 240, 190]); g.add(x, y, [255, 220, 140], 0.5 + 1.2 * fresh); if (fresh > 0.1) g.glow(x, y, 5, [255, 220, 150], fresh, 2)
+      }
+      // the Galactic centre and the dipole direction
+      g.ring(cx, cy + 2, 4, [255, 255, 255], 0.9, 1); g.line(cx - 7, cy + 2, cx + 7, cy + 2, [255, 255, 255], 0.5); g.line(cx, cy - 5, cx, cy + 9, [255, 255, 255], 0.5)
+      const dxm = cx + 74, dym = cy - 12
+      g.ring(dxm, dym, 7 + 1.5 * pulse(t, 2.4), [255, 190, 110], 0.9, 1); g.line(dxm - 12, dym, dxm - 8, dym, [255, 190, 110], 0.8); g.line(dxm + 8, dym, dxm + 12, dym, [255, 190, 110], 0.8)
+    },
+  })
+
+  // ============================================================================================================== 27 A  THE GZK WALL
+  def({
+    id: '27A', world: 27, name: 'THE GZK WALL',
+    desc: 'Past about 50 EeV, cosmic rays bump into the faint light left over from the Big Bang and lose their energy.',
+    kind: 'MEASURED', label: 'HIRES · AUGER 2008 · 50 EEV',
+    scale: { energy: '≈ 50 EeV', length: '≈ 4 × 10⁻²⁷ m' },
+    real: [
+      'In 1966 Greisen, Zatsepin and Kuzmin predicted that a proton above about 5 × 10¹⁹ eV would hit photons of the cosmic microwave background and bleed energy, so very energetic ones could only come from nearby: a horizon of a few hundred million light-years.',
+      'In 2008 two experiments, HiRes and Auger, saw the number of cosmic rays fall off just where it was predicted.',
+    ],
+    source: 'HiRes, Phys. Rev. Lett. 100, 101101 (2008); Auger, Phys. Rev. Lett. 101, 061101 (2008).',
+    draw(g, t) {
+      g.vgrad(0, H - 1, [2, 2, 12], [12, 6, 32], 1)
+      g.stars(101, 130, 0, H - 1, t, [225, 225, 255], 0.35, 0.55)
+      const E = [30, 142], HR = 150
+      // the horizon: a great dashed arc of orange light around the Earth
+      g.glow(E[0], E[1], HR + 22, [255, 120, 60], 0.0, 2)
+      for (let i = 0; i < 900; i++) { const th = -1.6 + (i / 900) * 3.2, x = E[0] + Math.cos(th) * HR, y = E[1] + Math.sin(th) * HR; if (x < -4 || x > W + 4 || y < -4 || y > H + 4) continue; if (Math.floor(i / 6) % 2) continue; g.add(x, y, [255, 170, 90], 0.9); g.glow(x, y, 6, [255, 120, 60], 0.18, 2) }
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const d = Math.hypot(x - E[0], y - E[1]), f = Math.exp(-Math.pow((d - HR) / 18, 2)) * (0.4 + 0.8 * fbm(x * 0.05, y * 0.05 + t * 0.04, 6, 3)); if (f > 0.02) g.add(x, y, [255, 120, 70], f * 0.2) }
+      // sources: bright inside the horizon, only dim beyond
+      for (let i = 0; i < 70; i++) { const x = 20 + rnd(3, i) * 300, y = 6 + rnd(3, i + 90) * 168, d = Math.hypot(x - E[0], y - E[1]), r = 1.2 + 2 * rnd(3, i + 190), inn = d < HR; g.glowE(x, y, r * 2, r, inn ? [140, 190, 255] : [120, 100, 170], inn ? 0.6 : 0.3, 2); g.add(x, y, inn ? [220, 240, 255] : [170, 150, 200], inn ? 0.9 : 0.4) }
+      // the Earth
+      g.glow(E[0], E[1], 22, [90, 160, 255], 0.4, 2); g.sphere(E[0], E[1], 9, [70, 130, 230])
+      // protons: the low-energy ones arrive, the gold ones are stopped at the horizon
+      for (let k = 0; k < 8; k++) {
+        const per = 6 + (k % 3) * 0.7, ph = cyc(t, per, k * 0.83), big = k % 2 === 1
+        const sx = big ? 316 : 150 + (k * 37) % 70, sy = 14 + ((k * 43) % 150), hx = big ? E[0] + Math.cos(Math.atan2(sy - E[1], sx - E[0])) * HR : E[0], hy = big ? E[1] + Math.sin(Math.atan2(sy - E[1], sx - E[0])) * HR : E[1]
+        const tx = big ? hx : E[0] + 9, ty = big ? hy : E[1], dx = tx - sx, dy = ty - sy, stop = big ? 0.72 : 1, q = Math.min(ph, stop), x = sx + dx * (q / stop) , y = sy + dy * (q / stop)
+        const col = big ? [255, 214, 120] : [190, 230, 255], life = big ? 1 - clamp01((ph - 0.72) * 6) : 1
+        if (ph > stop && big) { const z = (ph - stop) / (1 - stop); g.ring(hx, hy, 3 + z * 16, [255, 170, 110], 0.8 * (1 - z), 1); g.glow(hx, hy, 14, [255, 210, 140], 0.9 * (1 - z), 2); g.add(hx + z * 18, hy - z * 12, [120, 230, 255], 0.9 * (1 - z)); g.add(hx + z * 18, hy + z * 12, [120, 230, 255], 0.9 * (1 - z)); g.add(hx - z * 14, hy - z * 4, [255, 200, 140], 0.6 * (1 - z)); continue }
+        for (let i = 0; i < 36; i++) { const s = Math.max(0, q / stop - i * 0.012); g.add(sx + dx * s, sy + dy * s, col, (1 - i / 36) * 0.75 * life) }
+        g.glow(x, y, 6, col, 0.95 * life, 2)
+        if (!big && ph > 0.97) g.glow(E[0], E[1], 18, [255, 255, 255], 0.9 * (1 - (ph - 0.97) / 0.03), 2)
+      }
+    },
+  })
+
+  // ============================================================================================================== 27 B  THE SECOND VALLEY (Higgs)
+  def({
+    id: '27B', world: 27, name: 'THE SECOND VALLEY',
+    desc: 'With the Higgs and top masses measured, the Standard Model says the Higgs field’s energy dips again near 10¹¹ GeV.',
+    kind: 'THEORY', label: 'HIGGS POTENTIAL · ~10¹¹ GEV',
+    scale: { energy: '≈ 10¹⁰ – 10¹¹ GeV', length: '≈ 2 × 10⁻²⁷ m' },
+    real: [
+      'The Higgs field has an energy landscape. The measured masses of the Higgs boson and the top quark put us in a shallow valley, with a deeper one beyond a ridge around 10¹⁰ to 10¹¹ GeV.',
+      'Calculations suggest the vacuum is “metastable”: it could in principle tunnel to the deeper valley, but the wait is far longer than the age of the universe. It is a prediction of theory, with big uncertainties.',
+    ],
+    source: 'G. Degrassi et al., JHEP 08 (2012) 098; D. Buttazzo et al., JHEP 12 (2013) 089.',
+    draw(g, t) {
+      g.vgrad(0, H - 1, [6, 2, 20], [22, 8, 46], 1)
+      g.stars(111, 100, 0, 90, t, [215, 200, 255], 0.35, 0.8)
+      g.glowE(160, 40, 210, 70, [120, 60, 200], 0.25, 1.8)
+      // the floor grid in perspective
+      const FY = 112
+      for (let k = 0; k < 14; k++) { const z = Math.pow(k / 13, 1.8), y = FY + z * (H - FY); g.line(0, y, W, y, [40, 170, 200], 0.25 + 0.35 * z) }
+      for (let i = -20; i <= 20; i++) g.line(160 + i * 6, FY, 160 + i * 30, H, [40, 170, 200], 0.28)
+      // the energy landscape as a ribbon
+      const V = (x) => { const u = (x - 20) / 280; return 0.1 + 0.42 * Math.exp(-Math.pow((u - 0.1) / 0.1, 2) * -0) * 0 + 0.0 - 0.0 + (u < 0.18 ? -0.05 : 0) + 0.52 * Math.exp(-Math.pow((u - 0.42) / 0.14, 2)) - 0.14 * Math.exp(-Math.pow((u - 0.1) / 0.075, 2)) - 0.95 * clamp01((u - 0.6) / 0.4) ** 1.4 + 0.22 * Math.pow(Math.max(0, 0.16 - u) / 0.16, 2) }
+      const Y = (x) => 86 - V(x) * 78
+      for (let x = 10; x < 312; x++) {
+        const y = Y(x), y2 = Y(x + 1), under = Math.min(H - 1, 150)
+        for (let yy = Math.round(y); yy < 150; yy++) g.add(x, yy, [90, 40, 190], 0.05 + 0.16 * (1 - (yy - y) / 70) * (yy - y < 70 ? 1 : 0))
+        g.add(x, y, [90, 250, 255], 1.0); g.add(x, y - 1, [90, 250, 255], 0.5); g.add(x, y + 1, [90, 250, 255], 0.5); g.glow(x, y, 4, [70, 220, 255], 0.14, 2)
+        g.add(x, y + 1, [255, 255, 255], 0.35 * Math.max(0, Math.sin(x * 0.07 - t * 3)) ** 8)
+      }
+      // we are here, in the shallow valley
+      const bx = 62 + Math.sin(t * 1.1) * 1.5, by = Y(62) - 5
+      g.sphere(bx, by, 4.5, [255, 210, 90]); g.glow(bx, by, 14, [255, 200, 100], 0.55, 2); g.ring(bx, by, 9 + 3 * pulse(t, 2.4), [255, 220, 130], 0.4, 1)
+      // the deep valley and the ghost that might one day tunnel there
+      const f = Math.max(0, Math.sin(t * 0.5 - 1.2)) ** 3, gx = 270, gy = Y(270) - 5
+      g.glow(gx, gy, 16, [255, 90, 190], 0.35 * (0.4 + f), 2); g.ring(gx, gy, 4.5, [255, 130, 210], 0.9 * f, 1); g.disc(gx, gy, 3.5, [255, 150, 215], 0.45 * f)
+      const rx = Y(150) - 14
+      for (let i = 0; i < 18; i++) { const th = (i / 18) * TAU; g.add(150 + Math.cos(th) * 7, rx + Math.sin(th) * 3, [255, 120, 200], 0.18 + 0.2 * f) }
+    },
+  })
+
+  // ============================================================================================================== 28 A  AMATERASU
+  def({
+    id: '28A', world: 28, name: 'FROM THE VOID',
+    desc: 'In 2021 a cosmic ray of 244 EeV arrived from the direction of the Local Void, a region with almost no galaxies.',
+    kind: 'MEASURED', label: 'TELESCOPE ARRAY · 2021 · 244 EEV',
+    scale: { energy: '≈ 244 EeV', length: '≈ 8 × 10⁻²⁸ m' },
+    real: [
+      'On 27 May 2021 the Telescope Array in Utah, 507 detectors over 700 km² of desert, recorded a cosmic ray of 2.4 × 10²⁰ eV, the second most energetic ever. It was named Amaterasu.',
+      'It seemed to come from the direction of the Local Void, empty of galaxies. A particle of this energy should not survive a long trip, so its origin is a puzzle.',
+    ],
+    source: 'Telescope Array Collaboration, Science 382, 903 (2023).',
+    draw(g, t) {
+      const HZ = 118
+      g.vgrad(0, HZ, [1, 3, 14], [28, 22, 62], 1.6)
+      milkyWay(g, t, 20, 0.12, 22, [150, 140, 210], 0.5, 6)
+      g.stars(121, 150, 0, 100, t, [255, 255, 255], 0.35, 0.8)
+      g.glowE(160, 118, 240, 24, [200, 110, 140], 0.25, 2)
+      // faint galaxies everywhere but one empty patch
+      const VX = 238, VY = 48
+      for (let i = 0; i < 90; i++) { const x = rnd(2, i) * W, y = rnd(2, i + 100) * 108; if (Math.hypot(x - VX, y - VY) < 36) continue; const r = 1 + 2 * rnd(2, i + 300); g.glowE(x, y, r * 1.8, r, [170, 160, 255], 0.35 + 0.15 * Math.sin(t * 0.8 + i), 2); g.add(x, y, [255, 240, 255], 0.5) }
+      g.ellipseRing(VX, VY, 38, 36, [120, 100, 220], 0.28, 0.16, t * 0.02)
+      mountains(g, HZ - 2, 10, 0.02, 31, [8, 6, 16], [90, 60, 100], HZ + 3)
+      ground(g, HZ + 2, H - 1, [56, 40, 52], [16, 12, 20], 5, 0.6)
+      for (let i = 0; i < 60; i++) { const x = rnd(4, i) * W, y = HZ + 8 + Math.pow(rnd(4, i + 70), 1.5) * 52; g.rect(Math.round(x), Math.round(y), 2, 1, [22, 18, 30]) }
+      // the station and the field of scintillator boxes
+      g.rect(24, 108, 34, 14, [30, 28, 44]); g.rect(24, 108, 34, 2, [120, 120, 150]); for (let k = 0; k < 3; k++) { g.rect(28 + k * 10, 112, 6, 6, [10, 14, 34]); g.add(31 + k * 10, 115, [120, 160, 255], 0.3) } g.line(52, 108, 52, 98, [90, 90, 110]); g.add(52, 97, [255, 70, 60], 0.5 + 0.5 * pulse(t, 1.5))
+      const p = cyc(t, 8), C = [184, 148], A = [VX, VY], dec = Math.exp(-Math.max(0, p - 0.55) * 6), front = seg(p, 0.46, 0.7)
+      for (let r = 0; r < 12; r++) {
+        const z = r / 11, y = HZ + 8 + Math.pow(z, 1.6) * 54, s = 0.8 + z * 2.8, step = 20 * s
+        for (let x = ((r % 2) * 0.5 - 1) * step; x < W + step; x += step) {
+          const d = Math.hypot((x - C[0]) / 70, (y - C[1]) / 13), lit = p > 0.46 && d < 1 ? (1 - d) * dec * (d < front * 1.1 ? 1 : 0) : 0, w = Math.max(2, Math.round(s * 2.6)), h = Math.max(1, Math.round(s * 1.1))
+          g.rect(Math.round(x), Math.round(y - h), w, h, [78, 80, 96]); g.rect(Math.round(x), Math.round(y - h), w, 1, [130, 132, 150])
+          if (lit > 0) { g.glow(x + w / 2, y - h / 2, 3 + s * 2.6, [255, 190, 110], lit * 0.95, 2); g.add(x + w / 2, y - h / 2, [255, 230, 170], lit) }
+        }
+      }
+      // two big boxes in the foreground, each with a solar panel and an aerial
+      for (const [fx, fy] of [[60, 172], [262, 176]]) { g.rect(fx, fy - 9, 20, 9, [96, 98, 116]); g.rect(fx, fy - 9, 20, 2, [160, 162, 182]); g.poly([[fx - 4, fy - 12], [fx + 24, fy - 12], [fx + 20, fy - 20], [fx, fy - 20]], [26, 40, 90]); g.line(fx + 2, fy - 18, fx + 22, fy - 18, [90, 130, 210], 0.5); g.line(fx + 10, fy - 20, fx + 10, fy - 32, [120, 122, 140]); g.add(fx + 10, fy - 33, [255, 80, 70], 0.4 + 0.5 * pulse(t, 1.8, fx)) }
+      const head = ease(seg(p, 0.1, 0.46)), fade = Math.exp(-Math.max(0, p - 0.46) * 5), B = [C[0] - 2, 138]
+      if (p > 0.1) for (let i = 0; i < 100; i++) { const s = i / 100; if (s > head) break; g.add(A[0] + (B[0] - A[0]) * s, A[1] + (B[1] - A[1]) * s, [230, 190, 255], 0.9 * clamp01(1 - (head - s) * 2.2) * (p < 0.46 ? 1 : fade)) }
+      if (p > 0.1 && p < 0.46) g.glow(A[0] + (B[0] - A[0]) * head, A[1] + (B[1] - A[1]) * head, 9, [250, 220, 255], 0.9, 2)
+    },
+  })
+})(typeof window !== 'undefined' ? window : globalThis)
+
+;
+/* scenes_d.js */
+/* Worlds 28B, 29 (A and B) and 30 (A and B). */
+(function (root) {
+  const { W, H, fbm, vnoise, rnd, hash, mix, sc, clamp01, ridge, fillRidge } = root.Gfx
+  const { def, milkyWay, mountains, aurora, tankField, ground, tree, mist, hut, peaks, pulse, cyc, ease, seg } = root.Scene
+  const TAU = Math.PI * 2
+
+  // ============================================================================================================== 28 B  THE SOLAR-SYSTEM COLLIDER
+  def({
+    id: '28B', world: 28, name: 'A RING AS WIDE AS EARTH’S ORBIT',
+    desc: 'With the LHC’s magnets, a collider reaching this energy would need a ring as wide as the Earth’s path round the Sun.',
+    kind: 'THEORY', label: 'LHC MAGNETS · RING ≈ 1 AU',
+    scale: { energy: '≈ 3 × 10¹¹ GeV', length: '≈ 7 × 10⁻²⁸ m' },
+    real: [
+      'A proton’s energy in a ring grows with the ring’s radius and the magnets’ strength. The LHC bends 7 TeV protons with magnets of 8.3 tesla in a ring of radius about 4.3 km.',
+      'Keeping those magnets, 3 × 10¹¹ GeV would need a radius near 1.5 × 10⁸ km: Earth’s orbit. It is a back-of-the-envelope estimate, not a plan. The dot in the corner is the LHC at this scale.',
+    ],
+    source: 'Scaling from the LHC design report (CERN-2004-003): E ∝ B × radius.',
+    draw(g, t) {
+      g.vgrad(0, H - 1, [1, 1, 10], [8, 6, 26], 1)
+      g.stars(131, 230, 0, H - 1, t, [225, 225, 255], 0.3, 0.75)
+      const cx = 160, cy = 92, tilt = 0.34
+      const orbit = (r, c, a, n = 260) => { for (let i = 0; i < n; i++) { const th = (i / n) * TAU; g.add(cx + Math.cos(th) * r, cy + Math.sin(th) * r * tilt, c, a) } }
+      orbit(36, [110, 120, 170], 0.22); orbit(66, [110, 120, 170], 0.2); orbit(150, [110, 120, 170], 0.16)
+      // the sun
+      g.glow(cx, cy, 70, [255, 150, 60], 0.22 + 0.03 * pulse(t, 3), 2); g.glow(cx, cy, 24, [255, 200, 100], 0.65, 2); g.disc(cx, cy, 8, [255, 240, 190]); g.disc(cx, cy, 8, [255, 220, 150], 0.35)
+      for (let i = 0; i < 8; i++) { const a = i * 0.8 + t * 0.15, l = 14 + 6 * Math.sin(t * 1.3 + i * 2); g.beam(cx + Math.cos(a) * 9, cy + Math.sin(a) * 9, cx + Math.cos(a) * (9 + l), cy + Math.sin(a) * (9 + l), [255, 180, 90], 0.25) }
+      // the collider ring on Earth's orbit
+      const R = 98
+      for (let i = 0; i < 720; i++) { const th = (i / 720) * TAU, near = (Math.sin(th) + 1) / 2, x = cx + Math.cos(th) * R, y = cy + Math.sin(th) * R * tilt; g.add(x, y, [60, 200, 240], 0.3 + 0.5 * near); if (near > 0.4) g.add(x, y + 1, [60, 200, 240], 0.35 * near); g.glow(x, y, 3, [60, 190, 240], 0.05 + 0.07 * near, 2) }
+      for (const dir of [1, -1]) for (let b = 0; b < 3; b++) { const th0 = dir * 1.6 * t + b * 2.1 + (dir === -1 ? 1 : 0); for (let k = 0; k < 20; k++) { const th = th0 - dir * k * 0.035, x = cx + Math.cos(th) * R, y = cy + Math.sin(th) * R * tilt, near = (Math.sin(th) + 1) / 2; g.add(x, y, [200, 255, 255], (1 - k / 20) * (0.6 + 0.6 * near)); if (k < 3) g.glow(x, y, 6, [200, 255, 255], 0.5 * (1 - k / 3), 2) } }
+      for (const th of [1.9, 5.0]) { const f = Math.max(0, Math.sin(t * 1.1 + th * 3)) ** 10, x = cx + Math.cos(th) * R, y = cy + Math.sin(th) * R * tilt; g.glow(x, y, 14, [255, 255, 255], 0.9 * f, 2); g.rect(Math.round(x) - 2, Math.round(y) - 1, 5, 3, [255, 220, 120], 0.8) }
+      // the planets
+      const planet = (r, per, ph, rad, col, ring) => { const th = (t / per) * TAU + ph, x = cx + Math.cos(th) * r, y = cy + Math.sin(th) * r * tilt; g.glow(x, y, rad * 3, col, 0.3, 2); g.sphere(x, y, rad, col); return [x, y] }
+      planet(36, 11, 0.3, 2.2, [200, 170, 140]); planet(66, 18, 2.2, 3.2, [240, 220, 170])
+      const e = planet(R, 40, 4.0, 3.6, [80, 150, 255]); g.add(e[0] + 7 * Math.cos(t * 1.4), e[1] + 4 * Math.sin(t * 1.4), [230, 230, 230], 0.9)
+      planet(150, 70, 1.1, 2.8, [230, 110, 80])
+      // the LHC, to scale, in the corner: a dot
+      g.disc(36, 162, 1.2, [255, 220, 140]); g.glow(36, 162, 9, [255, 200, 100], 0.6, 2); g.ring(36, 162, 7 + 1.2 * pulse(t, 2.2), [255, 220, 150], 0.4, 1); g.line(42, 158, 56, 148, [255, 220, 150], 0.5)
+    },
+  })
+
+  // ============================================================================================================== 29 A  THE AXION HUNT (ADMX)
+  def({
+    id: '29A', world: 29, name: 'THE AXION LISTENERS',
+    desc: 'A copper cavity near absolute zero listens for a faint hum from dark matter. So far it has heard nothing.',
+    kind: 'LIMIT', label: 'ADMX · NO SIGNAL YET',
+    scale: { energy: '≈ 10¹² GeV', length: '≈ 10⁻²⁸ m' },
+    real: [
+      'ADMX, at the University of Washington, holds a tunable microwave cavity inside a strong magnet, cooled to a tenth of a degree above absolute zero. An axion from the dark-matter halo could turn into a tiny microwave signal there.',
+      'Between 2018 and 2021 it scanned the masses from about 2.7 to 4.2 µeV with no signal. An axion in that range would have an energy scale of roughly 10¹² GeV.',
+    ],
+    source: 'ADMX Collaboration, Phys. Rev. Lett. 120, 151301 (2018); 124, 101303 (2020); 127, 261803 (2021).',
+    draw(g, t) {
+      // lab: dark room, tiled floor
+      g.vgrad(0, H - 1, [8, 10, 18], [18, 20, 30], 1)
+      for (let x = 0; x < W; x += 20) g.line(x, 0, x, 140, [20, 24, 38], 0.6)
+      g.vgrad(142, H - 1, [26, 28, 40], [8, 9, 14], 1)
+      for (let y = 142; y < H; y += 6) g.line(0, y, W, y, [38, 42, 58], 0.5)
+      for (let i = -10; i < 12; i++) g.line(160 + i * 14, 142, 160 + i * 36, H, [38, 42, 58], 0.5)
+      // the cryostat
+      const X0 = 114, X1 = 206
+      for (let y = 8; y < 146; y++) for (let x = X0; x <= X1; x++) { const u = (x - X0) / (X1 - X0), k = 0.35 + 0.65 * Math.pow(Math.sin(u * Math.PI), 0.7), band = (Math.floor(y / 9) % 2) ? 0.9 : 1.05; g.set(x, y, [70 * k * band, 78 * k * band, 96 * k * band]) }
+      for (const yy of [8, 26, 56, 94, 146]) { g.rect(X0 - 4, yy, X1 - X0 + 9, 4, [128, 136, 156]); g.rect(X0 - 4, yy, X1 - X0 + 9, 1, [210, 218, 235]) }
+      for (const [x, y] of [[X0 - 2, 12], [X1 + 2, 12], [X0 - 2, 60], [X1 + 2, 60]]) g.disc(x, y, 2, [200, 206, 220])
+      // the window into the cold: magnet windings, the cavity and its tuning rod
+      const WX0 = 126, WX1 = 194, WY0 = 40, WY1 = 128
+      g.rect(WX0 - 2, WY0 - 2, WX1 - WX0 + 4, WY1 - WY0 + 4, [28, 32, 44])
+      for (let y = WY0; y < WY1; y++) for (let x = WX0; x < WX1; x++) g.set(x, y, [6, 8, 16])
+      for (let y = WY0 + 2; y < WY1 - 2; y += 2) { const l = 0.7 + 0.3 * Math.sin(y * 0.9); g.rect(WX0 + 2, y, WX1 - WX0 - 4, 1, [180 * l, 96 * l, 50 * l]) }
+      for (let y = WY0 + 14; y < WY1 - 14; y++) for (let x = 142; x < 178; x++) { const u = (x - 142) / 36, k = 0.35 + 0.8 * Math.pow(Math.sin(u * Math.PI), 0.8); g.set(x, y, [255 * k * 0.9, 190 * k * 0.85, 80 * k * 0.8]) }
+      const wave = pulse(t, 3.4)
+      for (let y = WY0 + 16; y < WY1 - 16; y++) { const k = 0.5 + 0.5 * Math.sin((y - WY0) * 0.34 - t * 4); g.add(160, y, [255, 240, 200], 0.2 + 0.5 * k * wave); g.add(150, y, [255, 220, 160], 0.1 * k); g.add(170, y, [255, 220, 160], 0.1 * k) }
+      const rodY = WY0 + 24 + (0.5 + 0.5 * Math.sin(t * 0.35)) * 50
+      g.rect(158, WY0 + 14, 4, Math.round(rodY - WY0 - 14), [220, 224, 236]); g.rect(152, Math.round(rodY), 16, 3, [240, 244, 255]); g.glow(160, rodY + 1, 20, [255, 230, 160], 0.35, 2)
+      g.glow(160, 84, 50, [255, 160, 70], 0.18 * wave + 0.08, 2)
+      // cold mist along the floor
+      for (let y = 124; y < 152; y++) for (let x = 60; x < 260; x++) { const n = fbm(x * 0.03 + t * 0.05, y * 0.12, 5, 3); g.add(x, y, [150, 200, 255], Math.max(0, n - 0.42) * 0.6 * (1 - Math.abs(y - 140) / 26)) }
+      // pipes and cables
+      g.line(X1 + 4, 20, 250, 20, [130, 138, 156]); g.line(250, 20, 250, 140, [130, 138, 156]); for (let i = 0; i < 6; i++) g.add(236 + i * 2, 22, [220, 235, 255], 0.5)
+      for (let k = 0; k < 4; k++) g.line(X0 - 4, 16 + k * 3, 70 - k * 4, 16 + k * 3, [60, 70, 96])
+      // the read-out screen: a long flat line of noise
+      g.rect(228, 40, 80, 52, [10, 14, 22]); g.rect(228, 40, 80, 1, [90, 100, 120]); g.rect(228, 91, 80, 1, [90, 100, 120]); g.rect(228, 40, 1, 52, [90, 100, 120]); g.rect(307, 40, 1, 52, [90, 100, 120])
+      for (let k = 1; k < 4; k++) g.line(228, 40 + k * 13, 307, 40 + k * 13, [30, 60, 70], 0.7)
+      for (let x = 229; x < 307; x++) { const y = 72 + (vnoise(x * 0.4 + t * 5, 3, 9) - 0.5) * 9 + (vnoise(x * 0.12 - t * 1.6, 7, 4) - 0.5) * 3; g.add(x, y, [90, 255, 150], 0.9); g.add(x, y + 1, [90, 255, 150], 0.3) }
+      g.add(236, 46, [255, 90, 80], 0.5 + 0.5 * pulse(t, 1.2)); g.rect(228, 100, 80, 18, [16, 20, 32]); for (let k = 0; k < 8; k++) g.rect(232 + k * 9, 104, 6, 3, mix([30, 40, 60], [90, 255, 150], (Math.sin(t * 1.7 + k * 1.9) > 0.55) ? 1 : 0))
+      // a rack on the left
+      g.rect(22, 70, 50, 70, [24, 28, 42]); for (let k = 0; k < 6; k++) { g.rect(26, 74 + k * 11, 42, 8, [38, 42, 60]); g.add(30, 78 + k * 11, [100, 255, 160], 0.4 + 0.5 * Math.max(0, Math.sin(t * 2.1 + k * 1.3))); g.add(34, 78 + k * 11, [255, 170, 90], 0.3 + 0.4 * Math.max(0, Math.sin(t * 1.4 + k * 2.1))) }
+    },
+  })
+
+  // ============================================================================================================== 29 B  THE EXCLUSION PLOT
+  def({
+    id: '29B', world: 29, name: 'THE EMPTY BAND',
+    desc: 'The real axion search is a chart. The cavity tunes through one mass at a time, and each one it clears turns green.',
+    kind: 'LIMIT', label: 'ADMX 2018–2021 · 2.7–4.2 µEV',
+    scale: { energy: '≈ 10¹² GeV', length: '≈ 10⁻²⁸ m' },
+    real: [
+      'Axion searches are drawn as an exclusion plot: the strength of an axion’s coupling to light against its mass. The yellow band is where popular axion models sit. ADMX closes it off a slice at a time by tuning its cavity.',
+      'Everything it has cleared so far is empty. The rest of the band, at other masses, is still open.',
+    ],
+    source: 'ADMX Collaboration, Phys. Rev. Lett. 120, 151301 (2018); 124, 101303 (2020); 127, 261803 (2021).',
+    draw(g, t) {
+      g.vgrad(0, H - 1, [3, 4, 18], [10, 8, 30], 1)
+      g.stars(141, 80, 0, H - 1, t, [200, 210, 255], 0.3, 0.45)
+      const X0 = 30, X1 = 300, Y0 = 18, Y1 = 158
+      // grid
+      for (let k = 0; k <= 8; k++) { const x = X0 + (k / 8) * (X1 - X0); g.line(x, Y0, x, Y1, [50, 120, 150], 0.35) }
+      for (let k = 0; k <= 6; k++) { const y = Y0 + (k / 6) * (Y1 - Y0); g.line(X0, y, X1, y, [50, 120, 150], 0.35) }
+      g.line(X0, Y1, X1, Y1, [130, 230, 240], 0.9); g.line(X0, Y0, X0, Y1, [130, 230, 240], 0.9)
+      // excluded by other experiments above the band: a dotted red shade
+      for (let y = Y0 + 1; y < Y1; y++) for (let x = X0 + 1; x < X1; x++) { const edge = Y1 - 70 - (x - X0) * 0.42; if (y < edge - 22 && ((x + y) % 4 === 0)) g.add(x, y, [255, 70, 90], 0.22) }
+      // the band of the popular models: two slanted lines and the fill between them
+      const lo = (x) => Y1 - 40 - (x - X0) * 0.42, hi = (x) => Y1 - 64 - (x - X0) * 0.42
+      for (let x = X0 + 1; x < X1; x++) { for (let y = Math.round(hi(x)); y <= Math.round(lo(x)); y++) g.add(x, y, [255, 200, 70], 0.32 + 0.06 * Math.sin(x * 0.2 + t)); g.add(x, hi(x), [255, 230, 120], 0.9); g.add(x, lo(x), [255, 230, 120], 0.9) }
+      // the cavity's cursor tunes slowly to the right; what it has cleared turns green
+      const per = 22, ph = cyc(t, per), sx = X0 + 100 + ph * 120
+      for (let x = X0 + 100; x < sx; x += 3) { for (let y = Math.round(hi(x)) - 3; y <= Math.round(lo(x)) + 3; y++) { g.add(x, y, [80, 255, 150], 0.35); g.add(x + 1, y, [80, 255, 150], 0.35) } g.add(x, hi(x) - 3, [160, 255, 190], 0.7); g.add(x, lo(x) + 3, [160, 255, 190], 0.7) }
+      for (let k = 0; k < 4; k++) { const x0 = X0 + 40 + k * 24; if (x0 < X0 + 100) for (let x = x0; x < x0 + 10; x++) for (let y = Math.round(hi(x)) - 3; y <= Math.round(lo(x)) + 3; y++) g.add(x, y, [80, 255, 150], 0.22) }
+      g.line(sx, Y0, sx, Y1, [255, 255, 255], 0.55); g.glowE(sx, (Y0 + Y1) / 2, 8, 80, [160, 255, 200], 0.3, 2); g.glow(sx, (hi(sx) + lo(sx)) / 2, 14, [200, 255, 220], 0.9, 2)
+      // tick marks
+      for (let k = 0; k <= 8; k++) { const x = X0 + (k / 8) * (X1 - X0); g.line(x, Y1, x, Y1 + 4, [130, 230, 240], 0.9) }
+      for (let k = 0; k <= 6; k++) { const y = Y0 + (k / 6) * (Y1 - Y0); g.line(X0 - 4, y, X0, y, [130, 230, 240], 0.9) }
+    },
+  })
+
+  // ============================================================================================================== 30 A  THE SEESAW
+  def({
+    id: '30A', world: 30, name: 'THE SEESAW',
+    desc: 'Neutrinos weigh almost nothing. A very heavy partner, near 10¹⁴ GeV, would explain why: the heavier it is, the lighter they are.',
+    kind: 'THEORY', label: 'SEESAW MECHANISM · ~10¹⁴ GEV',
+    scale: { energy: '≈ 10¹⁴ GeV', length: '≈ 2 × 10⁻³⁰ m' },
+    real: [
+      'Neutrino oscillations, measured and honoured with the 2015 Nobel Prize, prove that neutrinos have mass, yet less than a millionth of an electron’s. The seesaw idea of 1977 pairs each with a very heavy partner.',
+      'As the partner gets heavier, the neutrino gets lighter. A neutrino mass of about 0.05 eV points to partners near 10¹⁴ GeV or above. No heavy partner has been seen.',
+    ],
+    source: 'P. Minkowski (1977); M. Gell-Mann, P. Ramond, R. Slansky (1979); T. Yanagida (1979); Nobel Prize in Physics 2015.',
+    draw(g, t) {
+      g.vgrad(0, H - 1, [4, 2, 18], [24, 8, 40], 1)
+      g.stars(151, 160, 0, 120, t, [225, 215, 255], 0.35, 0.8)
+      g.glowE(160, 150, 220, 50, [130, 60, 190], 0.28, 1.8)
+      // a floor grid
+      const FY = 140
+      for (let k = 0; k < 10; k++) { const z = Math.pow(k / 9, 1.8), y = FY + z * (H - FY); g.line(0, y, W, y, [100, 80, 200], 0.2 + 0.25 * z) }
+      for (let i = -20; i <= 20; i++) g.line(160 + i * 6, FY, 160 + i * 30, H, [100, 80, 200], 0.22)
+      // the seesaw: it tips a little, heavy end down
+      const tip = -0.2 + 0.015 * Math.sin(t * 0.8), PX = 160, PY = 122, L = 110
+      const ex = Math.cos(tip), ey = Math.sin(tip), A = [PX - ex * L, PY - ey * L], B = [PX + ex * L, PY + ey * L]
+      g.poly([[PX - 9, FY], [PX + 9, FY], [PX, PY + 2]], [90, 70, 130]); g.line(PX - 9, FY, PX, PY + 2, [160, 140, 220], 0.9); g.line(PX + 9, FY, PX, PY + 2, [160, 140, 220], 0.9)
+      g.line(A[0], A[1], B[0], B[1], [230, 200, 255], 1, 3); g.line(A[0], A[1] - 2, B[0], B[1] - 2, [255, 255, 255], 0.5)
+      g.disc(PX, PY, 3, [255, 255, 255])
+      // the heavy partner
+      const hx = A[0] + 14, hy = A[1] - 30, hr = 28 + 1.2 * Math.sin(t * 1.3)
+      g.glow(hx, hy, hr * 2.8, [255, 90, 60], 0.4, 2); g.sphere(hx, hy, hr, [255, 120, 80]); for (let k = 0; k < 3; k++) g.ring(hx, hy, hr + 6 + k * 7 + 3 * pulse(t, 3.2, k), [255, 150, 100], 0.22 - k * 0.05, 1)
+      // the neutrino: tiny, high up
+      const nx = B[0] - 6, ny = B[1] - 6 + Math.sin(t * 1.9) * 1.2
+      g.glow(nx, ny, 16, [120, 230, 255], 0.65, 2); g.disc(nx, ny, 2, [210, 250, 255])
+      for (let k = 1; k < 16; k++) g.add(nx - k * 2.2 * (1 + 0.5 * ex), ny + k * 0.7 + Math.sin(t * 3 - k * 0.7) * 1.2, [150, 240, 255], 0.5 * (1 - k / 16))
+      // two rows of faint bars: the light one is almost zero, the heavy one is huge
+      for (let k = 0; k < 10; k++) { g.add(40 + k * 4, 168, [255, 150, 100], 0.2 + 0.65 * (k / 9)); g.add(250 + k * 3, 168, [150, 240, 255], 0.9 * (1 - k / 9) ** 2) }
+    },
+  })
+
+  // ============================================================================================================== 30 B  COSMIC STRINGS
+  def({
+    id: '30B', world: 30, name: 'COSMIC STRINGS',
+    desc: 'If the forces split in the early universe, they could have left cracks: lines of energy longer than galaxies. None has been seen.',
+    kind: 'THEORY', label: 'COSMIC STRINGS · ~10¹⁴ GEV',
+    scale: { energy: '≈ 4 × 10¹³ GeV', length: '≈ 5 × 10⁻³⁰ m' },
+    real: [
+      'When a symmetry breaks as the universe cools, theory says thin lines of trapped energy can form, as cracks do in freezing ice. A string would bend light, giving a galaxy behind it a twin image, and its wiggling loops would give off gravitational waves.',
+      'Searches so far have found none. In 2023 pulsar timing hinted at a background of gravitational waves, and cosmic strings are one of several proposed sources.',
+    ],
+    source: 'T. Kibble (1976); NANOGrav Collaboration, Astrophys. J. Lett. 951, L11 (2023).',
+    draw(g, t) {
+      g.vgrad(0, H - 1, [2, 2, 14], [14, 6, 34], 1)
+      g.glowE(260, 40, 120, 60, [120, 60, 190], 0.2, 1.8); g.glowE(40, 150, 120, 50, [60, 100, 210], 0.2, 1.8)
+      g.stars(161, 200, 0, H - 1, t, [225, 225, 255], 0.35, 0.7)
+      // the long string, with small kinks that travel along it
+      const S = (u) => { const x = -10 + u * 340, y = 30 + u * 130 + Math.sin(u * 9 + t * 0.6) * 5 + Math.sin(u * 23 - t * 1.4) * 1.6; return [x, y] }
+      const nrm = (u) => { const a = S(u - 0.01), b = S(u + 0.01), dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy); return [-dy / l, dx / l] }
+      // galaxies come in pairs on either side of the string: the same galaxy, lensed
+      const gal = (x, y, r, rot, c) => { for (let i = 0; i < 70; i++) { const a = (i / 70) * TAU * 2.2, rr = r * (0.3 + 1.2 * (i / 70)), px = x + Math.cos(a + rot) * rr * 1.7, py = y + Math.sin(a + rot) * rr * 0.65; g.add(px, py, c, 0.75) } g.glowE(x, y, r * 3.2, r * 1.5, c, 0.5, 2); g.glow(x, y, r * 1.4, [255, 245, 255], 0.9, 2) }
+      for (let k = 0; k < 5; k++) {
+        const u = 0.14 + k * 0.17, p = S(u), n = nrm(u), off = 17 + 6 * (k % 3), rot = k * 0.7 + 0.2, c = k % 2 ? [160, 200, 255] : [255, 190, 170], r = 4 + (k % 2) * 1.5
+        gal(p[0] + n[0] * off, p[1] + n[1] * off, r, rot, c); gal(p[0] - n[0] * off, p[1] - n[1] * off, r, -rot, c)
+      }
+      for (let i = 0; i < 700; i++) { const u = i / 700, p = S(u); g.add(p[0], p[1], [255, 245, 210], 1.2); g.add(p[0], p[1] + 1, [255, 200, 140], 0.6); g.add(p[0], p[1] - 1, [255, 200, 140], 0.3); g.glow(p[0], p[1], 8, [255, 110, 200], 0.2, 2) }
+      for (let k = 0; k < 4; k++) { const u = (t * 0.05 + k * 0.25) % 1, p = S(u); g.glow(p[0], p[1], 9, [255, 220, 255], 0.5, 2) }
+      // oscillating loops that shed ripples of space
+      const loops = [[84, 50, 1.7, 0], [236, 138, 2.0, 2.1], [270, 40, 1.4, 4.0]]
+      for (const [lx, ly, sz, ph] of loops) {
+        const per = 5, q = cyc(t, per, ph), w = TAU * (t / 2.6 + ph)
+        for (let i = 0; i < 160; i++) { const th = (i / 160) * TAU, rx = (13 + 8 * Math.sin(w)) * sz, ry = (6 + 4 * Math.cos(w)) * sz, x = lx + Math.cos(th) * rx + Math.sin(th * 3 + w) * 1.2, y = ly + Math.sin(th) * ry; g.add(x, y, [255, 245, 210], 1.1); g.add(x, y + 1, [255, 200, 140], 0.5); g.glow(x, y, 5, [255, 110, 200], 0.18, 2) }
+        const cusp = Math.max(0, Math.sin(w * 2)) ** 14; g.glow(lx + 13 * sz, ly, 12, [255, 255, 255], 0.9 * cusp, 2); g.glow(lx - 13 * sz, ly, 12, [255, 255, 255], 0.9 * cusp, 2)
+        for (let k = 0; k < 3; k++) { const z = (q + k / 3) % 1; g.ellipseRing(lx, ly, 18 * sz + z * 70, 9 * sz + z * 34, [200, 170, 255], 0.5 * (1 - z) ** 1.5, 0.22, w * 0.1) }
+      }
+    },
+  })
+})(typeof window !== 'undefined' ? window : globalThis)
+
+;
+/* viewer.js */
+/* viewer.js: the review page. Rows of two designs per world, every picture alive, a big view with the facts, and a list of picks to paste into the chat. */
+(function () {
+  const Worlds = Scene.Worlds
+  const G = new Gfx.Gfx()
+  const KINDS = {
+    MEASURED: { cls: 'k-measured', text: 'Something with this energy was seen or measured.' },
+    LIMIT: { cls: 'k-limit', text: 'Experiments looked here and found nothing, which sets a limit.' },
+    THEORY: { cls: 'k-theory', text: 'A published idea that no experiment has tested.' },
+    PLAN: { cls: 'k-plan', text: 'A machine that has been proposed but not built.' },
+  }
+  const POWER = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' }
+  const sup = (n) => String(n).split('').map((c) => POWER[c] ?? c).join('')
+  const sizeText = (points) => { const e = -points / 20, m = 1.7 * Math.pow(10, e - Math.floor(e)) ; const ex = Math.floor(e); return (1.7 * Math.pow(10, e - Math.ceil(e) + 1)).toFixed(1) + ' × 10' + sup(Math.ceil(e) - 1) + ' m' }
+  const sizeOf = (points) => { const e = Math.floor(-points / 20 + 1e-9), mant = 1.7 * Math.pow(10, -points / 20 - e); return mant.toFixed(1) + ' × 10' + sup(e) + ' m' }
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e }
+  const store = { get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v) } catch (e) { return d } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch (e) { /* ignore */ } } }
+
+  let paused = store.get('moreworlds.paused', window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
+  let picks = new Set(store.get('moreworlds.picks', []))
+  const STILL_T = 3.1
+  const cards = []
+  const visible = new Set()
+
+  // ---- the ladder of points -------------------------------------------------------------------
+  function buildLadder() {
+    const box = document.getElementById('ladder')
+    const bar = el('div', 'ladder-bar')
+    for (let w = 21; w <= 30; w++) { const a = (w - 1) * 20, seg = el('a', 'seg', '<b>' + w + '</b><small>' + a + '</small>'); seg.href = '#w' + w; seg.title = 'World ' + w + ': ' + a + ' to ' + (a + 20) + ' points, ' + sizeOf(a) + ' down to ' + sizeOf(a + 20); bar.appendChild(seg) }
+    const un = el('div', 'seg unex', '<b>UNEXPLORED</b><small>600 – 700</small>'); un.title = '600 to 700 points: 1.7 × 10⁻³⁰ m down to the Planck length'; bar.appendChild(un)
+    const pl = el('div', 'seg planck', '<b>PLANCK FOAM</b><small>700</small>'); bar.appendChild(pl)
+    box.appendChild(bar)
+  }
+
+  // ---- cards -----------------------------------------------------------------------------------
+  function card(w) {
+    const k = KINDS[w.kind] || KINDS.THEORY
+    const c = el('article', 'card'); c.id = 'd' + w.id
+    const pic = el('button', 'pic'); pic.type = 'button'; pic.setAttribute('aria-label', 'Open ' + w.name + ' in the big view')
+    const cv = el('canvas'); cv.width = 320; cv.height = 180; pic.appendChild(cv)
+    const tag = el('div', 'tag ' + k.cls, '<span>' + w.kind + '</span> ' + w.label)
+    const head = el('h3', null, '<i>' + w.id + '</i> ' + w.name)
+    const desc = el('p', 'desc', w.desc)
+    const row = el('div', 'actions')
+    const keep = el('button', 'keep'); keep.type = 'button'
+    const open = el('button', 'more', 'WHAT IS REAL'); open.type = 'button'
+    row.appendChild(keep); row.appendChild(open)
+    c.appendChild(pic); c.appendChild(head); c.appendChild(tag); c.appendChild(desc); c.appendChild(row)
+    const rec = { w, cv, ctx: cv.getContext('2d'), keep, el: c }
+    const syncKeep = () => { keep.textContent = picks.has(w.id) ? '★ KEPT' : '☆ KEEP'; keep.setAttribute('aria-pressed', picks.has(w.id)); c.classList.toggle('kept', picks.has(w.id)) }
+    keep.addEventListener('click', () => { picks.has(w.id) ? picks.delete(w.id) : picks.add(w.id); store.set('moreworlds.picks', [...picks]); cards.forEach((r) => r.sync()); updatePicks() })
+    pic.addEventListener('click', () => openBig(w)); open.addEventListener('click', () => openBig(w))
+    rec.sync = syncKeep; syncKeep(); cards.push(rec)
+    drawCard(rec, STILL_T)
+    return c
+  }
+  function drawCard(rec, t) { G.clear([0, 0, 0]); rec.w.draw(G, t); G.present(rec.ctx) }
+
+  function buildRows() {
+    const host = document.getElementById('rows')
+    for (let n = 21; n <= 30; n++) {
+      const a = (n - 1) * 20, list = Worlds.filter((w) => w.world === n)
+      const row = el('section', 'row'); row.id = 'w' + n
+      const energy = list[0] && list[0].scale ? '' : ''
+      row.appendChild(el('header', null, '<h2>WORLD ' + n + '</h2><p><b>' + a + ' – ' + (a + 20) + ' points</b><span>' + sizeOf(a) + ' → ' + sizeOf(a + 20) + '</span></p>'))
+      const pair = el('div', 'pair'); list.forEach((w) => pair.appendChild(card(w))); row.appendChild(pair)
+      host.appendChild(row)
+    }
+  }
+
+  // ---- picks ------------------------------------------------------------------------------------
+  function updatePicks() {
+    const ids = [...picks].sort()
+    document.getElementById('picks-list').textContent = ids.length ? ids.join(', ') : 'nothing kept yet'
+    const per = {}; ids.forEach((i) => { const n = Number(i.slice(0, 2)); per[n] = (per[n] || 0) + 1 })
+    const filled = Object.keys(per).length
+    document.getElementById('picks-note').textContent = ids.length ? filled + ' of 10 worlds have a pick' + (ids.some((i) => per[Number(i.slice(0, 2))] > 1) ? ' (some have two: that is fine, say which you prefer)' : '') + '.' : 'Keep the designs you like. The list is only for pasting into the chat.'
+  }
+  function copyPicks() {
+    const txt = [...picks].sort().join(', ')
+    const done = () => { const b = document.getElementById('copy'); b.textContent = 'COPIED'; setTimeout(() => (b.textContent = 'COPY LIST'), 1400) }
+    const select = () => { const n = document.getElementById('picks-list'), r = document.createRange(); r.selectNodeContents(n); const s = getSelection(); s.removeAllRanges(); s.addRange(r); done() }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, select); else select()
+  }
+
+  // ---- the big view -----------------------------------------------------------------------------
+  let big = null
+  function openBig(w) {
+    big = w
+    const d = document.getElementById('big'), k = KINDS[w.kind] || KINDS.THEORY
+    document.getElementById('big-name').innerHTML = '<i>' + w.id + '</i> ' + w.name
+    document.getElementById('big-tag').className = 'tag ' + k.cls
+    document.getElementById('big-tag').innerHTML = '<span>' + w.kind + '</span> ' + w.label
+    document.getElementById('big-kind').textContent = k.text
+    document.getElementById('big-desc').textContent = w.desc
+    const a = (w.world - 1) * 20
+    document.getElementById('big-scale').innerHTML = '<dt>World</dt><dd>' + w.world + ' (' + a + ' to ' + (a + 20) + ' points)</dd><dt>Sizes it covers</dt><dd>' + sizeOf(a) + ' to ' + sizeOf(a + 20) + '</dd><dt>The real number</dt><dd>' + w.scale.energy + ', wavelength ' + w.scale.length + '</dd>'
+    document.getElementById('big-real').innerHTML = w.real.map((p) => '<p>' + p + '</p>').join('') + '<p class="src">Source: ' + w.source + '</p>'
+    const bk = document.getElementById('big-keep'); bk.textContent = picks.has(w.id) ? '★ KEPT' : '☆ KEEP'
+    if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', '')
+    bigStart = performance.now() - 600
+  }
+  let bigStart = 0
+  function closeBig() { const d = document.getElementById('big'); big = null; if (d.close) d.close(); else d.removeAttribute('open') }
+
+  // ---- loop -------------------------------------------------------------------------------------
+  const bigCv = () => document.getElementById('big-canvas')
+  let last = 0, t0 = performance.now()
+  function frame(now) {
+    requestAnimationFrame(frame)
+    if (now - last < 1000 / 24) return
+    last = now
+    if (big) { const cv = bigCv(); G.clear([0, 0, 0]); big.draw(G, paused ? STILL_T : (now - bigStart) / 1000 + 0.6); G.present(cv.getContext('2d')); return }
+    if (paused) return
+    const t = (now - t0) / 1000
+    for (const rec of cards) if (visible.has(rec.el)) drawCard(rec, t + rec.w.world * 0.37)
+  }
+
+  function setPaused(p) {
+    paused = p; store.set('moreworlds.paused', p)
+    document.getElementById('pause').textContent = p ? '▶ PLAY MOTION' : '⏸ PAUSE MOTION'
+    document.getElementById('pause').setAttribute('aria-pressed', p)
+    if (p) cards.forEach((r) => drawCard(r, STILL_T))
+  }
+
+  function start() {
+    buildLadder(); buildRows(); updatePicks()
+    const io = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? visible.add(e.target) : visible.delete(e.target))), { rootMargin: '80px' })
+    cards.forEach((r) => io.observe(r.el))
+    document.getElementById('pause').addEventListener('click', () => setPaused(!paused)); setPaused(paused)
+    document.getElementById('copy').addEventListener('click', copyPicks)
+    document.getElementById('clear').addEventListener('click', () => { picks.clear(); store.set('moreworlds.picks', []); cards.forEach((r) => r.sync()); updatePicks() })
+    document.getElementById('big-close').addEventListener('click', closeBig)
+    document.getElementById('big').addEventListener('close', () => { big = null })
+    document.getElementById('big').addEventListener('click', (e) => { if (e.target.id === 'big') closeBig() })
+    document.getElementById('big-keep').addEventListener('click', () => { if (!big) return; picks.has(big.id) ? picks.delete(big.id) : picks.add(big.id); store.set('moreworlds.picks', [...picks]); document.getElementById('big-keep').textContent = picks.has(big.id) ? '★ KEPT' : '☆ KEEP'; cards.forEach((r) => r.sync()); updatePicks() })
+    requestAnimationFrame(frame)
+    window.MoreWorlds = { Worlds, openBig, closeBig, setPaused }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start()
+})()
+
+</script>

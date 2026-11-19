@@ -199,4 +199,12 @@ export const MIGRATIONS: string[] = [
     PRIMARY KEY (day, zone)
   );
   `,
+  // 6: the scoring change of 18 Nov 2026 (the owner stretched the 20 worlds over 0 to 600 points, 30 a world): Common 10 -> 20, Uncommon 20 -> 30.
+  //    The points are stored with every answer, and the rank statistic and the Daily standings add them up, so answers already scored are rescaled
+  //    once (by their tier) and the Daily totals are added up again. Rarer tiers are unchanged. Safe to run on an empty database.
+  `
+  UPDATE run_questions SET points = 30 WHERE result = 'valid' AND tier = 1 AND points = 20;
+  UPDATE run_questions SET points = 20 WHERE result = 'valid' AND tier = 0 AND points = 10;
+  UPDATE daily_plays SET total = (SELECT COALESCE(SUM(points), 0) FROM run_questions WHERE run_id = daily_plays.run_id) WHERE finished_at IS NOT NULL;
+  `,
 ]

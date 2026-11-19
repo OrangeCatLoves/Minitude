@@ -19,21 +19,25 @@ describe('the seventh tier', () => {
     expect(MAX_POINTS).toBe(840)
     expect(MAX_POINTS_DISPLAY).toBe(MAX_POINTS)
   })
-  it('a gem scores 120 and shrinks the player by six powers of ten (120 / 20)', () => {
+  it('a gem scores 120 and shrinks the player by four powers of ten (120 / 30; the stamp is ÷ 10,000)', () => {
     const r = play([GEM_TIER])
     expect(r[0].points).toBe(120)
     expect(r[0].tier).toBe(6)
-    expect(r[0].u1).toBe(6)
+    expect(r[0].u1).toBe(4)
   })
   it('a gem can carry a dive over several worlds and the finale still plays exactly once', () => {
     const r = play([5, 5, 5, 5, GEM_TIER, GEM_TIER, 0])
     expect(r[3].c1).toBe(400)
-    expect(r[4].c1).toBe(520) // still inside the unexplored stretch (it runs to 554): no finale yet
+    expect(r[4].c1).toBe(520) // world 18: still inside the worlds, no unexplored yet
     expect(r[4].finale).toBe(false)
-    expect(r[5].c1).toBe(640) // the second gem crosses Planck Foam (555)
-    expect(r.filter((x) => x.finale).length).toBe(1)
-    expect(r[5].finale).toBe(true)
-    expect(r[6].post).toBe(1)
+    expect(r[5].c1).toBe(640) // the second gem lands inside the unexplored stretch (600 to 699): no finale yet
+    expect(r[5].finale).toBe(false)
+    expect(r[6].c1).toBe(660)
+    const r2 = play([5, 5, 5, 5, 5, GEM_TIER, GEM_TIER]) // 500, 620, 740: the second gem crosses Planck Foam (700)
+    expect(r2[5].c1).toBe(620)
+    expect(r2[6].c1).toBe(740)
+    expect(r2.filter((x) => x.finale).length).toBe(1)
+    expect(r2[6].finale).toBe(true)
   })
   it('seven gems is 840 and the report counts them', () => {
     const recs = play([6, 6, 6, 6, 6, 6, 6])
@@ -42,7 +46,7 @@ describe('the seventh tier', () => {
     expect(rep.gems).toBe(7)
     expect(rep.perfect).toBe(true)
     expect(rep.worldLine).toContain('/ 840 points')
-    expect(rep.extraLine).toBe('285 points past the edge') // 840 - 555
+    expect(rep.extraLine).toBe('140 points past the edge') // 840 - 700
   })
   it('a run of Mythic answers and gems is still perfect; one weaker answer or a miss is not', () => {
     expect(isPerfect(play([5, 5, 6, 5, 5, 5, 5]))).toBe(true)

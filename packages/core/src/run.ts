@@ -17,7 +17,7 @@ export interface RunRecord {
   z0: number
   z1: number
   dz: number
-  /** this answer crossed PLANCK_POINTS (555): the Planck Foam finale */
+  /** this answer crossed PLANCK_POINTS (700): the Planck Foam finale */
   finale: boolean
   /** 1, 2, 3...: how many answers in a row have now ended inside the unexplored stretch (0 = this one did not) */
   voidStreak: number

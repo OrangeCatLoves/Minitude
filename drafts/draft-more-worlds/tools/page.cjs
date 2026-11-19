@@ -1,0 +1,18 @@
+// page.cjs: open index.html in Chrome, check for errors, and save screenshots.   node tools/page.cjs
+const { chromium } = require('../../../tools/browser-test/node_modules/playwright')
+const path = require('path'), { pathToFileURL } = require('url')
+const root = path.join(__dirname, '..')
+;(async () => {
+  const b = await chromium.launch({ channel: 'chrome' }); const p = await b.newPage({ viewport: { width: 1280, height: 900 } })
+  const errs = []; p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()) })
+  await p.goto(pathToFileURL(path.join(root, 'index.html')).href); await p.waitForTimeout(1500)
+  await p.screenshot({ path: path.join(root, 'sheets', 'page-top.png') })
+  await p.evaluate(() => document.getElementById('w21').scrollIntoView()); await p.waitForTimeout(800)
+  await p.screenshot({ path: path.join(root, 'sheets', 'page-row.png') })
+  await p.evaluate(() => MoreWorlds.openBig(MoreWorlds.Worlds.find((w) => w.id === '25A'))); await p.waitForTimeout(1500)
+  await p.screenshot({ path: path.join(root, 'sheets', 'page-big.png') })
+  await p.setViewportSize({ width: 390, height: 800 }); await p.evaluate(() => MoreWorlds.closeBig()); await p.waitForTimeout(500)
+  await p.screenshot({ path: path.join(root, 'sheets', 'page-phone.png') })
+  console.log('worlds:', await p.evaluate(() => MoreWorlds.Worlds.length), errs.length ? 'ERRORS: ' + errs.join(' | ') : 'no errors')
+  await b.close()
+})().catch((e) => { console.error(e); process.exit(1) })

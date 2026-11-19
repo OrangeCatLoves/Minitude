@@ -32,17 +32,17 @@ describe('camera over a whole run', () => {
   })
 
   it('still dives after questions that timed out (the camera must not freeze at the first time-out)', () => {
-    const { tl, core } = play([2, null, null, 5])
+    const { tl, core } = play([3, null, null, 5])
     const last = tl.recs[3]
     expect(core[3].z0).toBe(2)
-    expect(core[3].z1).toBe(7)
+    expect(core[3].z1).toBe(5)
     const before = tl.cam(last.fs - 0.01)
     const mid = tl.cam(last.fs + last.dur * 0.5)
     const after = tl.cam(last.fe + 0.01)
     expect(before.z).toBeCloseTo(2, 5)
-    expect(mid.z).toBeGreaterThan(3)
-    expect(mid.z).toBeLessThan(7)
-    expect(after.z).toBeCloseTo(7, 5)
+    expect(mid.z).toBeGreaterThan(2.5)
+    expect(mid.z).toBeLessThan(5)
+    expect(after.z).toBeCloseTo(5, 5)
     // the size follows the same dive
     expect(mid.u).toBeGreaterThan(before.u)
     expect(after.u).toBeCloseTo(core[3].u1, 5)
@@ -102,7 +102,7 @@ describe('a gem (tier 6)', () => {
     expect(a.chg).toBeLessThan(a.fs)
     expect(a.next).toBeGreaterThan(a.fe)
     expect(b.start).toBe(a.next)
-    expect(a.stamp).toBe('÷ 1,000,000')
+    expect(a.stamp).toBe('÷ 10,000')
     const mid = tl.cam(a.fs + a.dur * 0.5)
     expect(Number.isFinite(mid.u) && Number.isFinite(mid.z)).toBe(true)
     expect(tl.cam(a.fe + 0.01).z).toBe(a.z1)
@@ -112,13 +112,13 @@ describe('a gem (tier 6)', () => {
     const r = tl.recs[0]
     expect(r.rev).toBeCloseTo(r.roll + ROLL_DUR[5], 6)
   })
-  it('a gem can cross the Planck finale like any 120 points (the first gem lands at 520, inside the unexplored stretch; the second crosses 555)', () => {
-    const { tl, core } = play([5, 5, 5, 5, 6, 6])
-    expect(core[4].finale).toBe(false)
-    expect(tl.recs[4].fin).toBe(false)
-    expect(Number.isFinite(tl.recs[4].next)).toBe(true) // a dive through ten dark pictures still has a schedule
-    expect(core[5].finale).toBe(true)
-    expect(tl.recs[5].fin).toBe(true)
-    expect(Number.isFinite(tl.recs[5].next)).toBe(true)
+  it('a gem can cross the Planck finale like any 120 points (the first gem lands at 620, inside the unexplored stretch; the second crosses 700)', () => {
+    const { tl, core } = play([5, 5, 5, 5, 5, 6, 6])
+    expect(core[5].finale).toBe(false)
+    expect(tl.recs[5].fin).toBe(false)
+    expect(Number.isFinite(tl.recs[5].next)).toBe(true) // a dive through the dark pictures still has a schedule
+    expect(core[6].finale).toBe(true)
+    expect(tl.recs[6].fin).toBe(true)
+    expect(Number.isFinite(tl.recs[6].next)).toBe(true)
   })
 })

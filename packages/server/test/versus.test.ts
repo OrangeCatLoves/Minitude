@@ -156,9 +156,9 @@ describe('a match', () => {
     const end = of(1, 'roundEnd')[0].end
     expect(end.items).toEqual([
       { seat: 0, miss: false, tier: 3, points: 60, answer: 'RARE' },
-      { seat: 1, miss: false, tier: 0, points: 10, answer: 'COMMON' },
+      { seat: 1, miss: false, tier: 0, points: 20, answer: 'COMMON' },
     ])
-    expect(end.totals).toEqual([{ seat: 0, total: 60 }, { seat: 1, total: 10 }])
+    expect(end.totals).toEqual([{ seat: 0, total: 60 }, { seat: 1, total: 20 }])
   })
 
   it("shows a result anyway after a while when the player's screen never says the roll is over", async () => {
@@ -308,7 +308,7 @@ describe('a match', () => {
       guests.forEach((g) => hub.ready(g, code, r))
     }
     const end = of(2, 'matchEnd')[0].end
-    expect(end.standings.map((s) => [s.name, s.total, s.rank])).toEqual([['Alice', 700, 1], ['Bob', 70, 2], ['Cara', 70, 2]])
+    expect(end.standings.map((s) => [s.name, s.total, s.rank])).toEqual([['Alice', 700, 1], ['Bob', 140, 2], ['Cara', 140, 2]])
     expect(end.standings[0].items).toHaveLength(7)
     expect(end.standings[0].items[0]).toEqual({ miss: false, tier: 5, points: 100, answer: 'MYTHIC' })
     expect(of(2, 'room').pop()!.room.status).toBe('finished')
@@ -326,7 +326,7 @@ describe('a match', () => {
     expect(of(1, 'answered')[0].answered).toMatchObject({ seat: 0, miss: false, tier: 6, points: 120 })
     await hub.answer(guests[1], code, 0, 'common'); hub.revealed(guests[1], code, 0)
     const end = of(0, 'roundEnd')[0].end
-    expect(end.totals).toEqual([{ seat: 0, total: 120 }, { seat: 1, total: 10 }])
+    expect(end.totals).toEqual([{ seat: 0, total: 120 }, { seat: 1, total: 20 }])
     expect(end.items.find((i) => i.seat === 0)).toMatchObject({ tier: 6, points: 120 })
   })
 

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>More Worlds Draft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080f; --panel:#0e1020; --panel2:#151832; --line:#262a52; --text:#e3e8ff; --dim:#9aa3d6; --faint:#6a72a8;
+  --cyan:#76e6ff; --amber:#ffc65c; --mag:#ff7ad0; --lilac:#b79bff; --green:#7dffb0;
+  --font:'Pixelify Sans','Courier New',ui-monospace,monospace; --body:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+}
+:root{ color-scheme: dark }
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+h1,h2,h3,.seg b,.tag,button,.pill{font-family:var(--font);letter-spacing:.04em}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.05;margin:6px 0 10px;font-weight:600}
+h1 em{font-style:normal;color:var(--cyan)}
+.lead{max-width:780px;color:var(--dim);margin:0 0 22px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 18px}
+.box h2{margin:0 0 8px;font-size:18px;color:var(--cyan)}
+.box p{margin:.4em 0}
+.box code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:.92em;color:var(--amber)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:6px}
+.legend div{font-size:14px;color:var(--dim)}
+.tag{display:inline-block;font-size:12px;line-height:1.35;color:var(--dim);margin:4px 0 2px}
+.tag span{display:inline-block;padding:0 7px;border-radius:3px;color:#05060d;font-weight:600;margin-right:6px}
+.k-measured span{background:var(--cyan)} .k-limit span{background:var(--amber)} .k-theory span{background:var(--mag)} .k-plan span{background:var(--lilac)}
+.toolbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);padding:10px 0;margin:0 0 10px;border-bottom:1px solid var(--line)}
+button{font-size:13px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 12px;cursor:pointer;min-height:36px}
+button:hover{border-color:var(--cyan)} button:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.picks{font-size:14px;color:var(--dim);flex:1;min-width:200px}
+.picks b{color:var(--text);font-family:ui-monospace,Consolas,monospace}
+/* the ladder */
+.ladder-bar{display:flex;gap:3px;margin:8px 0 2px;overflow-x:auto;padding-bottom:6px}
+.seg{flex:1 1 0;min-width:62px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 6px;text-align:center;color:var(--text);text-decoration:none;display:flex;flex-direction:column;gap:2px}
+.seg b{font-size:15px;font-weight:600} .seg small{color:var(--faint);font-size:12px}
+a.seg:hover{border-color:var(--cyan)}
+.seg.unex{flex:5 1 0;min-width:120px;background:#04040a;color:#8b93c9;border-style:dashed}
+.seg.planck{flex:1.6 1 0;min-width:110px;background:linear-gradient(135deg,#1a1050,#3a1170);color:#fff}
+.note{font-size:13px;color:var(--faint);margin:2px 0 0}
+/* the rows */
+.row{margin:34px 0 0;scroll-margin-top:70px}
+.row header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin:0 0 10px}
+.row h2{margin:0;font-size:26px;font-weight:600}
+.row header p{margin:0;color:var(--dim);font-size:14px;display:flex;flex-wrap:wrap;gap:2px 14px}
+.row header b{color:var(--text);font-weight:600}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 10px 14px}
+.card.kept{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}
+.pic{display:block;width:100%;padding:0;border:0;background:#000;border-radius:6px;overflow:hidden;cursor:zoom-in;min-height:0}
+.pic canvas{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;aspect-ratio:16/9}
+.card h3{margin:10px 4px 0;font-size:20px;font-weight:600}
+.card h3 i{font-style:normal;color:var(--faint);font-size:15px;margin-right:6px}
+.card .tag{margin:4px 4px 0}
+.card .desc{margin:6px 4px 10px;color:var(--text);font-size:15px}
+.actions{display:flex;gap:8px;margin:0 4px}
+.keep[aria-pressed="true"]{border-color:var(--green);color:var(--green)}
+/* the big view */
+dialog{padding:0;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);width:min(1180px,96vw);max-height:94vh;overflow:auto}
+dialog::backdrop{background:rgba(2,3,10,.82)}
+.big-in{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:0}
+@media (max-width:860px){.big-in{grid-template-columns:1fr}}
+.big-pic{background:#000;display:grid;place-items:center;min-width:0;overflow:hidden}
+.big-pic canvas{width:100%;max-width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;display:block;aspect-ratio:16/9}
+.big-info{padding:18px 20px 22px}
+.big-info h2{margin:0 0 4px;font-size:26px;font-weight:600} .big-info h2 i{font-style:normal;color:var(--faint);font-size:17px;margin-right:6px}
+.big-info p{margin:.5em 0;font-size:15px}
+.big-info .kindnote{color:var(--faint);font-size:13px;margin:0 0 10px}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:12px 0;font-size:14px}
+dt{color:var(--faint)} dd{margin:0}
+.src{color:var(--faint);font-size:13px}
+.real h3{margin:16px 0 4px;font-size:15px;color:var(--cyan);font-weight:600}
+.bigbar{display:flex;gap:8px;margin-top:16px}
+footer{margin-top:50px;color:var(--faint);font-size:13px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="pill" style="margin:0;color:var(--faint);font-size:13px">DRAFT · NOTHING IS IN THE GAME YET</p>
+  <h1>Worlds <em>21 to 30</em></h1>
+  <p class="lead">Twenty candidate worlds, two for each new stretch of size. Every picture moves a little, like the worlds already in the game. Click a picture for the facts behind it. Keep the ones you like and paste the list into the chat.</p>
+
+  <section class="box">
+    <h2>First, the numbers</h2>
+    <p>World 20 (Collision Hall) covers <b>380 to 400 points</b>. The 440 you remember was the old Planck Foam threshold, which became 555 on 16 November. From 400, each 20 points shrinks you by a factor of ten.</p>
+    <p>So reaching <b>600</b> needs <b>10 new worlds</b> (400 + 10 × 20), not 8. With 8 worlds, the unexplored band would start at 560. These twenty designs are two per world, for ten worlds.</p>
+    <p>A nice fact: with your own formula (size = 1.7 m ÷ 10<sup>points ÷ 20</sup>), <b>700 points is 1.7 × 10⁻³⁵ m, the Planck length</b>. A finale at 700 is the physically honest place for it.</p>
+  </section>
+
+  <section class="box">
+    <h2>The ladder</h2>
+    <div id="ladder"></div>
+    <p class="note">Each world is 20 points, one factor of ten. After world 30 the unexplored stretch is 100 points (five powers of ten, 1.7 × 10⁻³⁰ m down to the Planck length), then Planck Foam at 700.</p>
+  </section>
+
+  <section class="box">
+    <h2>What “real” means down here</h2>
+    <p>No experiment has looked below about 10⁻²⁰ m with a collider, so nothing here is a place anyone has seen. Each world is anchored to something that genuinely exists in physics at that energy, and says so in its tag. Energy and length are linked by <span class="mono">length ≈ 2 × 10⁻¹⁶ GeV·m ÷ energy</span>.</p>
+    <div class="legend">
+      <div><span class="tag k-measured"><span>MEASURED</span></span> a particle of this energy was seen</div>
+      <div><span class="tag k-limit"><span>LIMIT</span></span> experiments found nothing, which rules things out</div>
+      <div><span class="tag k-theory"><span>THEORY</span></span> a published idea, untested</div>
+      <div><span class="tag k-plan"><span>PLAN</span></span> a machine that is proposed, not built</div>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <button id="pause" type="button" aria-pressed="false">⏸ PAUSE MOTION</button>
+    <div class="picks"><b>Kept:</b> <b id="picks-list">nothing kept yet</b> <span id="picks-note"></span></div>
+    <button id="copy" type="button">COPY LIST</button>
+    <button id="clear" type="button">CLEAR</button>
+  </div>
+
+  <div id="rows"></div>
+
+  <footer>Pictures are drawn by code at 320 × 180 pixels and shown larger, in the game’s style. Sources are listed in each world’s facts. Facts were checked against the published papers named there.</footer>
+</div>
+
+<dialog id="big" aria-labelledby="big-name">
+  <div class="big-in">
+    <div class="big-pic"><canvas id="big-canvas" width="320" height="180"></canvas></div>
+    <div class="big-info">
+      <h2 id="big-name"></h2>
+      <div id="big-tag" class="tag"></div>
+      <p class="kindnote" id="big-kind"></p>
+      <p id="big-desc"></p>
+      <dl id="big-scale"></dl>
+      <div class="real"><h3>What is real</h3><div id="big-real"></div></div>
+      <div class="bigbar"><button id="big-keep" type="button">☆ KEEP</button><button id="big-close" type="button">CLOSE</button></div>
+    </div>
+  </div>
+</dialog>
+
+<!--SCRIPTS-->
+</body>
+</html>

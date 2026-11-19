@@ -20,7 +20,7 @@ describe('stored answers', () => {
   it('known answers, aliases and stored rejects never call the model', async () => {
     const { judge, llm, q, repo } = make()
     const a = await judge.judge(q, 'cheddar')
-    expect(a).toMatchObject({ via: 'stored', res: { status: 'valid', answer: 'Cheddar', tier: 0, points: 10 } })
+    expect(a).toMatchObject({ via: 'stored', res: { status: 'valid', answer: 'Cheddar', tier: 0, points: 20 } })
     expect((await judge.judge(q, 'Parmigiano Reggiano')).res.answer).toBe('Parmesan')
     const reject = repo.rejectsOf(CHEESE)[0]
     if (reject) expect((await judge.judge(q, reject.norm)).res.status).toBe('invalid')

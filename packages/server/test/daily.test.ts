@@ -209,12 +209,12 @@ describe('the daily api', () => {
     await playRun(1, [5, 4, null, 2, 1, 0, 3])
     const r = await daily(1)
     expect(r.json.status).toBe('done')
-    expect(r.json.total).toBe(100 + 80 + 0 + 40 + 20 + 10 + 60)
+    expect(r.json.total).toBe(100 + 80 + 0 + 40 + 30 + 20 + 60)
     expect(r.json.items.length).toBe(7)
     expect(r.json.items[2]).toEqual({ miss: true, answer: null, tier: null, points: 0 })
     expect(r.json.items[0]).toMatchObject({ miss: false, tier: 5, points: 100 })
     expect(typeof r.json.items[0].answer).toBe('string')
-    expect(r.json.standings).toEqual({ players: 1, rank: 1, below: 0, best: 310 })
+    expect(r.json.standings).toEqual({ players: 1, rank: 1, below: 0, best: 330 })
     expect(r.json.streak).toBe(1)
   })
   it('ranks players, with equal scores sharing a rank', async () => {
@@ -329,9 +329,9 @@ describe('the daily api', () => {
         await s.post(`/api/run/${run}/answer`, { body: { index: i, text: listed(q.json.question.id, 1) } })
       }
       // it is now the next day for the clock, but the finished run belongs to day 1
-      expect(s.repo.dailyPlay('2026-11-01', guestId(1))!.total).toBe(140)
+      expect(s.repo.dailyPlay('2026-11-01', guestId(1))!.total).toBe(210)
       expect((await s.daily(1)).json.status).toBe('new')
-      expect(s.repo.dailyStandings('2026-11-01', 140).players).toBe(1)
+      expect(s.repo.dailyStandings('2026-11-01', 210).players).toBe(1)
     })
     it('the set is made at the first request of the day and the days before are untouched', async () => {
       const s = setup()

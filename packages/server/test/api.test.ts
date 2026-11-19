@@ -164,7 +164,7 @@ describe('answering and the server clock', () => {
     // the late question is closed as a miss, so the run moves on
     expect(((await post(`/api/run/${run.runId}/start`, { index: 2 })).json as any).ok).toBe(true)
     const total = (await (await app.request(`/api/run/${run.runId}`)).json()) as any
-    expect(total.total).toBe(10)
+    expect(total.total).toBe(20)
     expect(total.answered).toBe(2)
   })
   it('time the server spends checking is not the player\'s time', async () => {
@@ -243,7 +243,7 @@ describe('"did you mean ...?" over the API', () => {
     const { post, url, name, typo, repo, run } = await typoRun()
     await post(url, { index: 0, text: typo })
     const r = await post(url, { index: 0, text: typo, confirm: 'yes' })
-    expect(r.json).toMatchObject({ status: 'valid', answer: name, tier: 1, points: 20 })
+    expect(r.json).toMatchObject({ status: 'valid', answer: name, tier: 1, points: 30 })
     expect(repo.getRun(run.runId)!.questions[0].result).not.toBeNull()
     const log = repo.db.prepare('SELECT status FROM attempts WHERE run_id = ? ORDER BY id').all(run.runId) as { status: string }[]
     expect(log.map((x) => x.status)).toEqual(['confirm', 'valid'])

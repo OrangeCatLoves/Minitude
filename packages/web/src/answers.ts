@@ -243,7 +243,7 @@ export class AnswersUi {
     if (tier === GEM_TIER && s.gem) {
       wrap.append(el('p', 'ans-gem-name', s.gem.name))
       if (s.gem.description) wrap.append(el('p', 'ans-gem-line', s.gem.description))
-      wrap.append(el('p', 'ans-gem-note', 'The one hidden gem of this question: worth 120 points, and it shrinks you a million times.'))
+      wrap.append(el('p', 'ans-gem-note', 'The one hidden gem of this question: worth 120 points, and it shrinks you ten thousand times.'))
       return wrap
     }
     const g = this.groups.get(tier)

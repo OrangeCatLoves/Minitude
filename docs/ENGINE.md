@@ -31,7 +31,7 @@ Every time that is not known yet is `Infinity`, so each "has this happened yet?"
 
 ### Depth, size and pictures (`packages/core`)
 
-`u` = depth in powers of ten. `u = p / 20` up to 400 points, then `20 + (p - 400) * 15 / 155` up to 555 (`PLANCK_POINTS`; it was 440 and `/ 40` until 16 Nov 2026), then 35. Size = 1.7 m / 10^u. The picture slot is `floor(u)`: 36 slots (0-19 are worlds 1-20, 20-34 are variants of the Unexplored void, 35 is Planck Foam). Everything about this is in `scoring.ts` and covered by `test/scoring.test.ts`.
+`u` = depth in powers of ten. `u = p / 30` up to 600 points (`POINTS_PER_WORLD`; it was `p / 20` up to 400 until 18 Nov 2026), then `20 + (p - 600) * 15 / 100` up to 700 (`PLANCK_POINTS`; it was 555 from 16 Nov 2026 and 440 before), then 35. Size = 1.7 m / 10^u. The picture slot is `floor(u)`: 36 slots (0-19 are worlds 1-20, 20-34 are variants of the Unexplored void, 35 is Planck Foam). Everything about this is in `scoring.ts` and covered by `test/scoring.test.ts`.
 
 ## Painting a frame (`game.ts`, `render()`)
 
