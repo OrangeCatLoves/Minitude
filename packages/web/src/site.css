@@ -311,7 +311,7 @@ html[data-adpreview] .doc-ad-slot::after { content: 'AD (responsive, about 300 x
 #ach-banner .ach-tx { display: grid; gap: 3px; min-width: 0; }
 #ach-banner .ach-lab { font: 700 max(8px, calc(9px * var(--s)))/1 var(--pixel); letter-spacing: 0.22em; color: var(--edge); text-transform: uppercase; white-space: nowrap; }
 #ach-banner .ach-nm { font: 400 max(13px, calc(18px * var(--s)))/1.05 var(--read); color: var(--off); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#ach-banner .ach-sub { font: 400 max(10.5px, calc(12.5px * var(--s)))/1.2 var(--text); color: var(--off); opacity: 0.82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#ach-banner .ach-sub { font: 400 max(11.5px, calc(13px * var(--s)))/1.2 var(--read); color: var(--off); opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #ach-banner .ach-chip { margin-left: auto; padding: 5px 7px 4px; border: 2px solid var(--edge); color: var(--edge); background: rgba(7, 11, 23, 0.55); font: 700 max(9px, calc(11px * var(--s)))/1 var(--pixel); letter-spacing: 0.1em; white-space: nowrap; }
 @keyframes ach-pulse { 0% { box-shadow: 0 0 0 0 var(--glow), 0 8px 22px rgba(0, 0, 0, 0.55); } 45% { box-shadow: 0 0 26px 5px var(--glow), 0 8px 22px rgba(0, 0, 0, 0.55); } 100% { box-shadow: 0 0 0 0 transparent, 0 8px 22px rgba(0, 0, 0, 0.55); } }
 @media (prefers-reduced-motion: reduce) {
@@ -319,5 +319,6 @@ html[data-adpreview] .doc-ad-slot::after { content: 'AD (responsive, about 300 x
   #ach-banner.in { animation: none; }
 }
 
-/* the game's pixel text font draws the letters "fi" as one odd glyph ("first" came out as "Arst"): the panels set in it turn ligatures off (the game's own canvas text is drawn letter by letter and never had the problem) */
-#cabinet, #answers, #ach-banner { font-variant-ligatures: none; font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0; }
+/* the game's pixel text font draws the letters "fi" as one odd glyph ("first" came out as "Arst"): the panels set in it turn ligatures off (the game's own canvas text is drawn letter by letter and never had the problem). The font shorthand resets this setting on the element it is used on, so those elements are named here, after them. */
+#cabinet, #answers, #ach-banner, .ach-name, .ans-q, .ans-search,
+#ach-banner .ach-lab, #ach-banner .ach-nm, #ach-banner .ach-sub, #ach-banner .ach-chip { font-variant-ligatures: none; font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0; }
