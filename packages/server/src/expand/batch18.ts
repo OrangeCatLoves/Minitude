@@ -18,7 +18,7 @@ const GROUP = (id: string, prompt: string, what: string, roots: string[], min: n
   })
 
 /** dishes of a national cuisine (Batch 5, lesson 20: only if the item is a dish) */
-const DISH = (id: string, adj: string, label: string, cuisines: string[], countries: string[], mustHave: string[], direct = false): NewQuestion =>
+export const DISH = (id: string, adj: string, label: string, cuisines: string[], countries: string[], mustHave: string[], direct = false): NewQuestion =>
   mk('Food', {
     id: `food-${id}-dish`, prompt: `Name ${an(adj)} ${adj} dish.`, what: `any dish, snack, bread or dessert of ${label} cuisine, or eaten as a national dish there`,
     not: 'Ingredients alone, drinks that are not part of a dish, and restaurants do not count.',
