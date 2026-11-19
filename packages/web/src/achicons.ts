@@ -162,8 +162,9 @@ export const GLYPH_IDS: string[] = Object.keys(GLYPH)
 export const TROPHY_ID: string = 'gems-all'
 
 /**
- * The picture of an achievement in its tile: a square with the rarity's colour (grey and dim while it is not earned). 40 x 40 pixels, or 47 x 47
- * for the trophy. Draw it with image-rendering: pixelated.
+ * The picture of an achievement in its tile: a square with the rarity's colour. While it is not earned the tile shows a "?" instead of the picture
+ * (the owner's choice, 19 Nov 2026), in a dimmed version of the rarity's colour. 40 x 40 pixels, or 47 x 47 for the trophy. Draw it with
+ * image-rendering: pixelated.
  */
 export function achievementTile(a: { id: string; tier: number }, locked: boolean): HTMLCanvasElement {
   const key = a.id + (locked ? ":locked" : "")
@@ -174,16 +175,23 @@ export function achievementTile(a: { id: string; tier: number }, locked: boolean
   return c
 }
 const TILES = new Map<string, HTMLCanvasElement>()
+/** the "?" that stands in for a picture that is not earned yet: 5 x 7 pixels */
+const QMARK = ['01110', '10001', '00001', '00010', '00100', '00000', '00100']
 function drawTile(a: { id: string; tier: number }, locked: boolean): HTMLCanvasElement {
   const grand = a.id === TROPHY_ID
   const n = grand ? 47 : 40
-  const t = locked ? GREY : grand ? GRAND : TIER[a.tier]
+  const own = grand ? GRAND : TIER[a.tier]
+  // a tile that is not earned keeps a hint of its rarity (a dimmed edge and "?") but not its picture
+  const t = locked ? { bg: '#0d1328', edge: mix(own.edge, '#0d1328', .62) } : own
   const [c, g] = cv(n, n)
   rect(g, 1, 1, n - 2, n - 2, t.edge); rect(g, 2, 2, n - 4, n - 4, t.bg)
   g.clearRect(0, 0, 1, 1); g.clearRect(n - 1, 0, 1, 1); g.clearRect(0, n - 1, 1, 1); g.clearRect(n - 1, n - 1, 1, 1)
   if (!locked) rect(g, 3, 3, n - 6, 1, 'rgba(255,255,255,.16)')
   else for (let x = 3; x < n - 3; x += 4) { rect(g, x, 2, 2, 1, '#070b17'); rect(g, x, n - 3, 2, 1, '#070b17') }
-  g.drawImage(grand ? trophyCanvas(locked) : glyph(a, locked), 8, 8)
+  if (locked) {
+    const k = grand ? 3 : 2, x0 = Math.round((n - 5 * k) / 2), y0 = Math.round((n - 7 * k) / 2), col = mix(own.edge, '#0d1328', .3)
+    QMARK.forEach((row, ry) => [...row].forEach((v, rx) => { if (v === '1') { rect(g, x0 + rx * k + 1, y0 + ry * k + 1, k, k, '#070b17'); rect(g, x0 + rx * k, y0 + ry * k, k, k, col) } }))
+  } else g.drawImage(grand ? trophyCanvas(false) : glyph(a, false), 8, 8)
   return c
 }
 /** the colours of a rarity for the banner and the cabinet (edge, glow and a name) */
