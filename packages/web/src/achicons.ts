@@ -1,8 +1,8 @@
 // @ts-nocheck
 /**
  * The achievement pictures, drawn in code (no image files), like the gems and the living worlds. Carried over from the draft the owner
- * reviewed (drafts/draft-achievements: icons.html and final.html, 19 Nov 2026; more.html, 22 Nov 2026): to change a picture, change it THERE first, look at it, then carry
- * it over here. Forty of them are 24 x 24 pixels; the last ("Singularity Complete", the trophy with 1000 on it, chosen by the owner) is 31 x 31
+ * reviewed (drafts/draft-achievements: icons.html and final.html, 19 Nov 2026; more.html and six.html, 22 Nov 2026): to change a picture, change it THERE first, look at it, then carry
+ * it over here. Forty-four of them are 24 x 24 pixels; the last ("Singularity Complete", the trophy with 1000 on it, chosen by the owner) is 31 x 31
  * and sits in a larger tile.
  */
 const TIER = [
@@ -76,6 +76,13 @@ function flame(g, outer, mid, core) {
 }
 function crescentDot(g) { px(g, 3, 3, '#fff'); px(g, 20, 4, '#fff'); px(g, 21, 11, '#ffe9a0') }
 
+
+/* ---------- helpers of the four pictures from six.html (22 Nov 2026) */
+/** the edge colours of the seven rarities, Common to the gem */
+const TIERCOL = ['#9aa6bf', '#46d078', '#4fc3ff', '#b583ff', '#ffb23f', '#ff5fb0', '#f0e8ff']
+/** pixels of a circle's outline between two angles (degrees, 0 = right, 90 = down) */
+function arc(g, cx, cy, r, a0, a1, col, step = 4) { for (let a = a0; a <= a1; a += step) px(g, cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180), col) }
+function check(g, x, y, col, dark) { line(g, x, y + 1, x + 2, y + 3, dark, 1); line(g, x + 2, y + 3, x + 6, y - 1, dark, 1); line(g, x, y, x + 2, y + 2, col, 1); line(g, x + 2, y + 2, x + 6, y - 2, col, 1) }
 
 /* ---------- the pictograms, 24 x 24 (the first 14; the trophy is drawn below) */
 const GLYPH = {
@@ -241,6 +248,28 @@ const GLYPH = {
     rect(g, 2, 21, 20, 1, '#6f7fc0')
     return (p) => { sparkle(p, 12, 4, '#fff', true); px(p, 3, 4, '#ffe9a0'); px(p, 21, 4, '#bdf0ff') }
   },
+  // ---------- the four the owner picked from drafts/draft-achievements/six.html on 22 Nov 2026 (Full Spectrum B, Second Wind A, Word of Mouth A, Explorer B)
+  'full-spectrum'(g) {   // a rainbow of seven bands, one for each rarity, the gem's band innermost, with a small cloud at each end
+    for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) { const dx = x + .5 - 12, dy = y + .5 - 19; if (dy > 0) continue; const d = Math.sqrt(dx * dx + dy * dy), k = Math.floor(11.5 - d); if (k >= 0 && k < 7) px(g, x, y, TIERCOL[k]) }
+    ell(g, 3, 19, 3.2, 2, '#fff6e0'); ell(g, 21, 19, 3.2, 2, '#fff6e0'); ell(g, 4.5, 18, 2, 1.6, '#ffffff'); ell(g, 19.5, 18, 2, 1.6, '#ffffff')
+    return (p) => { sparkle(p, 12, 10, '#fff'); px(p, 3, 4, '#ffe9a0'); px(p, 21, 4, '#bdf0ff') }
+  },
+  'second-wind'(g) {     // a red cross, an arrow that loops over the top, and a green tick
+    line(g, 2, 15, 7, 20, '#ff5a5a', 2); line(g, 7, 15, 2, 20, '#ff5a5a', 2)
+    arc(g, 11.5, 13, 8, 200, 335, '#cdd6ee', 3); poly(g, [[17, 9], [22, 9], [20, 13]], '#cdd6ee')
+    disc(g, 17, 18, 5, '#1e7a3a'); disc(g, 17, 18, 4, '#59d97c'); check(g, 14, 18, '#ffffff', '#1e7a3a')
+  },
+  'word-of-mouth'(g) {      // the share sign: three dots joined by two lines
+    line(g, 6, 12, 17, 6, '#9ad8ff', 2); line(g, 6, 12, 17, 18, '#9ad8ff', 2)
+    disc(g, 6, 12, 3.6, '#4fc3ff'); disc(g, 17, 6, 3.6, '#4fc3ff'); disc(g, 17, 18, 3.6, '#4fc3ff')
+    for (const [x, y] of [[6, 12], [17, 6], [17, 18]]) { px(g, x - 1, y - 2, '#e6f7ff'); px(g, x - 2, y - 1, '#e6f7ff') }
+  },
+  'explorer'(g) {   // a folded map with a dotted path, pins in the category colours, and an X
+    poly(g, [[2, 6], [8, 4], [8, 20], [2, 22]], '#e9dcc0'); poly(g, [[8, 4], [16, 6], [16, 22], [8, 20]], '#fff6e0'); poly(g, [[16, 6], [22, 4], [22, 20], [16, 22]], '#e9dcc0')
+    for (const [x, y] of [[4, 17], [6, 15], [8, 14], [10, 15], [12, 13], [13, 11], [15, 10], [17, 9]]) px(g, x, y, '#b583ff')
+    line(g, 18, 7, 20, 9, '#ff5a5a'); line(g, 20, 7, 18, 9, '#ff5a5a')
+    for (const [x, y, c] of [[5, 9, '#46d078'], [11, 18, '#4fc3ff'], [19, 15, '#ffb23f']]) { rect(g, x, y, 2, 2, c); px(g, x, y + 2, '#5a3a1b') }
+  },
 }
 function glyph(a, locked) { const [c, g] = cv(24, 24); const post = GLYPH[a.id](g); outline(c); if (typeof post === "function") post(g); if (locked) dim(c); return c }
 
@@ -313,6 +342,17 @@ export function achievementTile(a: { id: string; tier: number }, locked: boolean
   return c
 }
 const TILES = new Map<string, HTMLCanvasElement>()
+/**
+ * The same tile as a picture address (a data URL), made once per achievement and state: the cabinet's list shows plain images, which the
+ * browser redraws cheaply while the list is scrolled fast (a canvas per tile is costly; see cabinet.ts gemImg).
+ */
+export function achievementTileUrl(a: { id: string; tier: number }, locked: boolean): { url: string; size: number } {
+  const key = a.id + (locked ? ':locked' : '')
+  let hit = URLS.get(key)
+  if (!hit) { const c = achievementTile(a, locked); hit = { url: c.toDataURL('image/png'), size: c.width }; URLS.set(key, hit) }
+  return hit
+}
+const URLS = new Map<string, { url: string; size: number }>()
 /** the "?" that stands in for a picture that is not earned yet: 5 x 7 pixels */
 const QMARK = ['01110', '10001', '00001', '00010', '00100', '00000', '00100']
 function drawTile(a: { id: string; tier: number }, locked: boolean): HTMLCanvasElement {

@@ -320,3 +320,15 @@ The owner: "I approve of all the achievements listed in more.html. Commit and pu
 5. **Well Rounded and Full Shelf** are judged only against the categories and counts the SERVER reported (`/api/gems`), never against a gem of a category the server no longer lists.
 6. **Quiet backfill** for existing players: runs played, days in a row (dated by the day the streak was reached) and the two category ones are recorded without a banner, like the gem steps. The run-end ones and the moments are earned going forward.
 7. **The banner** says `ACHIEVEMENT · THE DIVE / RUNS / MOMENTS / DAILY / MULTIPLAYER / GEMS` for the new groups; the run-end banners start 0.8 s after the report opens and queue one after another like the others.
+
+## Four more achievements (23 Nov 2026)
+
+The owner picked four of the six in `drafts/draft-achievements/six.html` and their pictures (Full Spectrum B, Second Wind A, Word of Mouth A, Explorer B), put Top of the Day on hold and dropped Frequent Flyer, then: "Build the 4 achievements. Commit, push and deploy it." 45 in all. Choices I made:
+
+1. **Full Spectrum** goes in Runs: seven answered questions with seven different rarities (Common, Uncommon, Rare, Exotic, Legendary, Mythic and a gem).
+2. **Explorer** goes in Runs: the list of categories is the one the server sends with the gem counts (every question has a gem, so it lists every category; a 12th category would join by itself). The categories in which an answer scored are kept in `minitude.achievements` (`cats`, at most 50); the categories of gems already in the cabinet count at once. The privacy page says so (date 23 November 2026).
+3. **Second Wind** goes in Moments: a try counts as wrong only when the answer was turned down (including a "No" to "Did you mean…?" that is then turned down); a lost connection, a slow server or a rate limit is not a wrong try.
+4. **Word of Mouth** goes in Moments: pressing SHARE on any report (solo, Daily or a match).
+
+The same release carries the fix for the cabinet flashing while scrolled fast (`tools/browser-test/cabinet-scroll.cjs`, `docs/TESTING.md`): a solid backdrop for the cabinet and the screen of accepted answers, every gem and achievement picture drawn once and shown as a plain image, and the game not drawn while either screen covers it.
+

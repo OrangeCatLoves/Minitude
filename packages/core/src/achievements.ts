@@ -1,5 +1,5 @@
 /**
- * Achievements: forty-one small goals, kept on the player's own device only (there are no accounts, so the server never sees them), like the
+ * Achievements: forty-five small goals, kept on the player's own device only (there are no accounts, so the server never sees them), like the
  * gem cabinet. Pure maths: the browser reads and writes the storage.
  *
  *  - SEVEN "firsts": the first answer scored at each rarity (Common ... Mythic, then the SINGULARITY gem).
@@ -7,12 +7,17 @@
  *    again does not count twice, because the cabinet itself counts each question's gem once.
  *  - TWENTY-SIX more (approved by the owner on 22 Nov 2026 from drafts/draft-achievements/more.html): how far one run dives, runs played
  *    and how, moments during a question, the Daily and days in a row, multiplayer, and more about gems.
+ *  - FOUR more (the owner picked them and their pictures on 22 Nov 2026 from drafts/draft-achievements/six.html): Full Spectrum, Explorer,
+ *    Second Wind and Word of Mouth.
  *
  * They count in solo runs, the Daily and multiplayer (every place an answer is scored). The firsts cannot be worked out for answers
  * scored before this existed (the browser never stored them), so they are earned going forward; the gem steps are backfilled from the
  * cabinet, quietly, with the day the gem that reached the step was found.
  */
-import { GEM_TIER } from './tiers'
+import { GEM_TIER, TIERS } from './tiers'
+
+/** how many rarities there are (Common ... Mythic, and the gem): Full Spectrum needs one answer of each */
+const TIER_COUNT = TIERS.length
 
 export type AchGroup = 'firsts' | 'gems' | 'dive' | 'runs' | 'moments' | 'daily' | 'multi' | 'shelves'
 
@@ -75,6 +80,11 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'full-shelf', group: 'shelves', tier: GEM_TIER, name: 'Full Shelf', text: 'Find every gem of one category.' },
   { id: 'gem-hunter', group: 'shelves', tier: GEM_TIER, goal: 3, name: 'Gem Hunter', text: 'Find 3 gems in one run.' },
   { id: 'singularity-seven', group: 'shelves', tier: GEM_TIER, goal: 7, name: 'Singularity Seven', text: 'A gem in all 7 questions of one run.' },
+  // four more (six.html, 22 Nov 2026): two about runs, two moments
+  { id: 'full-spectrum', group: 'runs', tier: GEM_TIER, name: 'Full Spectrum', text: 'One answer of every rarity in a single run.' },
+  { id: 'explorer', group: 'runs', tier: 3, name: 'Explorer', text: 'Score an answer in every category.' },
+  { id: 'second-wind', group: 'moments', tier: 1, name: 'Second Wind', text: 'Score on a question after a wrong try.' },
+  { id: 'word-of-mouth', group: 'moments', tier: 2, name: 'Word of Mouth', text: 'Share a result.' },
 ]
 
 const BY_ID = new Map(ACHIEVEMENTS.map((a) => [a.id, a]))
@@ -84,11 +94,13 @@ export const firstOfTier = (tier: number): Achievement | null => ACHIEVEMENTS.fi
 
 /**
  * Which achievements the player has, and the UTC day each was earned (YYYY-MM-DD, '' when it is not known). `wins` counts the multiplayer
- * matches this browser has won (for Reigning Champion; nothing else about a match is kept). It is left out while it is 0.
+ * matches this browser has won (for Reigning Champion; nothing else about a match is kept). It is left out while it is 0. `cats` are the
+ * categories in which an answer has scored (for Explorer), left out while there are none.
  */
 export interface AchState {
   earned: Record<string, string>
   wins?: number
+  cats?: string[]
 }
 
 export const emptyAch = (): AchState => ({ earned: {} })
@@ -108,7 +120,22 @@ export function parseAch(raw: string | null | undefined): AchState {
   const earned: Record<string, string> = {}
   for (const [id, day] of Object.entries(e as Record<string, unknown>)) if (BY_ID.has(id)) earned[id] = goodDay(day)
   const wins = count((v as { wins?: unknown }).wins)
-  return wins ? { earned, wins } : { earned }
+  const out: AchState = wins ? { earned, wins } : { earned }
+  const rawCats = (v as { cats?: unknown }).cats
+  if (Array.isArray(rawCats)) {
+    const cats = [...new Set(rawCats.filter((c): c is string => typeof c === 'string' && c.length > 0 && c.length <= 60))].slice(0, MAX_CATS)
+    if (cats.length) out.cats = cats
+  }
+  return out
+}
+/** categories kept for Explorer: far more than the game has (11), so a bigger bank fits, small enough to stay tiny */
+const MAX_CATS = 50
+/** a copy of the state with these categories added to those an answer has scored in (the same object when nothing is new) */
+export function noteCategories(s: AchState, list: readonly string[]): AchState {
+  const have = new Set(s.cats ?? [])
+  const add = [...new Set(list.filter((c) => typeof c === 'string' && c.length > 0 && c.length <= 60 && !have.has(c)))]
+  if (!add.length || have.size >= MAX_CATS) return s
+  return { ...s, cats: [...have, ...add].slice(0, MAX_CATS) }
 }
 export const serializeAch = (s: AchState): string => JSON.stringify(s)
 export const hasAch = (s: AchState, id: string): boolean => Object.prototype.hasOwnProperty.call(s.earned, id)
@@ -162,6 +189,9 @@ function factsReached(s: AchState, f: AchFacts): Achievement[] {
   if (shelves.length) {
     if (shelves.every((c) => c.have >= 1)) out.push(BY_ID.get('well-rounded')!)
     if (shelves.some((c) => c.have >= c.total)) out.push(BY_ID.get('full-shelf')!)
+    // Explorer: an answer has scored in every category the server lists (the gem counts list every category: each question has a gem)
+    const cats = new Set(s.cats ?? [])
+    if (shelves.every((c) => cats.has(c.name))) out.push(BY_ID.get('explorer')!)
   }
   return out
 }
@@ -182,6 +212,10 @@ export interface AnswerMoment {
   secondsLeft?: number
   secondsUsed?: number
   confirmed?: boolean
+  /** a try on the same question was turned down before (Second Wind) */
+  afterWrongTry?: boolean
+  /** the question's category (Explorer) */
+  category?: string
 }
 /** Buzzer Beater: under this many seconds left; Quick Draw: sent within this many seconds */
 export const BUZZER_SECONDS = 1
@@ -201,8 +235,10 @@ export function awardAnswer(
   if (typeof moment.secondsLeft === 'number' && moment.secondsLeft >= 0 && moment.secondsLeft < BUZZER_SECONDS) want.push(BY_ID.get('buzzer')!)
   if (typeof moment.secondsUsed === 'number' && moment.secondsUsed >= 0 && moment.secondsUsed <= QUICK_SECONDS) want.push(BY_ID.get('quick-draw')!)
   if (moment.confirmed) want.push(BY_ID.get('close-enough')!)
-  want.push(...factsReached(s, { gemsFound, gemTotal, shelves }))
-  return award(s, want, day)
+  if (moment.afterWrongTry) want.push(BY_ID.get('second-wind')!)
+  const base = moment.category ? noteCategories(s, [moment.category]) : s
+  want.push(...factsReached(base, { gemsFound, gemTotal, shelves }))
+  return award(base, want, day)
 }
 
 /** how a run ended: its mode, its total, each question's rarity (null for a time-out), and for a match whether this player came first (a tie counts) */
@@ -234,6 +270,8 @@ export function awardRun(s: AchState, run: RunEnd, facts: AchFacts, day: string)
   const gems = answered.filter((x) => x === GEM_TIER).length
   if (gems >= 3) want.push('gem-hunter')
   if (noMiss && gems === run.tiers.length) want.push('singularity-seven')
+  // Full Spectrum: seven answers, seven different rarities (Common to Mythic, and a gem)
+  if (noMiss && run.tiers.length === TIER_COUNT && new Set(answered.filter((x) => Number.isInteger(x) && x >= 0 && x < TIER_COUNT)).size === TIER_COUNT) want.push('full-spectrum')
   if (run.mode === 'daily') want.push('daily-debut')
   let base = s
   if (run.mode === 'versus') {
@@ -243,8 +281,8 @@ export function awardRun(s: AchState, run: RunEnd, facts: AchFacts, day: string)
   return award(base, [...byIds(want), ...factsReached(base, facts)], day)
 }
 
-/** something the player did that is not an answer or a run: opening the screen of everything that counted */
-export function awardEvent(s: AchState, id: 'open-book', day: string): AwardResult {
+/** something the player did that is not an answer or a run: opening the screen of everything that counted, or pressing SHARE */
+export function awardEvent(s: AchState, id: 'open-book' | 'word-of-mouth', day: string): AwardResult {
   return award(s, byIds([id]), day)
 }
 
@@ -337,6 +375,7 @@ export function achievementsView(s: AchState, gemsFound: number, gemTotal: numbe
     if (a.group === 'daily' && a.goal) return at(facts.streak, 'days in a row')
     if (a.id === 'reigning') return at(winsOf(s), 'wins')
     if (a.id === 'well-rounded' && shelves.length) return { have: shelves.filter((c) => c.have >= 1).length, goal: shelves.length, unit: 'categories' }
+    if (a.id === 'explorer' && shelves.length) { const cats = new Set(s.cats ?? []); return { have: shelves.filter((c) => cats.has(c.name)).length, goal: shelves.length, unit: 'categories' } }
     if (a.id === 'full-shelf' && shelves.length) {
       const best = shelves.reduce((m, c) => (c.have / c.total > m.have / m.total ? c : m))
       return { have: Math.min(best.have, best.total), goal: best.total, unit: `gems of ${best.name}` }

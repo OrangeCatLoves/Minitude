@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import {
   ACH_GROUPS, ACHIEVEMENTS, achievementById, achievementsView, awardAnswer, awardEvent, awardRun, backfillFacts, backfillFromCabinet, emptyAch, firstOfTier,
-  GEM_TIER, hasAch, longestStreak, parseAch, serializeAch, TIERS, type RunEnd,
+  GEM_TIER, hasAch, longestStreak, noteCategories, parseAch, serializeAch, TIERS, type RunEnd,
 } from '../src'
 
 const DAY = '2026-11-19'
 
 describe('the catalogue', () => {
-  it('has forty-one achievements with unique ids: the first fifteen and the twenty-six approved on 22 Nov 2026', () => {
-    expect(ACHIEVEMENTS.length).toBe(41)
-    expect(new Set(ACHIEVEMENTS.map((a) => a.id)).size).toBe(41)
+  it('has forty-five achievements with unique ids: the first fifteen, the twenty-six of more.html and the four of six.html', () => {
+    expect(ACHIEVEMENTS.length).toBe(45)
+    expect(new Set(ACHIEVEMENTS.map((a) => a.id)).size).toBe(45)
     const n = (g: string) => ACHIEVEMENTS.filter((a) => a.group === g).length
-    expect([n('firsts'), n('gems'), n('dive'), n('runs'), n('moments'), n('daily'), n('multi'), n('shelves')]).toEqual([7, 8, 4, 6, 4, 5, 3, 4])
+    expect([n('firsts'), n('gems'), n('dive'), n('runs'), n('moments'), n('daily'), n('multi'), n('shelves')]).toEqual([7, 8, 4, 8, 6, 5, 3, 4])
     expect(ACH_GROUPS.map((g) => g.id).sort()).toEqual([...new Set(ACHIEVEMENTS.map((a) => a.group))].sort())
   })
   it('keeps the names the owner approved', () => {
@@ -19,6 +19,7 @@ describe('the catalogue', () => {
       'Uncharted', 'So Close', 'The Edge of Physics', 'Past the Edge', 'First Dive', 'Getting Deeper', 'Deep Diver', 'Bottomless', 'Beat the Clock',
       'No Easy Answers', 'Buzzer Beater', 'Quick Draw', 'Close Enough', 'Open Book', 'Daily Debut', 'On a Roll', 'Full Week', 'Moon Cycle', 'Hundred Days',
       'Face to Face', 'Room Champion', 'Reigning Champion', 'Well Rounded', 'Full Shelf', 'Gem Hunter', 'Singularity Seven',
+      'Full Spectrum', 'Explorer', 'Second Wind', 'Word of Mouth',
     ])
   })
   it('has one "first" for every rarity, in rarity order', () => {
@@ -131,7 +132,7 @@ describe('the view for the cabinet tab', () => {
   it('counts what is earned, in eight groups, and shows progress towards the next gem steps', () => {
     const state = awardAnswer(awardAnswer(emptyAch(), 2, 0, null, DAY).state, GEM_TIER, 12, 1000, DAY).state
     const v = achievementsView(state, 12, 1000)
-    expect(v.total).toBe(41)
+    expect(v.total).toBe(45)
     expect(v.groups.map((g) => g.id)).toEqual(['firsts', 'gems', 'dive', 'runs', 'moments', 'daily', 'multi', 'shelves'])
     expect(v.earned).toBe(v.groups.reduce((n, g) => n + g.earned, 0))
     const curator = v.groups[1].items.find((i) => i.a.id === 'gems-25')
@@ -265,3 +266,49 @@ describe('backfilling from the logbook and the cabinet (quiet)', () => {
     expect(longestStreak(['2026-02-28', '2026-03-01', '2026-12-31', '2027-01-01', '2027-01-02'])).toBe(3)
   })
 })
+
+describe('the four of six.html (22 Nov 2026)', () => {
+  const shelf = (name: string) => ({ name, have: 0, total: 91 })
+  it('Full Spectrum: seven answers of seven different rarities, in any order', () => {
+    const g = GEM_TIER
+    expect(ids(awardRun(emptyAch(), run({ tiers: [5, 0, g, 3, 1, 4, 2] }), {}, DAY))).toContain('full-spectrum')
+    expect(ids(awardRun(emptyAch(), run({ tiers: [5, 0, 5, 3, 1, 4, 2] }), {}, DAY))).not.toContain('full-spectrum')
+    expect(ids(awardRun(emptyAch(), run({ tiers: [5, 0, g, 3, null, 4, 2] }), {}, DAY))).not.toContain('full-spectrum')
+  })
+  it('Second Wind: an answer that scores after a try on the same question was turned down', () => {
+    expect(ids(awardAnswer(emptyAch(), 2, 0, null, DAY, { afterWrongTry: true }))).toEqual(['first-rare', 'second-wind'])
+    expect(ids(awardAnswer(emptyAch(), 2, 0, null, DAY, { afterWrongTry: false }))).toEqual(['first-rare'])
+  })
+  it('Word of Mouth: pressing SHARE, once', () => {
+    const a = awardEvent(emptyAch(), 'word-of-mouth', DAY)
+    expect(ids(a)).toEqual(['word-of-mouth'])
+    expect(ids(awardEvent(a.state, 'word-of-mouth', DAY))).toEqual([])
+  })
+  it('Explorer: an answer has scored in every category the server lists; the categories are kept, and only a new one changes the state', () => {
+    const shelves = [shelf('Food'), shelf('Music')]
+    const a = awardAnswer(emptyAch(), 0, 0, null, DAY, { category: 'Food' }, shelves)
+    expect(a.state.cats).toEqual(['Food'])
+    expect(ids(a)).toEqual(['first-common'])
+    expect(awardAnswer(a.state, 0, 0, null, DAY, { category: 'Food' }, shelves).state).toBe(a.state)
+    const b = awardAnswer(a.state, 1, 0, null, DAY, { category: 'Music' }, shelves)
+    expect(ids(b)).toEqual(['first-uncommon', 'explorer'])
+    expect(parseAch(serializeAch(b.state)).cats).toEqual(['Food', 'Music'])
+    // without the server's list of categories nothing can be judged
+    expect(ids(awardAnswer(emptyAch(), 0, 0, null, DAY, { category: 'Food' }, null))).not.toContain('explorer')
+  })
+  it('Explorer: categories of gems already in the cabinet count (quietly), and the tab shows the progress', () => {
+    const shelves = [shelf('Food'), shelf('Music'), shelf('Places')]
+    const s = noteCategories(emptyAch(), ['Food', 'Music', 'Food'])
+    expect(s.cats).toEqual(['Food', 'Music'])
+    expect(hasAch(backfillFacts(s, { shelves }), 'explorer')).toBe(false)
+    expect(hasAch(backfillFacts(noteCategories(s, ['Places']), { shelves }), 'explorer')).toBe(true)
+    const p = achievementsView(s, 0, null, { shelves }).groups.flatMap((g) => g.items).find((i) => i.a.id === 'explorer')?.progress
+    expect(p).toEqual({ have: 2, goal: 3, unit: 'categories' })
+  })
+  it('reads stored categories carefully', () => {
+    expect(parseAch('{"earned":{},"cats":["Food",5,"",null,"Food","Music"]}').cats).toEqual(['Food', 'Music'])
+    expect(parseAch('{"earned":{},"cats":"Food"}').cats).toBeUndefined()
+    expect(parseAch('{"earned":{},"cats":[]}').cats).toBeUndefined()
+  })
+})
+

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Six more achievements (draft)</title>
+<style>
+@font-face { font-family: 'Silkscreen'; src: url('../../packages/web/public/fonts/Silkscreen-Regular.ttf') format('truetype'); font-weight: 400; }
+@font-face { font-family: 'Silkscreen'; src: url('../../packages/web/public/fonts/Silkscreen-Bold.ttf') format('truetype'); font-weight: 700; }
+@font-face { font-family: 'PixelifyFix'; src: url('../../packages/web/public/fonts/PixelifyFix-400.ttf') format('truetype'); font-weight: 400; }
+:root { --ink: #070b17; --panel: #0b1122; --raised: #101831; --line: rgba(110,124,170,.32); --off: #eef2ff; --body: #d3daf0; --soft: #a3b0d6; --faint: #8190bb; --gold: #ffd866; --pixel: 'Silkscreen', 'Courier New', monospace; --game: 'PixelifyFix', system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ink); color: var(--body); font: 15px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-variant-ligatures: none; }
+main { max-width: 1260px; margin: 0 auto; padding: 26px 22px 70px; }
+h1 { margin: 0 0 6px; font: 700 22px/1.2 var(--pixel); letter-spacing: .08em; color: var(--off); }
+p.lead { margin: 6px 0 10px; max-width: 960px; color: var(--soft); }
+p.note { margin: 6px 0 12px; max-width: 960px; color: var(--faint); font-size: 14px; }
+canvas { image-rendering: pixelated; display: block; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+.card { padding: 14px; background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+.top { display: flex; gap: 16px; align-items: flex-start; }
+.opts { display: flex; gap: 14px; flex: none; }
+.opt { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.opt .lab { font: 700 11px/1 var(--pixel); letter-spacing: .14em; color: var(--soft); }
+.opt .row { display: flex; gap: 8px; align-items: flex-end; }
+.tx { min-width: 0; flex: 1; }
+.nm { font: 400 19px/1.15 var(--game); color: var(--off); }
+.su { margin-top: 3px; font: 400 14px/1.3 var(--game); color: var(--body); }
+.nm, .su { font-variant-ligatures: none; font-feature-settings: "liga" 0, "clig" 0, "calt" 0; }
+.meta { margin-top: 8px; font: 700 10px/1.3 var(--pixel); letter-spacing: .1em; color: var(--faint); text-transform: uppercase; }
+.rule { margin-top: 10px; font-size: 13px; line-height: 1.45; color: var(--soft); }
+.ask { margin-top: 8px; font-size: 13px; line-height: 1.45; color: var(--gold); }
+.tag { display: inline-block; font: 700 10px/1 var(--pixel); letter-spacing: .1em; padding: 4px 6px 3px; border: 1px solid; margin: 8px 6px 0 0; white-space: nowrap; }
+.t-run { color: #9ad8ff; border-color: #4fc3ff; }
+.t-answer { color: #ffa8d6; border-color: #ff5fb0; }
+.t-new { color: #d8bcff; border-color: #b583ff; }
+.t-server { color: #ffd488; border-color: #ffb23f; }
+.sum { margin-top: 26px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); color: var(--soft); font-size: 14px; }
+.sum b { color: var(--off); }
+.sum ol { margin: 6px 0 0 18px; padding: 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>SIX MORE ACHIEVEMENTS · DRAFT</h1>
+  <p class="lead">The six ideas you liked on 22 Nov 2026, drawn in the same style as the 41 in the game (24 x 24 pixels in the tile frame). Each one has <b>two pictures, A and B</b>: pick one per achievement, or ask for something else. The big tiles are shown 2.6 times larger; the small ones next to them are the real size in the cabinet. Nothing here is in the game.</p>
+  <p class="note">Like the others they would count in solo runs, the Daily and multiplayer, be kept only in the browser, and show their text before they are earned (with a "?" instead of the picture). Three of them need a small count kept with the achievements (Frequent Flyer, Explorer) or a small new hook (Second Wind, Word of Mouth); the privacy page would get a line for the counts.</p>
+  <div class="grid" id="grid"></div>
+  <div class="sum" id="sum"></div>
+</main>
+<script>
+const TIER = [
+  { name: 'COMMON', bg: '#1e2538', fg: '#cdd6ee', edge: '#9aa6bf' }, { name: 'UNCOMMON', bg: '#0e3a22', fg: '#8dffb4', edge: '#46d078' },
+  { name: 'RARE', bg: '#0c2a52', fg: '#9ad8ff', edge: '#4fc3ff' }, { name: 'EXOTIC', bg: '#2a1850', fg: '#d8bcff', edge: '#b583ff' },
+  { name: 'LEGENDARY', bg: '#4a2c00', fg: '#ffd488', edge: '#ffb23f' }, { name: 'MYTHIC', bg: '#50102e', fg: '#ffa8d6', edge: '#ff5fb0' },
+  { name: 'SINGULARITY', bg: '#1b1245', fg: '#f0e8ff', edge: '#c4b0ff' },
+]
+const RAINBOW = ['#5be0ff', '#5bf0b0', '#ffe066', '#ff9a3c', '#ff5fb0', '#c4a0ff']
+const $ = (s, r = document) => r.querySelector(s)
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt !== undefined) e.textContent = txt; return e }
+const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${a})` }
+
+/* ---------- a tiny pixel toolkit */
+function cv(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; return [c, g] }
+const px = (g, x, y, col) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), 1, 1) }
+const rect = (g, x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x, y, w, h) }
+function ell(g, cx, cy, rx, ry, col) { for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) px(g, x, y, col) } }
+const disc = (g, cx, cy, r, col) => ell(g, cx, cy, r, r, col)
+function line(g, x0, y0, x1, y1, col, w = 1) { const dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let e = dx - dy; for (;;) { rect(g, x0, y0, w, w, col); if (x0 === x1 && y0 === y1) break; const e2 = 2 * e; if (e2 > -dy) { e -= dy; x0 += sx } if (e2 < dx) { e += dx; y0 += sy } } }
+function poly(g, pts, col) { const ys = pts.map((p) => p[1]), xs = pts.map((p) => p[0]); for (let y = Math.floor(Math.min(...ys)); y <= Math.ceil(Math.max(...ys)); y++) for (let x = Math.floor(Math.min(...xs)); x <= Math.ceil(Math.max(...xs)); x++) { let inside = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y + .5) !== (yj > y + .5) && x + .5 < ((xj - xi) * (y + .5 - yi)) / (yj - yi) + xi) inside = !inside } if (inside) px(g, x, y, col) } }
+/** a 1-pixel dark edge around whatever has been drawn */
+function outline(c, col = '#070b17') {
+  const g = c.getContext('2d'), w = c.width, h = c.height, im = g.getImageData(0, 0, w, h), d = im.data, src = new Uint8ClampedArray(d)
+  const a = (x, y) => (x < 0 || y < 0 || x >= w || y >= h ? 0 : src[(y * w + x) * 4 + 3])
+  const n = parseInt(col.slice(1), 16)
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!a(x, y) && (a(x - 1, y) || a(x + 1, y) || a(x, y - 1) || a(x, y + 1))) { const i = (y * w + x) * 4; d[i] = n >> 16; d[i + 1] = (n >> 8) & 255; d[i + 2] = n & 255; d[i + 3] = 255 }
+  g.putImageData(im, 0, 0)
+}
+/** every drawn pixel becomes one flat colour (the "not yet earned" silhouette) */
+function dim(c) {
+  const g = c.getContext('2d'), im = g.getImageData(0, 0, c.width, c.height), d = im.data
+  for (let i = 0; i < d.length; i += 4) if (d[i + 3]) { const y = (0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]) * 0.42 + 16; d[i] = y * 0.9; d[i + 1] = y * 0.95; d[i + 2] = y * 1.25 }
+  g.putImageData(im, 0, 0)
+}
+function flat(c, col) {
+  const g = c.getContext('2d'), im = g.getImageData(0, 0, c.width, c.height), d = im.data, n = parseInt(col.slice(1), 16)
+  for (let i = 0; i < d.length; i += 4) if (d[i + 3]) { d[i] = n >> 16; d[i + 1] = (n >> 8) & 255; d[i + 2] = n & 255 }
+  g.putImageData(im, 0, 0)
+}
+const crescent = (g, cx, cy, r, ox, oy, r2) => { for (let y = cy - r; y <= cy + r; y++) for (let x = cx - r; x <= cx + r; x++) { const dx = x + .5 - cx, dy = y + .5 - cy; if (dx * dx + dy * dy > r * r) continue; const ex = x + .5 - (cx + ox), ey = y + .5 - (cy + oy); if (ex * ex + ey * ey <= r2 * r2) continue; const ang = (Math.atan2(dy, dx) + Math.PI) / (2 * Math.PI); px(g, x, y, RAINBOW[Math.min(5, Math.floor(ang * 6))]) } }
+const smallGem = (g, x, y, col, lite) => { poly(g, [[x, y - 3], [x + 3, y], [x, y + 3], [x - 3, y]], col); px(g, x - 1, y - 1, lite); px(g, x, y - 2, lite) }
+
+const mix = (hex, to, t) => { const a = parseInt(hex.slice(1), 16), b = parseInt(to.slice(1), 16); const c = (s) => Math.round(((a >> s) & 255) * (1 - t) + ((b >> s) & 255) * t); return '#' + ((1 << 24) | (c(16) << 16) | (c(8) << 8) | c(0)).toString(16).slice(1) }
+const rainAt = (t) => RAINBOW[Math.max(0, Math.min(5, Math.floor(t * 6)))]
+function inPoly(pts, x, y) { let inside = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside } return inside }
+function polyFn(g, pts, fn) { const ys = pts.map((p) => p[1]), xs = pts.map((p) => p[0]); for (let y = Math.floor(Math.min(...ys)); y <= Math.ceil(Math.max(...ys)); y++) for (let x = Math.floor(Math.min(...xs)); x <= Math.ceil(Math.max(...xs)); x++) if (inPoly(pts, x + .5, y + .5)) px(g, x, y, fn(x, y)) }
+const sparkle = (g, x, y, col, big) => { px(g, x, y, col); px(g, x - 1, y, col); px(g, x + 1, y, col); px(g, x, y - 1, col); px(g, x, y + 1, col); if (big) { px(g, x - 2, y, col); px(g, x + 2, y, col); px(g, x, y - 2, col); px(g, x, y + 2, col) } }
+
+
+const rainS = (t) => { t = Math.max(0, Math.min(.999, t)) * 5; const i = Math.floor(t); return mix(RAINBOW[i], RAINBOW[i + 1], t - i) }
+const BM = { 0: ['111', '101', '101', '101', '111'], 1: ['010', '110', '010', '010', '111'] }
+function digits(g, str, x0, y0, s, col, shadow) {
+  const cells = []
+  ;[...str].forEach((ch, i) => BM[ch].forEach((row, ry) => [...row].forEach((v, rx) => { if (v === '1') cells.push([x0 + (i * 4 + rx) * s, y0 + ry * s]) })))
+  if (shadow) for (const [x, y] of cells) rect(g, x + 1, y + 1, s, s, shadow)
+  for (const [x, y] of cells) rect(g, x, y, s, s, col)
+}
+/** the edge colours of the seven rarities, Common to the gem */
+const TIERCOL = ['#9aa6bf', '#46d078', '#4fc3ff', '#b583ff', '#ffb23f', '#ff5fb0', '#f0e8ff']
+/** pixels of a circle's outline between two angles (degrees, 0 = right, 90 = down) */
+function arc(g, cx, cy, r, a0, a1, col, step = 4) { for (let a = a0; a <= a1; a += step) px(g, cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180), col) }
+function check(g, x, y, col, dark) { line(g, x, y + 1, x + 2, y + 3, dark, 1); line(g, x + 2, y + 3, x + 6, y - 1, dark, 1); line(g, x, y, x + 2, y + 2, col, 1); line(g, x + 2, y + 2, x + 6, y - 2, col, 1) }
+function crownAt(g, cx, base, w, h) { const l = cx - w / 2, r = cx + w / 2; polyFn(g, [[l, base], [l, base - h], [l + w * .25, base - h * .55], [cx, base - h - 1], [r - w * .25, base - h * .55], [r, base - h], [r, base]], () => '#ffd866'); rect(g, Math.round(l), base - 1, Math.round(w) + 1, 1, '#c58a1f'); px(g, cx, base - h + 1, '#ff5a5a') }
+function bubbles(g, list) { list.forEach(([x, y, r], i) => { const c = rainS(i / Math.max(1, list.length - 1)); disc(g, x, y, r, c); disc(g, x, y, r - 1.2, mix(c, '#0d1330', .72)); px(g, x - r * .45, y - r * .45, '#fff') }) }
+
+const GL = {
+  // ---------------------------------------------------------------- Full Spectrum
+  'spectrum-a'(g) {   // a prism: a white beam goes in, the seven rarity colours come out
+    for (let k = 0; k < 7; k++) { const y1 = 3 + k * 3; line(g, 12, 12, 23, y1, TIERCOL[k], 1); line(g, 12, 13, 23, y1 + 1, TIERCOL[k], 1) }
+    rect(g, 0, 11, 7, 2, '#ffffff'); rect(g, 0, 13, 7, 1, '#bfe4ff')
+    poly(g, [[3, 20], [9, 5], [15, 20]], '#a9c4ea'); poly(g, [[5, 19], [9, 9], [13, 19]], '#cfe2fb'); line(g, 9, 6, 5, 18, '#f4f9ff')
+    return (p) => { px(p, 22, 3, '#fff'); px(p, 2, 20, '#ffe9a0') }
+  },
+  'spectrum-b'(g) {   // a rainbow of seven bands, one for each rarity, the gem's band innermost, with a small cloud at each end
+    for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) { const dx = x + .5 - 12, dy = y + .5 - 19; if (dy > 0) continue; const d = Math.sqrt(dx * dx + dy * dy), k = Math.floor(11.5 - d); if (k >= 0 && k < 7) px(g, x, y, TIERCOL[k]) }
+    ell(g, 3, 19, 3.2, 2, '#fff6e0'); ell(g, 21, 19, 3.2, 2, '#fff6e0'); ell(g, 4.5, 18, 2, 1.6, '#ffffff'); ell(g, 19.5, 18, 2, 1.6, '#ffffff')
+    return (p) => { sparkle(p, 12, 10, '#fff'); px(p, 3, 4, '#ffe9a0'); px(p, 21, 4, '#bdf0ff') }
+  },
+  // ---------------------------------------------------------------- Second Wind
+  'second-a'(g) {     // a red cross, an arrow that loops over the top, and a green tick
+    line(g, 2, 15, 7, 20, '#ff5a5a', 2); line(g, 7, 15, 2, 20, '#ff5a5a', 2)
+    arc(g, 11.5, 13, 8, 200, 335, '#cdd6ee', 3); poly(g, [[17, 9], [22, 9], [20, 13]], '#cdd6ee')
+    disc(g, 17, 18, 5, '#1e7a3a'); disc(g, 17, 18, 4, '#59d97c'); check(g, 14, 18, '#ffffff', '#1e7a3a')
+  },
+  'second-b'(g) {     // three gusts of wind, each flicking up at the end, and a small green tick
+    const W = [[2, 6, 13, '#bdf0ff'], [1, 12, 16, '#ffffff'], [3, 18, 8, '#9ad8ff']]
+    for (const [x0, y0, len, col] of W) { rect(g, x0, y0, len, 2, col); rect(g, x0 + len, y0 - 1, 2, 2, col); rect(g, x0 + len + 1, y0 - 3, 2, 2, col); rect(g, x0 + len - 1, y0 - 4, 2, 1, col) }
+    disc(g, 18.5, 19, 4, '#1e7a3a'); disc(g, 18.5, 19, 3.2, '#59d97c'); check(g, 16, 19, '#ffffff', '#1e7a3a')
+  },
+  // ---------------------------------------------------------------- Top of the Day
+  'top-a'(g) {        // the Daily's calendar page with a gold crown on top and a big 1
+    rect(g, 3, 8, 18, 14, '#eef2ff'); rect(g, 3, 8, 18, 4, '#ffb23f'); rect(g, 3, 8, 18, 1, '#ffd488')
+    crownAt(g, 12, 8, 12, 6)
+    digits(g, '1', 9, 13, 2, '#c58a1f')
+    rect(g, 5, 20, 3, 1, '#a3b0d6'); rect(g, 16, 20, 3, 1, '#a3b0d6')
+  },
+  'top-b'(g) {        // a rising sun with a 1 in it, over the horizon
+    for (let k = 1; k < 8; k++) { const a = Math.PI + k * Math.PI / 8; line(g, Math.round(12 + 9 * Math.cos(a)), Math.round(17 + 9 * Math.sin(a)), Math.round(12 + 11.5 * Math.cos(a)), Math.round(17 + 11.5 * Math.sin(a)), '#ffd866') }
+    disc(g, 12, 17, 7.5, '#ffb23f'); disc(g, 12, 17, 6.5, '#ffd866'); disc(g, 11, 16, 4.5, '#ffe9a0')
+    digits(g, '1', 9, 10, 2, '#8a4f00')
+    rect(g, 0, 19, 24, 4, '#2a3a6e'); rect(g, 0, 19, 24, 1, '#ffb23f')
+    return (p) => { px(p, 3, 4, '#fff'); px(p, 20, 3, '#fff') }
+  },
+  // ---------------------------------------------------------------- Word of Mouth
+  'share-a'(g) {      // the share sign: three dots joined by two lines
+    line(g, 6, 12, 17, 6, '#9ad8ff', 2); line(g, 6, 12, 17, 18, '#9ad8ff', 2)
+    disc(g, 6, 12, 3.6, '#4fc3ff'); disc(g, 17, 6, 3.6, '#4fc3ff'); disc(g, 17, 18, 3.6, '#4fc3ff')
+    for (const [x, y] of [[6, 12], [17, 6], [17, 18]]) { px(g, x - 1, y - 2, '#e6f7ff'); px(g, x - 2, y - 1, '#e6f7ff') }
+  },
+  'share-b'(g) {      // a paper plane with a dotted trail
+    for (const [x, y] of [[1, 20], [3, 19], [5, 18], [7, 17]]) px(g, x, y, '#6f7fc0')
+    poly(g, [[3, 11], [22, 3], [11, 20], [10, 14]], '#eef2ff'); poly(g, [[10, 14], [22, 3], [11, 20]], '#c9d3ef'); line(g, 10, 14, 21, 4, '#8d99c0')
+    return (p) => { px(p, 20, 17, '#bdf0ff'); px(p, 3, 4, '#fff') }
+  },
+  // ---------------------------------------------------------------- Frequent Flyer
+  'flyer-a'(g) {      // Planck Foam's bubbles over a 10
+    bubbles(g, [[6, 6, 4.4], [15, 5, 3.6], [19.5, 10, 2.8]])
+    digits(g, '10', 5, 13, 2, '#f0e8ff', '#2a1a66')
+  },
+  'flyer-b'(g) {      // a boarding pass with the foam on it and 10 on the stub
+    rect(g, 1, 6, 22, 13, '#eef2ff'); rect(g, 1, 6, 22, 3, '#c4b0ff'); g.clearRect(1, 6, 1, 1); g.clearRect(22, 6, 1, 1); g.clearRect(1, 18, 1, 1); g.clearRect(22, 18, 1, 1)
+    for (let y = 9; y < 19; y += 2) px(g, 15, y, '#8d99c0')
+    bubbles(g, [[5.5, 13.5, 3.2], [11, 13, 2.8]])
+    digits(g, '10', 16, 11, 1, '#2a1a66')
+    rect(g, 16, 17, 6, 1, '#a3b0d6')
+    return (p) => { sparkle(p, 20, 2, '#fff'); px(p, 3, 21, '#bdf0ff') }
+  },
+  // ---------------------------------------------------------------- Explorer
+  'explorer-a'(g) {   // a compass
+    disc(g, 12, 12, 10, '#8b97b5'); disc(g, 12, 12, 8.6, '#fff6e0')
+    for (const [x, y] of [[12, 4], [12, 20], [4, 12], [20, 12]]) px(g, x, y, '#6b7696')
+    poly(g, [[12, 4.5], [14.6, 12], [9.4, 12]], '#ff5a5a'); poly(g, [[12, 19.5], [14.6, 12], [9.4, 12]], '#5a6a9a')
+    line(g, 12, 5, 12, 11, '#ff9a9a'); disc(g, 12, 12, 1.4, '#2a1a66')
+  },
+  'explorer-b'(g) {   // a folded map with a dotted path, pins in the category colours, and an X
+    poly(g, [[2, 6], [8, 4], [8, 20], [2, 22]], '#e9dcc0'); poly(g, [[8, 4], [16, 6], [16, 22], [8, 20]], '#fff6e0'); poly(g, [[16, 6], [22, 4], [22, 20], [16, 22]], '#e9dcc0')
+    for (const [x, y] of [[4, 17], [6, 15], [8, 14], [10, 15], [12, 13], [13, 11], [15, 10], [17, 9]]) px(g, x, y, '#b583ff')
+    line(g, 18, 7, 20, 9, '#ff5a5a'); line(g, 20, 7, 18, 9, '#ff5a5a')
+    for (const [x, y, c] of [[5, 9, '#46d078'], [11, 18, '#4fc3ff'], [19, 15, '#ffb23f']]) { rect(g, x, y, 2, 2, c); px(g, x, y + 2, '#5a3a1b') }
+  },
+}
+
+function glyph(id) { const [c, g] = cv(24, 24); const post = GL[id](g); outline(c); if (typeof post === 'function') post(g); return c }
+function tile(id, tier) {
+  const t = TIER[tier], [c, g] = cv(40, 40)
+  rect(g, 1, 1, 38, 38, t.edge); rect(g, 2, 2, 36, 36, t.bg); g.clearRect(0, 0, 1, 1); g.clearRect(39, 0, 1, 1); g.clearRect(0, 39, 1, 1); g.clearRect(39, 39, 1, 1)
+  rect(g, 3, 3, 34, 1, 'rgba(255,255,255,.16)')
+  g.drawImage(glyph(id), 8, 8)
+  return c
+}
+const show = (canvas, s) => { canvas.style.width = canvas.width * s + 'px'; canvas.style.height = canvas.height * s + 'px'; return canvas }
+
+/* tier = the colour of the tile (0 grey, 1 green, 2 blue, 3 violet, 4 gold, 5 pink, 6 the Singularity violet). how: run = judged when a run ends,
+   answer = at an answer, new = a small new hook or count kept in the browser, server = uses what the server already says */
+const ITEMS = [
+  { id: 'spectrum', tier: 6, name: 'Full Spectrum', text: 'One answer of every rarity in a single run.', group: 'Runs', how: ['run'],
+    a: 'A prism: a white beam in, the seven rarity colours out.', b: 'A rainbow of seven bands, one per rarity.',
+    rule: 'The seven answers of one run are one Common, one Uncommon, one Rare, one Exotic, one Legendary, one Mythic and one gem, in any order. Seven questions, seven rarities: it fits exactly. Harder than it looks, because it needs a gem AND a Common in the same run.' },
+  { id: 'second', tier: 1, name: 'Second Wind', text: 'Score on a question after a wrong try.', group: 'Moments', how: ['answer', 'new'],
+    a: 'A red cross, an arrow looping over, a green tick.', b: 'Three gusts of wind and a small tick.',
+    rule: 'An answer that did not count, then an answer that scores on the same question. A "No" to "Did you mean…?" that is then turned down counts as a wrong try; a time-out, a slow server or a lost connection do not. Needs one small mark on the question when a try is turned down.' },
+  { id: 'top', tier: 4, name: 'Top of the Day', text: 'Be first in a Daily\'s standings.', group: 'The Daily', how: ['server'],
+    a: 'The Daily\'s calendar page with a gold crown and a big 1.', b: 'A rising sun with a 1 in it.',
+    rule: 'Rank 1 of that day\'s Daily (a tie for first counts), checked whenever your result is shown: at the end of the run, and again when you open today\'s result from the title later, so a lead that still holds in the evening counts too. The server already sends the rank and the number of players.',
+    ask: 'To decide: with about 0 to 3 Daily players a day today, the first player of the day would always be first. I suggest it needs at least 5 players that day.' },
+  { id: 'share', tier: 2, name: 'Word of Mouth', text: 'Share a result.', group: 'Moments', how: ['new'],
+    a: 'The share sign: three dots joined by lines.', b: 'A paper plane with a dotted trail.',
+    rule: 'Press SHARE on a report (it copies the result). It counts the press, not whether the result was posted anywhere: the game cannot know that, and should not.' },
+  { id: 'flyer', tier: 6, name: 'Frequent Flyer', text: 'Reach Planck Foam 10 times.', group: 'The dive', how: ['run', 'new'],
+    a: 'Planck Foam\'s bubbles over a 10.', b: 'A boarding pass with the foam on it and 10 on the stub.',
+    rule: 'Ten runs of 700 points or more. Needs a count kept with the achievements (like the multiplayer wins), and shows progress (3 / 10). Counted from now on: the logbook keeps only the best run, so earlier visits to Planck Foam cannot be counted (one is known if the best is 700 or more).' },
+  { id: 'explorer', tier: 3, name: 'Explorer', text: 'Score an answer in every category.', group: 'Runs', how: ['answer', 'new', 'server'],
+    a: 'A compass.', b: 'A folded map, a dotted path, pins and an X.',
+    rule: 'A scoring answer in each of the 11 categories (the list the server already sends for the gem cabinet, so a 12th category would be added by itself). Needs the categories answered kept with the achievements; shows progress (7 / 11). Counted from now on, except that a category where the cabinet already holds a gem counts at once.' },
+]
+const HOW = { run: ['WHEN A RUN ENDS', 't-run'], answer: ['AT THE ANSWER', 't-answer'], new: ['SMALL NEW PIECE', 't-new'], server: ['FROM THE SERVER\'S REPLY', 't-server'] }
+
+const grid = document.getElementById('grid')
+for (const it of ITEMS) {
+  const card = el('div', 'card'), top = el('div', 'top'), opts = el('div', 'opts'), tx = el('div', 'tx')
+  for (const k of ['a', 'b']) {
+    const o = el('div', 'opt'), row = el('div', 'row')
+    row.append(show(tile(`${it.id}-${k}`, it.tier), 2.6), show(tile(`${it.id}-${k}`, it.tier), 1))
+    o.append(row, el('div', 'lab', k.toUpperCase()))
+    o.title = it[k]
+    opts.append(o)
+  }
+  tx.append(el('div', 'nm', it.name), el('div', 'su', it.text), el('div', 'meta', 'goes in: ' + it.group))
+  for (const h of it.how) tx.append(Object.assign(el('span', 'tag ' + HOW[h][1]), { textContent: HOW[h][0] }))
+  top.append(opts, tx)
+  card.append(top, el('div', 'rule', `A: ${it.a}  B: ${it.b}`), el('div', 'rule', it.rule))
+  if (it.ask) card.append(el('div', 'ask', it.ask))
+  grid.append(card)
+}
+const sum = document.getElementById('sum')
+sum.append(el('b', '', 'To decide'))
+const ol = el('ol')
+for (const t of ['A or B for each picture (or another idea).', 'Top of the Day: at least 5 players that day? (my suggestion; any number works)', 'Fine to keep two more counts in the browser (visits to Planck Foam, categories answered)? The privacy page would say so.'])
+  ol.append(el('li', '', t))
+sum.append(ol, el('p', '', 'With these six the game would have 47 achievements.'))
+document.fonts.ready.then(() => document.body.classList.add('ready'))
+</script>
+</body>
+</html>

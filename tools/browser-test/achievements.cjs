@@ -126,7 +126,7 @@ const { open, pick, bank, OUT } = require('./lib.cjs')
   await page.click('#cabinet .cab-tab:nth-child(2)')
   await page.waitForSelector('#cabinet .ach-item')
   const items = await page.$$eval('#cabinet .ach-item', (els) => els.map((e) => ({ name: e.querySelector('.ach-name')?.textContent, locked: e.classList.contains('locked'), grand: e.classList.contains('grand'), date: e.querySelector('.ach-date')?.textContent })))
-  ok(items.length === 41, 'the tab lists all forty-one achievements, locked ones with their text')
+  ok(items.length === 45, 'the tab lists all forty-five achievements, locked ones with their text')
   ok(items.find((i) => i.name === 'Reigning Champion')?.date === '1 / 10 wins', 'Reigning Champion shows its progress in wins')
   ok(items.find((i) => i.name === 'Singularity Complete')?.grand === true, '"Singularity Complete" has the large card')
   ok(items.find((i) => i.name === 'Five Hundred Strong') && items.find((i) => i.name === 'Down to Earth'), 'the new names are on the list')
@@ -135,7 +135,7 @@ const { open, pick, bank, OUT } = require('./lib.cjs')
   await shotPage('ach_cabinet_tab')
   await page.evaluate(() => { document.querySelector('#cabinet').scrollTo(0, 99999) })
   await shotPage('ach_cabinet_tab_bottom')
-  // every one earned, to look at all forty-one pictures
+  // every one earned, to look at all forty-five pictures
   await page.evaluate(() => {
     const g = window.__mt.game, ids = [...document.querySelectorAll('#cabinet .ach-item')].length
     const all = {}

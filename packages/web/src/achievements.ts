@@ -8,10 +8,10 @@
  * at once wait in a queue. With "reduce motion" on the device it fades in place instead of sliding.
  */
 import {
-  ACH_GROUPS, achievementsView, awardAnswer, awardEvent, awardRun, backfillFacts, backfillFromCabinet, emptyAch, GEM_TIER, longestStreak, parseAch, parseLogbook,
+  ACH_GROUPS, achievementsView, awardAnswer, awardEvent, awardRun, backfillFacts, backfillFromCabinet, emptyAch, GEM_TIER, longestStreak, noteCategories, parseAch, parseLogbook,
   serializeAch, TIERS, type AchFacts, type AchState, type Achievement, type AchItem, type AnswerMoment, type AwardResult, type RunEnd,
 } from '@minitude/core'
-import { achievementColours, achievementTile } from './achicons'
+import { achievementColours, achievementTile, achievementTileUrl } from './achicons'
 import type { CabinetUi } from './cabinet'
 import { W } from './config'
 
@@ -97,16 +97,18 @@ export class AchievementsUi {
     this.take(awardRun(this.state, run, this.facts().facts, AchievementsUi.today()), at)
   }
 
-  /** the player opened the screen of everything that counted */
-  onOpenBook(at: number): void {
-    this.take(awardEvent(this.state, 'open-book', AchievementsUi.today()), at)
+  /** the player opened the screen of everything that counted (Open Book), or pressed SHARE on a report (Word of Mouth) */
+  onEvent(id: 'open-book' | 'word-of-mouth', at: number): void {
+    this.take(awardEvent(this.state, id, AchievementsUi.today()), at)
   }
 
   /** the cabinet is known: record, quietly, what it and the logbook already prove (gem steps, runs played, days in a row, categories) */
   sync(gemDays: readonly string[], knownTotal: number | null): void {
     const { facts, days } = this.facts()
-    const next = backfillFacts(backfillFromCabinet(this.state, gemDays, knownTotal), facts, days)
-    if (Object.keys(next.earned).length !== this.earned) { this.state = next; this.save() }
+    // a gem in the cabinet is an answer that scored in its category: those categories count for Explorer
+    const withCats = noteCategories(this.state, this.cabinet?.gemCategories ?? [])
+    const next = backfillFacts(backfillFromCabinet(withCats, gemDays, knownTotal), facts, days)
+    if (next !== this.state) { this.state = next; this.save() }
   }
 
   // ------------------------------------------------------------------ the banner
@@ -192,8 +194,13 @@ export class AchievementsUi {
     const { a } = it
     const row = el('div', 'ach-item' + (it.earned ? '' : ' locked') + (a.id === 'gems-all' ? ' grand' : ''))
     row.setAttribute('aria-label', `${a.name}: ${a.text} ${it.earned ? 'Earned.' : 'Not yet.'}`)
-    const ic = achievementTile(a, !it.earned)
-    ic.className = 'ach-ic'
+    // a plain image (made once), not a canvas per tile: cheap to redraw while the list is scrolled fast
+    const pic = achievementTileUrl(a, !it.earned)
+    const ic = el('img', 'ach-ic')
+    ic.src = pic.url
+    ic.alt = ''
+    ic.width = ic.height = pic.size
+    ic.decoding = 'sync'
     ic.setAttribute('aria-hidden', 'true')
     const tx = el('div', 'ach-tx')
     tx.append(el('div', 'ach-name', a.name), el('div', 'ach-text', a.text))

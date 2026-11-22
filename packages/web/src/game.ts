@@ -101,6 +101,8 @@ export class Game {
   private lockT = 0
   /** the full clock of the current question in seconds (0 until it has started): time used = this minus the time left, for Quick Draw */
   private clockSeconds = 0
+  /** a try on the current question was turned down (Second Wind) */
+  private wrongTry = false
   private lockRemain = 0
   private deadline = Infinity
   private message = ''
@@ -766,6 +768,7 @@ export class Game {
     this.pending = false
     this.confirm = null
     this.missPending = false
+    this.wrongTry = false
     // the player's clock starts when the prompt is on screen (see fetchQuestion)
     this.deadline = Infinity
     this.clockSeconds = 0
@@ -862,7 +865,10 @@ export class Game {
       schedule(r, core, { lock: this.lockT, respondedAt: this.T })
       // achievements: solo, the Daily and multiplayer all score an answer here. The banner waits until the answer's own show is over (its card, or the dive's end).
       // the moments: the time left and used when the answer was sent (the checker's own time is not counted), and a "Did you mean…?" said yes to
-      const moment = { secondsLeft: this.lockRemain, secondsUsed: this.clockSeconds > 0 ? Math.max(0, this.clockSeconds - this.lockRemain) : undefined, confirmed }
+      const moment = {
+        secondsLeft: this.lockRemain, secondsUsed: this.clockSeconds > 0 ? Math.max(0, this.clockSeconds - this.lockRemain) : undefined, confirmed,
+        afterWrongTry: this.wrongTry, category: this.questions[r.i]?.category,
+      }
       this.achievements?.onScored(resp.tier, this.cabinet?.count ?? 0, this.cabinet?.knownTotal ?? null, (r.cardOn ? r.card + r.clen : r.fe) + 0.25, moment)
       if (core.post === 1) {
         this.lastPostVariant = pickPostFirst(this.lastPostVariant)
@@ -874,6 +880,8 @@ export class Game {
       this.sound.scheduled(r, this.T, this.tl)
       return
     }
+    // the answer was turned down (not a lost connection or a slow server: those come through onAnswerFailed)
+    this.wrongTry = true
     this.reject(r, resp.message ?? (resp.status === 'invalid' ? "That doesn't count." : "Couldn't check that. Try another."))
   }
   /** the answer is the question's gem: it goes into the cabinet (which says whether it is new) and the reveal will say so */
@@ -923,6 +931,7 @@ export class Game {
   }
 
   private share(): void {
+    this.achievements?.onEvent('word-of-mouth', this.T + 0.4)
     const number = this.mode === 'daily' ? (this.reportDaily ?? this.daily)?.number ?? this.run?.number : undefined
     let text = shareText(this.records, number)
     if (!/^(localhost|127\.|\[::1\])/.test(location.hostname)) text += '\n' + location.origin
@@ -1246,7 +1255,7 @@ export class Game {
     if (!src || !r || !this.answers) return
     this.sound.unlock()
     this.answers.open(src, i, r.miss || !r.known ? null : { answer: r.answer, tier: r.ti, points: r.pts })
-    this.achievements?.onOpenBook(this.T + 0.4)
+    this.achievements?.onEvent('open-book', this.T + 0.4)
   }
 
   /** what the report shows besides the run: the second button's name and, for a daily, its standing and the countdown */

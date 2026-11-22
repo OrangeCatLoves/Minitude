@@ -50,6 +50,8 @@ export class CabinetUi {
   get knownTotal(): number | null { return this.summary && this.summary.total > 0 ? this.summary.total : null }
   /** the days the gems were found, in the order they were found */
   get gemDays(): string[] { return this.cab.gems.map((g) => g.day) }
+  /** the categories of the gems found (each is an answer that scored in that category: Explorer counts them) */
+  get gemCategories(): string[] { return [...new Set(this.cab.gems.map((g) => g.category))] }
   /**
    * The cabinet by category, for Well Rounded and Full Shelf: only the categories the SERVER listed, with its counts (null until it has said).
    * A found gem of a category the server no longer lists counts for nothing here, so it can never complete a shelf by itself.
@@ -114,13 +116,21 @@ export class CabinetUi {
     this.opener = null
   }
 
-  private gemCanvas(cls: string): HTMLCanvasElement {
-    const cv = el('canvas', cls)
-    cv.width = cv.height = 32
-    cv.setAttribute('aria-hidden', 'true')
-    const g = cv.getContext('2d')
-    if (g) { g.imageSmoothingEnabled = false; g.drawImage(this.icon, 0, 0, 32, 32) }
-    return cv
+  /**
+   * The gem picture, found or not, as a plain image. Both pictures are drawn ONCE and shared by every slot: a canvas per slot (up to a
+   * thousand) and a CSS filter on every hidden one were too much to redraw while the list was flung, and for a frame the game behind showed
+   * through (the owner, 23 Nov 2026). The hidden look (dark and greyed) is baked into the pixels instead of a filter.
+   */
+  private gemPics: { found: string; hidden: string } | null = null
+  private gemImg(hidden: boolean): HTMLImageElement {
+    if (!this.gemPics) this.gemPics = gemPictures(this.icon)
+    const img = el('img', 'cab-gem')
+    img.src = hidden ? this.gemPics.hidden : this.gemPics.found
+    img.alt = ''
+    img.width = img.height = 32
+    img.decoding = 'sync'
+    img.setAttribute('aria-hidden', 'true')
+    return img
   }
 
   private render(): void {
@@ -155,14 +165,14 @@ export class CabinetUi {
         const b = el('button', 'cab-slot' + (g.id === this.picked ? ' on' : ''))
         b.type = 'button'
         b.setAttribute('aria-label', `${g.answer}, gem found. Show details.`)
-        b.append(this.gemCanvas('cab-gem'), el('span', 'cab-name', g.answer))
+        b.append(this.gemImg(false), el('span', 'cab-name', g.answer))
         b.addEventListener('click', () => { this.picked = g.id === this.picked ? null : g.id; this.render(); this.root.querySelector<HTMLElement>('.cab-slot.on, .cab-close')?.focus() })
         grid.append(b)
       }
       for (let k = 0; k < cat.locked; k++) {
         const s = el('div', 'cab-slot locked')
         s.setAttribute('aria-label', 'A gem not found yet')
-        s.append(this.gemCanvas('cab-gem dim'), el('span', 'cab-name', '?'))
+        s.append(this.gemImg(true), el('span', 'cab-name', '?'))
         grid.append(s)
       }
       sec.append(grid)
@@ -196,7 +206,9 @@ export class CabinetUi {
 
   private card(g: GemEntry): HTMLElement {
     const c = el('div', 'cab-card')
-    c.append(this.gemCanvas('cab-big'))
+    const big = this.gemImg(false)
+    big.className = 'cab-big'
+    c.append(big)
     const t = el('div', 'cab-card-t')
     t.append(el('div', 'cab-card-cat', g.category.toUpperCase()), el('div', 'cab-card-name', g.answer))
     if (g.desc) t.append(el('p', 'cab-card-desc', g.desc))
@@ -206,3 +218,25 @@ export class CabinetUi {
     return c
   }
 }
+
+/** the gem picture at 32 x 32, and the same darkened and greyed for a gem not found yet (as the old CSS filter did: brightness 0.16, saturation 0.25, opacity 0.85) */
+export function gemPictures(icon: CanvasImageSource): { found: string; hidden: string } {
+  const c = document.createElement('canvas')
+  c.width = c.height = 32
+  const g = c.getContext('2d', { willReadFrequently: true })
+  if (!g) return { found: '', hidden: '' }
+  g.imageSmoothingEnabled = false
+  g.drawImage(icon, 0, 0, 32, 32)
+  const found = c.toDataURL('image/png')
+  const im = g.getImageData(0, 0, 32, 32), d = im.data
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i], gr = d[i + 1], b = d[i + 2], l = 0.2126 * r + 0.7152 * gr + 0.0722 * b
+    d[i] = Math.round((l + 0.25 * (r - l)) * 0.16)
+    d[i + 1] = Math.round((l + 0.25 * (gr - l)) * 0.16)
+    d[i + 2] = Math.round((l + 0.25 * (b - l)) * 0.16)
+    d[i + 3] = Math.round(d[i + 3] * 0.85)
+  }
+  g.putImageData(im, 0, 0)
+  return { found, hidden: c.toDataURL('image/png') }
+}
+

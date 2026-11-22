@@ -107,7 +107,9 @@ html.has-after, html.has-after body { height: auto; overflow-x: hidden; overflow
 @media (prefers-reduced-motion: reduce) { .af-rate-btn { transition: none; } }
 
 /* ------------------------------------------------------------------ the gem cabinet (opens over the game from the title screen and the report) */
-#cabinet { position: fixed; inset: 0; z-index: 10; background: rgba(4, 6, 16, 0.86); overflow-y: auto; -webkit-overflow-scrolling: touch;
+/* the backdrop is SOLID (it was 86 % see-through): while the list was flung fast, the browser could leave a strip unpainted for a frame and the
+   game flashed through (the owner, 23 Nov 2026). The game is also not drawn while the cabinet is open (main.ts). */
+#cabinet { position: fixed; inset: 0; z-index: 10; background: #05070f; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   padding: max(18px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) max(18px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); font: 16px/1.5 var(--read); color: var(--body); }
 #cabinet[hidden] { display: none; }
 .cab-box { max-width: 880px; margin: 0 auto; background: var(--panel); border: 1px solid rgba(196, 176, 255, 0.45); padding: 20px 22px 26px; }
@@ -127,7 +129,6 @@ button.cab-slot { cursor: pointer; }
 button.cab-slot:hover, button.cab-slot:focus-visible, .cab-slot.on { border-color: #d6c8ff; background: #14102e; outline: none; }
 .cab-slot.locked { border-style: dashed; color: var(--faint); }
 .cab-gem { width: 48px; height: 48px; image-rendering: pixelated; display: block; }
-.cab-gem.dim { filter: brightness(0.16) saturate(0.25); opacity: 0.85; }
 .cab-name { max-width: 100%; font-size: 13px; line-height: 1.25; overflow-wrap: anywhere; }
 .cab-card { display: flex; gap: 18px; align-items: center; margin: 16px 0 4px; padding: 16px 18px; background: #100c28; border: 1px solid rgba(196, 176, 255, 0.55); }
 .cab-big { width: 96px; height: 96px; flex: none; image-rendering: pixelated; }
@@ -145,7 +146,8 @@ button.cab-slot:hover, button.cab-slot:focus-visible, .cab-slot.on { border-colo
 }
 
 /* ------------------------------------------------------------------ "everything that counted" (the answers of a Daily question, opened from its report) */
-#answers { position: fixed; inset: 0; z-index: 10; background: rgba(4, 6, 16, 0.86); overflow-y: auto; -webkit-overflow-scrolling: touch;
+/* solid for the same reason as the cabinet's backdrop */
+#answers { position: fixed; inset: 0; z-index: 10; background: #05070f; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   padding: max(18px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) max(18px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); font: 16px/1.5 var(--read); color: var(--body); }
 #answers[hidden] { display: none; }
 .ans-box { max-width: 760px; margin: 0 auto; background: var(--panel); border: 1px solid var(--line-strong); padding: 20px 22px 26px; }

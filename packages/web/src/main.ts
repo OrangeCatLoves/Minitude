@@ -81,7 +81,9 @@ async function main(): Promise<void> {
     const dt = Math.min(0.1, Math.max(0, (now - last) / 1000))
     last = now
     game.update(dt)
-    game.render()
+    // the gem cabinet and the screen of accepted answers cover the whole game with a solid backdrop: the game is not drawn under them, so
+    // scrolling them stays smooth (and a phone saves battery); it carries on from the same moment when they close
+    if (!game.cabinet?.isOpen && !game.answers?.isOpen) game.render()
     requestAnimationFrame(loop)
   }
   requestAnimationFrame(loop)
