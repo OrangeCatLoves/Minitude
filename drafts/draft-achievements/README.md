@@ -1,6 +1,6 @@
 # Draft: achievements (18 Nov 2026)
 
-**Status (19 Nov 2026): BUILT into the game** (`packages/core/src/achievements.ts`, `packages/web/src/achievements.ts`, `achicons.ts`); this folder keeps every design that was looked at. To change a picture, change it here first, look at it, then carry it over to `packages/web/src/achicons.ts`. (Written as a draft on 18 Nov 2026: nothing below the status line was updated.) The owner asked (18 Nov 2026) for achievements: one for the first answer of each rarity (Common, Uncommon, Rare, Exotic, Legendary, Mythic, Singularity), then a ladder of how many different Singularity gems are found, a banner that drops in from the top when one is earned, and several designs for it.
+**Status (19 Nov 2026): BUILT into the game; the 26 of `more.html` were approved in full by the owner and BUILT on 22 Nov 2026 (41 in all)** (`packages/core/src/achievements.ts`, `packages/web/src/achievements.ts`, `achicons.ts`); this folder keeps every design that was looked at. To change a picture, change it here first, look at it, then carry it over to `packages/web/src/achicons.ts`. (Written as a draft on 18 Nov 2026: nothing below the status line was updated.) The owner asked (18 Nov 2026) for achievements: one for the first answer of each rarity (Common, Uncommon, Rare, Exotic, Legendary, Mythic, Singularity), then a ladder of how many different Singularity gems are found, a banner that drops in from the top when one is earned, and several designs for it.
 
 ## Look at it
 
@@ -81,3 +81,18 @@ The owner (after the dark singularity: "a little sad and even disrespectful ... 
 - **F Star and banner:** an eight-point gold and rainbow star over a banner with 1000.
 
 Built by `tools/final-shots.cjs` from `src/final.template.html` (the pixel toolkit is read from `src/icons.template.html`). Not decided: the letter (or a mix), whether "1000" stays a fixed number (the goal is "every gem"; the bank has 1,000 today), and whether the last card gets a larger picture. Nothing is in the game.
+
+## Fifth round (19 Nov 2026): more achievements, proposed
+
+The owner (after the first fifteen went live): "I am thinking of adding more achievements like reaching planck foam, daily streaks and possibly more than makes sense as well. Please draft them up for me to review." **`more.html`** (open from the folder) and **`designs/more-sheet.png`** (the whole page; `designs/more-<group>.png` one picture per group) propose **26 more** in six groups, each with a picture in the tile frame (24 x 24, same style), a name, a one-line text, the rule, a tag for what it needs and a star for the ones I would build:
+
+- **The dive (4):** Uncharted (600 points), So Close (690 to 699, "less than 10 short of Planck Foam"), The Edge of Physics (700 = Planck Foam = a perfect run), Past the Edge (750+).
+- **Runs (6):** First Dive, Getting Deeper (10), Deep Diver (50), Bottomless (100), Beat the Clock (no time-out), No Easy Answers (no Common answer).
+- **Moments (4):** Buzzer Beater (under 1 second left), Quick Draw (within 3 seconds), Close Enough (say yes to "Did you mean...?"), Open Book (open the screen of accepted answers).
+- **The Daily (5):** Daily Debut, On a Roll (3 days), Full Week (7), Moon Cycle (30), Hundred Days (100); the flame goes orange, gold, blue-white, rainbow.
+- **Multiplayer (3):** Face to Face (finish a match), Room Champion (win one), Reigning Champion (win 10).
+- **More about gems (4):** Well Rounded (a gem in every category), Full Shelf (every gem of one category), Gem Hunter (3 gems in one run), Singularity Seven (7 gems in one run, 840 points).
+
+What each needs, from reading the code: "runs played" and the day streak come from the logbook (`minitude.logbook`: `played`, `days`) and the gem categories from the cabinet, so those can be given quietly to existing players; the run-end ones are judged in `Game.enterReport` from the run's records and total; the three "at the answer" ones need the answer's timing (`lockT` against `deadline`) and the confirm step in `Game.onAnswer`; Open Book, Room Champion and Reigning Champion each need a small new hook or a counter kept in the browser (the match winner is in the final standings: `VStanding.rank`). A run-end banner would show as the report appears. Nothing is built; the streak is the logbook's (a run of any kind per day), and it can be changed to Dailies only at the price of remembering which days were Dailies. Built by `tools/more-shots.cjs` from `src/more.template.html`.
+
+**Decided 22 Nov 2026:** the owner: "I approve of all the achievements listed in more.html. Commit and push them to deployment." All 26 are built as the sheet describes them, including the four the sheet marked optional (Bottomless, Quick Draw, Hundred Days, Reigning Champion). The streak is the logbook's (a run of any kind per day). The pictures were carried over to `packages/web/src/achicons.ts` unchanged (same pixel toolkit), the rules are in `packages/core/src/achievements.ts`, and `tools/browser-test/achievements.cjs` takes pictures of all 41 earned (`out/ach_cabinet_all_*.png`).

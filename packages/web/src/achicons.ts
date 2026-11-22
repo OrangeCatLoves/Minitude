@@ -1,8 +1,8 @@
 // @ts-nocheck
 /**
  * The achievement pictures, drawn in code (no image files), like the gems and the living worlds. Carried over from the draft the owner
- * reviewed (drafts/draft-achievements: icons.html and final.html, 19 Nov 2026): to change a picture, change it THERE first, look at it, then carry
- * it over here. Fourteen of them are 24 x 24 pixels; the last ("Singularity Complete", the trophy with 1000 on it, chosen by the owner) is 31 x 31
+ * reviewed (drafts/draft-achievements: icons.html and final.html, 19 Nov 2026; more.html, 22 Nov 2026): to change a picture, change it THERE first, look at it, then carry
+ * it over here. Forty of them are 24 x 24 pixels; the last ("Singularity Complete", the trophy with 1000 on it, chosen by the owner) is 31 x 31
  * and sits in a larger tile.
  */
 const TIER = [
@@ -52,7 +52,32 @@ function polyFn(g, pts, fn) { const ys = pts.map((p) => p[1]), xs = pts.map((p) 
 const sparkle = (g, x, y, col, big) => { px(g, x, y, col); px(g, x - 1, y, col); px(g, x + 1, y, col); px(g, x, y - 1, col); px(g, x, y + 1, col); if (big) { px(g, x - 2, y, col); px(g, x + 2, y, col); px(g, x, y - 2, col); px(g, x, y + 2, col) } }
 
 
-/* ---------- the 15 pictograms, 24 x 24 */
+/* ---------- helpers of the 26 later pictures (more.html) */
+const BM = { 0: ['111', '101', '101', '101', '111'], 1: ['010', '110', '010', '010', '111'], 2: ['111', '001', '111', '100', '111'], 3: ['111', '001', '111', '001', '111'], 5: ['111', '100', '111', '001', '111'], 7: ['111', '001', '010', '010', '010'], V: ['101', '101', '101', '101', '010'], S: ['011', '100', '010', '001', '110'] }
+/** digits and letters in a 3 x 5 face at scale s, with an optional drop shadow; colFn(x, y) gives the colour */
+function digits(g, str, x0, y0, s, colFn, shadow) {
+  const cells = []
+  ;[...str].forEach((ch, i) => BM[ch].forEach((row, ry) => [...row].forEach((v, rx) => { if (v === '1') cells.push([x0 + (i * 4 + rx) * s, y0 + ry * s]) })))
+  if (shadow) for (const [x, y] of cells) rect(g, x + 1, y + 1, s, s, shadow)
+  for (const [x, y] of cells) rect(g, x, y, s, s, typeof colFn === 'string' ? colFn : colFn(x, y))
+}
+const star = (g, cx, cy, R, r, col) => { const pts = []; for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r : R; pts.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]) } poly(g, pts, col) }
+/** a spacesuit helmet: cream shell, blue visor on the side the face looks to (dir = 1 right, -1 left) */
+function helmet(g, cx, cy, r, dir = 1) {
+  disc(g, cx, cy, r, '#d9c9a5'); disc(g, cx - .6, cy - .6, r - .8, '#fff0d0')
+  ell(g, cx + dir * r * .22, cy + .4, r * .62, r * .5, '#1d4a86'); ell(g, cx + dir * r * .22, cy + .2, r * .56, r * .42, '#2b5fa0')
+  px(g, cx + dir * r * .22 - dir * 1, cy - r * .22, '#bfe4ff'); px(g, cx + dir * r * .22 - dir * 2, cy - r * .22 + 1, '#bfe4ff')
+}
+function flame(g, outer, mid, core) {
+  const T = (pts) => pts.map(([x, y]) => [12 + (x - 12) * 1.12, 0.5 + (y - 1) * .8])
+  polyFn(g, T([[12, 1], [15, 6], [18, 11], [18, 16], [15, 20], [12, 21], [9, 20], [6, 16], [6, 11], [8, 8], [10, 12], [11, 6]]), typeof outer === 'string' ? () => outer : outer)
+  poly(g, T([[12, 9], [15, 13], [15, 17], [12, 20], [9, 17], [9, 13]]), mid)
+  poly(g, T([[12, 13], [13.6, 16], [12, 19], [10.4, 16]]), core)
+}
+function crescentDot(g) { px(g, 3, 3, '#fff'); px(g, 20, 4, '#fff'); px(g, 21, 11, '#ffe9a0') }
+
+
+/* ---------- the pictograms, 24 x 24 (the first 14; the trophy is drawn below) */
 const GLYPH = {
   'first-common'(g) { ell(g, 12, 14, 9, 6, '#8b97b5'); ell(g, 11, 13, 8, 5, '#cdd6ee'); ell(g, 8, 11, 2.2, 1.2, '#ffffff'); px(g, 15, 15, '#6b7696'); px(g, 17, 14, '#6b7696'); px(g, 13, 17, '#6b7696') },
   'first-uncommon'(g) { rect(g, 11, 6, 2, 16, '#8a5a2b'); rect(g, 7, 21, 10, 2, '#2c8c4a'); poly(g, [[4, 4], [16, 4], [20, 8], [16, 12], [4, 12]], '#59d97c'); rect(g, 6, 7, 8, 1, '#1d6a35'); rect(g, 6, 9, 5, 1, '#1d6a35'); poly(g, [[20, 13], [8, 13], [4, 16], [8, 19], [20, 19]], '#46b86b'); rect(g, 10, 15, 7, 1, '#1d6a35') },
@@ -103,6 +128,119 @@ const GLYPH = {
     return (p) => { sparkle(p, 4, 4, '#fff'); sparkle(p, 20, 4, '#fff', true); px(p, 7, 8, '#bdf0ff'); px(p, 18, 8, '#ffc0e4'); px(p, 1, 8, '#ffe9a0'); px(p, 22, 8, '#fff') }
   },
 
+  // ---------- the 26 approved on 22 Nov 2026, carried over from drafts/draft-achievements/src/more.template.html (more.html)
+  uncharted(g) {
+    disc(g, 12, 12, 10, '#0d1330'); for (let k = 0; k < 28; k += 2) { const a = k * Math.PI / 14; px(g, 12 + 10.1 * Math.cos(a), 12 + 10.1 * Math.sin(a), '#6f7fc0') }
+    const Q = ['01110', '10001', '00001', '00010', '00100', '00000', '00100']
+    Q.forEach((row, ry) => [...row].forEach((v, rx) => { if (v === '1') { rect(g, 7 + rx * 2 + 1, 5 + ry * 2 + 1, 2, 2, '#2a1a66'); rect(g, 7 + rx * 2, 5 + ry * 2, 2, 2, '#bdf0ff') } }))
+    px(g, 4, 6, '#fff'); px(g, 19, 17, '#ffe9a0'); px(g, 18, 5, '#c4a0ff'); px(g, 5, 18, '#ff9ccd')
+  },
+  'so-close'(g) {
+    rect(g, 1, 8, 20, 9, '#6f7fc0'); rect(g, 2, 9, 18, 7, '#0b1122')
+    for (let x = 2; x < 17; x++) for (let y = 9; y < 16; y++) px(g, x, y, mix(rainS((x - 2) / 14), y === 9 ? '#ffffff' : '#000000', y === 9 ? .4 : y >= 14 ? .22 : 0))
+    rect(g, 21, 4, 2, 17, '#ffd866'); rect(g, 21, 4, 2, 1, '#fff6d0'); poly(g, [[21, 1], [21, 7], [15, 4]], '#ff5a5a')
+    px(g, 18, 11, '#fff'); px(g, 18, 12, 'rgba(255,255,255,.5)'); px(g, 18, 13, 'rgba(255,255,255,.25)')
+    return (p) => { sparkle(p, 18, 20, '#fff'); px(p, 4, 4, '#ffe9a0'); px(p, 10, 21, '#bdf0ff') }
+  },
+  planck(g) {
+    const B = [[8, 8, 6], [16, 7, 5], [16, 16, 6], [7, 17, 4.5], [12, 12, 3.4], [20, 11.5, 2.6]]
+    B.forEach(([x, y, r], i) => { const c = rainS(i / 5); disc(g, x, y, r, c); disc(g, x, y, r - 1.3, mix(c, '#0d1330', .72)); px(g, x - r * .45, y - r * .45, '#fff'); px(g, x - r * .45 + 1, y - r * .45, '#fff') })
+    return (p) => { sparkle(p, 12, 12, '#fff'); px(p, 2, 3, '#bdf0ff'); px(p, 21, 21, '#ffe9a0') }
+  },
+  'past-edge'(g) {
+    rect(g, 1, 14, 11, 8, '#8a5a14'); rect(g, 1, 14, 11, 2, '#ffd866'); rect(g, 1, 16, 11, 1, '#c58a1f')
+    for (let k = 0; k <= 22; k++) { const t = k / 22, x = 11 + 11 * t, y = 13 - 9 * Math.sin(t * Math.PI * .85); if (k % 2 === 0) rect(g, Math.round(x), Math.round(y), 2, 2, rainS(t)) }
+    star(g, 20.5, 5, 3.6, 1.5, '#fff6d0')
+    px(g, 15, 19, '#6f7fc0'); px(g, 20, 17, '#6f7fc0'); px(g, 18, 21, '#c4a0ff')
+  },
+  'first-dive'(g) {
+    rect(g, 4, 14, 3, 7, '#3de0c0'); rect(g, 4, 14, 1, 7, '#9af5e0')
+    rect(g, 7, 15, 11, 7, '#ff8a3c'); rect(g, 7, 15, 11, 1, '#ffb27a'); rect(g, 15, 15, 3, 7, '#d96a22'); rect(g, 10, 17, 5, 1, '#ffe9a0')
+    helmet(g, 12, 9, 7)
+  },
+  'ten-dives'(g) { helmet(g, 12, 6, 5, 1); digits(g, '10', 5, 12, 2, '#8dffb4', '#0d3a22') },
+  'fifty-dives'(g) { helmet(g, 12, 6, 5, 1); digits(g, '50', 5, 12, 2, '#9ad8ff', '#0c2a52') },
+  'hundred-dives'(g) { helmet(g, 12, 6, 5, 1); digits(g, '100', 1, 12, 2, '#d8bcff', '#2a1850'); px(g, 3, 4, '#fff'); px(g, 20, 3, '#ffe9a0') },
+  clean(g) {
+    disc(g, 11, 12, 9.5, '#8b97b5'); disc(g, 11, 12, 8, '#fff6e0')
+    for (const [x, y] of [[11, 5], [11, 19], [4, 12], [18, 12]]) px(g, x, y, '#6b7696')
+    line(g, 11, 12, 11, 7, '#2a1a66'); line(g, 11, 12, 15, 12, '#2a1a66'); disc(g, 11, 12, 1, '#2a1a66')
+    disc(g, 18, 18, 5, '#1e7a3a'); disc(g, 18, 18, 4, '#59d97c'); line(g, 15, 18, 17, 20, '#fff', 1); line(g, 17, 20, 20, 15, '#fff', 1); line(g, 15, 19, 17, 21, '#fff', 1); line(g, 17, 21, 20, 16, '#fff', 1)
+  },
+  'no-easy'(g) {
+    ell(g, 12, 13, 9, 6, '#8b97b5'); ell(g, 11, 12, 8, 5, '#cdd6ee'); ell(g, 8, 10, 2.2, 1.2, '#fff')
+    line(g, 4, 3, 20, 21, '#ff5a5a', 2); line(g, 20, 3, 4, 21, '#ff5a5a', 2)
+  },
+  buzzer(g) {
+    rect(g, 10, 1, 4, 2, '#c58a1f'); rect(g, 11, 3, 2, 3, '#c58a1f'); rect(g, 17, 4, 3, 2, '#c58a1f')
+    disc(g, 12, 14, 9.5, '#8b97b5'); disc(g, 12, 14, 8, '#fff6e0')
+    for (let a = -90; a <= -50; a += 2) line(g, 12, 14, Math.round(12 + 7.4 * Math.cos(a * Math.PI / 180)), Math.round(14 + 7.4 * Math.sin(a * Math.PI / 180)), '#ff5a5a')
+    line(g, 12, 14, Math.round(12 + 6.4 * Math.cos(-64 * Math.PI / 180)), Math.round(14 + 6.4 * Math.sin(-64 * Math.PI / 180)), '#2a1a66'); disc(g, 12, 14, 1.2, '#2a1a66')
+    for (const [x, y] of [[12, 7], [12, 21], [5, 14], [19, 14]]) px(g, x, y, '#6b7696')
+  },
+  'quick-draw'(g) {
+    poly(g, [[15, 1], [4, 13], [11, 13], [8, 23], [20, 9], [13, 9]], '#ffe066'); poly(g, [[15, 3], [8, 12], [12, 12], [10, 19], [16, 10], [12, 10]], '#fff6b0')
+    return (p) => { px(p, 3, 4, '#fff'); px(p, 20, 17, '#ffc857'); px(p, 21, 4, '#fff') }
+  },
+  'close-enough'(g) {
+    rect(g, 2, 3, 20, 13, '#eef2ff'); g.clearRect(2, 3, 1, 1); g.clearRect(21, 3, 1, 1); g.clearRect(2, 15, 1, 1); g.clearRect(21, 15, 1, 1)
+    poly(g, [[6, 15], [6, 21], [12, 15]], '#eef2ff')
+    line(g, 7, 9, 10, 12, '#1e7a3a', 2); line(g, 10, 12, 17, 6, '#1e7a3a', 2); line(g, 7, 8, 10, 11, '#59d97c', 1); line(g, 10, 11, 17, 5, '#59d97c', 1)
+  },
+  'open-book'(g) {
+    poly(g, [[2, 8], [11, 10], [11, 21], [2, 19]], '#fff6e0'); poly(g, [[22, 8], [13, 10], [13, 21], [22, 19]], '#e9dcc0')
+    rect(g, 11, 10, 2, 11, '#8a5a2b'); rect(g, 1, 19, 10, 2, '#c58a1f'); rect(g, 13, 19, 10, 2, '#c58a1f')
+    for (let k = 0; k < 4; k++) { line(g, 4, 11 + k * 2, 9, 12 + k * 2, '#8d99c0'); line(g, 15, 12 + k * 2, 20, 11 + k * 2, '#a99fbf') }
+    smallGem(g, 12, 4, '#c4a0ff', '#fff')
+    return (p) => { px(p, 6, 3, '#fff'); px(p, 19, 3, '#ffe9a0') }
+  },
+  'daily-debut'(g) {
+    rect(g, 3, 4, 18, 18, '#eef2ff'); rect(g, 3, 4, 18, 5, '#ff5fb0'); rect(g, 3, 4, 18, 1, '#ff9ccd'); rect(g, 7, 2, 2, 5, '#8d99c0'); rect(g, 15, 2, 2, 5, '#8d99c0')
+    star(g, 12, 15.5, 5, 2.2, '#ffc857'); star(g, 12, 15.5, 3.4, 1.4, '#fff2b0')
+  },
+  'streak-3'(g) { flame(g, '#ff8a3c', '#ffc857', '#fff2b0'); digits(g, '3', 10, 17, 1, '#fff6d0', '#2a1a66') },
+  'streak-7'(g) { flame(g, '#ffa03c', '#ffe066', '#ffffff'); digits(g, '7', 10, 17, 1, '#fff6d0', '#2a1a66'); px(g, 4, 6, '#ffe066'); px(g, 19, 9, '#ffe066') },
+  'streak-30'(g) { flame(g, '#4fc3ff', '#bdf0ff', '#ffffff'); digits(g, '30', 8, 17, 1, '#fff6d0', '#2a1a66'); px(g, 4, 6, '#bdf0ff'); px(g, 19, 9, '#bdf0ff') },
+  'streak-100'(g) {
+    flame(g, (x, y) => rainS((y - 1) / 15), '#fff6d0', '#ffffff'); digits(g, '100', 6, 17, 1, '#fff6d0', '#2a1a66')
+    crescentDot(g)
+  },
+  'face-to-face'(g) {
+    for (const [x0, dir, bx] of [[5.5, 1, 2], [18.5, -1, 15]]) {
+      rect(g, bx, 14, 7, 8, '#ff8a3c'); rect(g, bx, 14, 7, 1, '#ffb27a'); rect(g, bx + (dir > 0 ? 5 : 0), 14, 2, 8, '#d96a22')
+      helmet(g, x0, 9, 4.8, dir)
+    }
+    poly(g, [[13.6, 2], [10.4, 10.6], [12.8, 10.6], [10.8, 19], [14.8, 8.8], [12.4, 8.8]], '#ffe066'); poly(g, [[13.2, 4], [11.4, 10], [13, 10], [12, 15], [13.8, 9.6], [12.2, 9.6]], '#fff6b0')
+  },
+  'room-champion'(g) {
+    rect(g, 2, 14, 7, 8, '#cdd6ee'); rect(g, 2, 14, 7, 1, '#fff'); rect(g, 15, 16, 7, 6, '#d79a5a'); rect(g, 15, 16, 7, 1, '#ffc891'); rect(g, 8, 10, 8, 12, '#ffd866'); rect(g, 8, 10, 8, 1, '#fff6d0'); rect(g, 8, 20, 8, 2, '#c58a1f')
+    digits(g, '1', 11, 13, 1, '#2a1a66'); digits(g, '2', 4, 16, 1, '#2a1a66'); digits(g, '3', 17, 18, 1, '#5a3a1b')
+    star(g, 12, 5, 4.6, 2, '#ffe066'); star(g, 12, 5, 2.8, 1.2, '#fff')
+  },
+  reigning(g) {
+    helmet(g, 12, 14, 8, 1)
+    polyFn(g, [[6.5, 8], [6.5, 2.5], [9.2, 5], [12, 1], [14.8, 5], [17.5, 2.5], [17.5, 8]], () => '#ffd866'); rect(g, 6, 7, 12, 2, '#c58a1f'); px(g, 12, 4, '#ff5a5a'); px(g, 8, 7, '#5be0ff'); px(g, 16, 7, '#5bf0b0')
+  },
+  'well-rounded'(g) {
+    for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) { const dx = x + .5 - 12, dy = y + .5 - 12, d = Math.sqrt(dx * dx + dy * dy); if (d > 10.4) continue; const a = (Math.atan2(dy, dx) + Math.PI) / (2 * Math.PI), s = Math.floor(a * 11), edge = Math.abs(a * 11 - Math.round(a * 11)) < .06 && d > 3.6; px(g, x, y, edge ? '#0d1330' : mix(rainS(s / 10), d < 6 ? '#ffffff' : '#000000', d < 6 ? .25 : .05)) }
+    disc(g, 12, 12, 3.6, '#0d1330'); smallGem(g, 12, 12, '#ffffff', '#c4a0ff')
+  },
+  'full-shelf'(g) {
+    rect(g, 2, 17, 20, 3, '#8a5a2b'); rect(g, 2, 17, 20, 1, '#c98a45'); rect(g, 3, 20, 2, 3, '#5a3a1b'); rect(g, 19, 20, 2, 3, '#5a3a1b')
+    smallGem(g, 5, 13, '#5be0ff', '#fff'); smallGem(g, 10, 13, '#ff5fb0', '#fff'); smallGem(g, 15, 13, '#ffe066', '#fff'); smallGem(g, 20, 13, '#5bf0b0', '#fff')
+    return (p) => { sparkle(p, 12, 5, '#fff', true); px(p, 3, 6, '#ffe9a0'); px(p, 21, 6, '#bdf0ff') }
+  },
+  'gem-hunter'(g) {
+    smallGem(g, 7, 17, '#5be0ff', '#fff'); smallGem(g, 17, 17, '#ff5fb0', '#fff'); smallGem(g, 12, 10, '#ffe066', '#fff')
+    smallGem(g, 12, 18, '#c4a0ff', '#fff')
+    return (p) => { sparkle(p, 12, 3, '#fff'); sparkle(p, 3, 9, '#ffe9a0'); sparkle(p, 21, 9, '#bdf0ff') }
+  },
+  'singularity-seven'(g) {
+    const C = ['#5be0ff', '#5bf0b0', '#ffe066', '#ffffff', '#ff9a3c', '#ff5fb0', '#c4a0ff']
+    for (let k = 0; k < 7; k++) { const a = Math.PI + k * Math.PI / 6, x = 12 + 9.2 * Math.cos(a), y = 17.5 + 9.2 * Math.sin(a); poly(g, [[x, y - 2.8], [x + 2.8, y], [x, y + 2.8], [x - 2.8, y]], C[k]); px(g, x - 1, y - 1, '#fff') }
+    rect(g, 2, 21, 20, 1, '#6f7fc0')
+    return (p) => { sparkle(p, 12, 4, '#fff', true); px(p, 3, 4, '#ffe9a0'); px(p, 21, 4, '#bdf0ff') }
+  },
 }
 function glyph(a, locked) { const [c, g] = cv(24, 24); const post = GLYPH[a.id](g); outline(c); if (typeof post === "function") post(g); if (locked) dim(c); return c }
 

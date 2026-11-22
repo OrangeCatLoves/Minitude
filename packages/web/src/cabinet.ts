@@ -6,7 +6,7 @@
  * cabinet can be shown without asking the server anything. Gems that are not found yet are only counted: the questions are not sent to the
  * browser before they are asked, so a hidden slot shows nothing but its category and a question mark.
  */
-import { ACHIEVEMENTS, addGem, cabinetView, emptyCabinet, parseCabinet, serializeCabinet, type Cabinet, type GemEntry, type GemSummary } from '@minitude/core'
+import { ACHIEVEMENTS, addGem, cabinetView, emptyCabinet, parseCabinet, serializeCabinet, type Cabinet, type GemEntry, type GemSummary, type Shelf } from '@minitude/core'
 import { getGemSummary } from './api'
 import type { AchievementsUi } from './achievements'
 
@@ -50,6 +50,15 @@ export class CabinetUi {
   get knownTotal(): number | null { return this.summary && this.summary.total > 0 ? this.summary.total : null }
   /** the days the gems were found, in the order they were found */
   get gemDays(): string[] { return this.cab.gems.map((g) => g.day) }
+  /**
+   * The cabinet by category, for Well Rounded and Full Shelf: only the categories the SERVER listed, with its counts (null until it has said).
+   * A found gem of a category the server no longer lists counts for nothing here, so it can never complete a shelf by itself.
+   */
+  get shelves(): Shelf[] | null {
+    const cats = this.summary?.categories
+    if (!cats || !cats.length) return null
+    return cats.map((c) => ({ name: c.name, total: c.total, have: Math.min(c.total, this.cab.gems.filter((g) => g.category === c.name).length) }))
+  }
 
   /** a gem was found. Returns whether it is new and the counts after it. */
   add(entry: GemEntry): { isNew: boolean; found: number; total: number } {

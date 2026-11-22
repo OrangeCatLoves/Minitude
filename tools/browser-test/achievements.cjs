@@ -15,8 +15,8 @@ const { open, pick, bank, OUT } = require('./lib.cjs')
   const stored = () => page.evaluate(() => { try { return JSON.parse(localStorage.getItem('minitude.achievements') || '{}') } catch { return {} } })
   const banner = () => page.evaluate(() => { const b = document.getElementById('ach-banner'); return b && !b.hidden ? { cls: b.className, name: b.querySelector('.ach-nm')?.textContent, lab: b.querySelector('.ach-lab')?.textContent, chip: b.querySelector('.ach-chip')?.textContent, box: (({ x, y, width, height }) => ({ x, y, width, height }))(b.getBoundingClientRect()) } : null })
 
-  // a clean start: nothing earned, no gems
-  await page.evaluate(() => { localStorage.removeItem('minitude.achievements'); localStorage.removeItem('minitude.gems') })
+  // a clean start: no gems, nothing earned but Quick Draw (this script answers at once, which would earn it: tested in core)
+  await page.evaluate(() => { localStorage.setItem('minitude.achievements', JSON.stringify({ earned: { 'quick-draw': '' } })); localStorage.removeItem('minitude.gems'); localStorage.removeItem('minitude.logbook') })
   await page.reload()
   await page.waitForFunction(() => window.__mt, null, { timeout: 60000 })
   await t.adv(3.5)
@@ -30,7 +30,7 @@ const { open, pick, bank, OUT } = require('./lib.cjs')
   if (!bank.questions.find((x) => x.id === q1)) fail('question ' + q1 + ' is not in the seed bank: use a database seeded from it')
   s = await t.answer(pick(q1, 0))
   ok(s.rec && s.rec.ti === 0, 'the first answer scored Common')
-  ok(Object.keys((await stored()).earned || {}).join() === 'first-common', 'Down to Earth is stored right away: ' + JSON.stringify(await stored()))
+  ok(Object.keys((await stored()).earned || {}).filter((id) => id !== 'quick-draw').join() === 'first-common', 'Down to Earth is stored right away: ' + JSON.stringify(await stored()))
   ok(!(await banner()), 'but the banner waits for the answer\'s own show (nothing yet at the start of the roll)')
   await t.gotoT((s.rec.cardOn ? s.rec.card + s.rec.clen : s.rec.fe) + 0.4)
   await page.waitForTimeout(500)
@@ -62,7 +62,7 @@ const { open, pick, bank, OUT } = require('./lib.cjs')
   await t.gotoT((s.rec.cardOn ? s.rec.card + s.rec.clen : s.rec.fe) + 0.4)
   await page.waitForTimeout(500)
   ok(!(await banner()), 'a second Rare answer shows no banner')
-  ok(Object.keys((await stored()).earned).length === before && before === 2, 'and stores nothing new (2 earned: Common, Rare)')
+  ok(Object.keys((await stored()).earned).length === before && before === 3, 'and stores nothing new (Common, Rare, and the Quick Draw set at the start)')
 
   // ---- the cabinet: twelve gems found earlier are noticed quietly
   await page.evaluate(() => {
@@ -102,6 +102,22 @@ const { open, pick, bank, OUT } = require('./lib.cjs')
   ok((await banner())?.name === 'Curator', 'and "Curator" (25 gems reached in one go)')
   await page.waitForTimeout(4300)
 
+  // ---- a run ends (22 Nov 2026: the dive, how it went, the Daily): the banners come in order, the dive first
+  await page.evaluate(() => { const g = window.__mt.game; g.achievements.onRunEnd({ mode: 'daily', total: 700, tiers: [5, 5, 5, 5, 5, 5, 5], won: false }, 0) })
+  await t.adv(0.1)
+  await page.waitForTimeout(500)
+  b = await banner()
+  ok(b && b.name === 'Uncharted' && /THE DIVE/.test(b.lab), 'a run of 700 shows "Uncharted" first (ACHIEVEMENT · THE DIVE): ' + JSON.stringify(b))
+  await shotPage('ach_banner_dive')
+  st = await stored()
+  ok(['uncharted', 'planck', 'clean', 'no-easy', 'daily-debut'].every((id) => id in st.earned) && !('so-close' in st.earned), 'and stores Uncharted, The Edge of Physics, Beat the Clock, No Easy Answers and Daily Debut')
+  await page.evaluate(() => { window.__mt.game.achievements.queue = [] })
+  await page.waitForTimeout(4300)
+  // a match won: the count of wins is kept
+  await page.evaluate(() => { window.__mt.game.achievements.onRunEnd({ mode: 'versus', total: 100, tiers: [0, 0, null, 0, 0, 0, 0], won: true }, 0); window.__mt.game.achievements.queue = [] })
+  st = await stored()
+  ok(st.wins === 1 && 'room-champion' in st.earned && 'face-to-face' in st.earned, 'a match won stores Face to Face, Room Champion and one win')
+
   // ---- the cabinet's second tab
   await page.evaluate(() => { window.__mt.game.cabinet.open() })
   await page.waitForSelector('#cabinet .cab-tab')
@@ -110,7 +126,8 @@ const { open, pick, bank, OUT } = require('./lib.cjs')
   await page.click('#cabinet .cab-tab:nth-child(2)')
   await page.waitForSelector('#cabinet .ach-item')
   const items = await page.$$eval('#cabinet .ach-item', (els) => els.map((e) => ({ name: e.querySelector('.ach-name')?.textContent, locked: e.classList.contains('locked'), grand: e.classList.contains('grand'), date: e.querySelector('.ach-date')?.textContent })))
-  ok(items.length === 15, 'the tab lists all fifteen achievements, locked ones with their text')
+  ok(items.length === 41, 'the tab lists all forty-one achievements, locked ones with their text')
+  ok(items.find((i) => i.name === 'Reigning Champion')?.date === '1 / 10 wins', 'Reigning Champion shows its progress in wins')
   ok(items.find((i) => i.name === 'Singularity Complete')?.grand === true, '"Singularity Complete" has the large card')
   ok(items.find((i) => i.name === 'Five Hundred Strong') && items.find((i) => i.name === 'Down to Earth'), 'the new names are on the list')
   const curator = items.find((i) => i.name === 'Curator')
@@ -118,11 +135,26 @@ const { open, pick, bank, OUT } = require('./lib.cjs')
   await shotPage('ach_cabinet_tab')
   await page.evaluate(() => { document.querySelector('#cabinet').scrollTo(0, 99999) })
   await shotPage('ach_cabinet_tab_bottom')
+  // every one earned, to look at all forty-one pictures
+  await page.evaluate(() => {
+    const g = window.__mt.game, ids = [...document.querySelectorAll('#cabinet .ach-item')].length
+    const all = {}
+    for (const a of window.__mt.achievementIds) all[a] = '2026-11-22'
+    g.achievements.state = { earned: all }
+    g.cabinet.render()
+    return ids
+  })
+  await page.evaluate(() => { document.querySelector('#cabinet').scrollTo(0, 0) })
+  await shotPage('ach_cabinet_all_1')
+  for (let k = 1; k <= 4; k++) {
+    await page.evaluate((k) => { const c = document.querySelector('#cabinet'); c.scrollTo(0, k * c.clientHeight * 0.85) }, k)
+    await shotPage('ach_cabinet_all_' + (k + 1))
+  }
   await page.click('#cabinet .cab-tab:nth-child(1)')
   ok(await page.$('#cabinet .cab-cat'), 'the first tab still shows the gems by category')
   await page.keyboard.press('Escape')
 
-  const bad = logs.filter((l) => !/favicon|404|Failed to load resource/.test(l))
+  const bad = logs.filter((l) => !/favicon|404|Failed to load resource|GPU stall due to ReadPixels/.test(l))
   ok(bad.length === 0, 'no page errors' + (bad.length ? ': ' + bad.join(' | ') : ''))
   await t.browser.close()
   console.log('achievements: all checks passed')

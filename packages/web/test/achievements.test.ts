@@ -4,7 +4,7 @@ import { fmtDay } from '../src/achievements'
 import { GLYPH_IDS, TROPHY_ID } from '../src/achicons'
 
 describe('the achievement pictures', () => {
-  it('there is a picture for every achievement: fourteen 24-pixel ones and the trophy', () => {
+  it('there is a picture for every achievement: forty 24-pixel ones and the trophy', () => {
     const ids = ACHIEVEMENTS.map((a) => a.id).sort()
     const have = [...GLYPH_IDS.filter((id) => id !== TROPHY_ID), TROPHY_ID].sort()
     expect(have).toEqual(ids)

@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>More achievements (draft)</title>
+<style>
+@font-face { font-family: 'Silkscreen'; src: url('../../packages/web/public/fonts/Silkscreen-Regular.ttf') format('truetype'); font-weight: 400; }
+@font-face { font-family: 'Silkscreen'; src: url('../../packages/web/public/fonts/Silkscreen-Bold.ttf') format('truetype'); font-weight: 700; }
+@font-face { font-family: 'PixelifyFix'; src: url('../../packages/web/public/fonts/PixelifyFix-400.ttf') format('truetype'); font-weight: 400; }
+:root { --ink: #070b17; --panel: #0b1122; --raised: #101831; --line: rgba(110,124,170,.32); --off: #eef2ff; --body: #d3daf0; --soft: #a3b0d6; --faint: #8190bb; --gold: #ffd866; --pixel: 'Silkscreen', 'Courier New', monospace; --game: 'PixelifyFix', system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ink); color: var(--body); font: 15px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-variant-ligatures: none; }
+main { max-width: 1260px; margin: 0 auto; padding: 26px 22px 70px; }
+h1 { margin: 0 0 6px; font: 700 22px/1.2 var(--pixel); letter-spacing: .08em; color: var(--off); }
+h2 { margin: 34px 0 4px; display: flex; justify-content: space-between; gap: 12px; font: 700 13px/1.2 var(--pixel); letter-spacing: .14em; text-transform: uppercase; color: var(--off); border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+h2 span { color: var(--faint); }
+p.lead { margin: 6px 0 10px; max-width: 920px; color: var(--soft); }
+p.note { margin: 6px 0 12px; max-width: 920px; color: var(--faint); font-size: 14px; }
+canvas { image-rendering: pixelated; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 12px 0 4px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); font-size: 13.5px; color: var(--soft); }
+.tag { display: inline-block; font: 700 10px/1 var(--pixel); letter-spacing: .1em; padding: 4px 6px 3px; border: 1px solid; margin-right: 6px; white-space: nowrap; }
+.t-build { color: #ffd866; border-color: #ffd866; }
+.t-stored { color: #8dffb4; border-color: #46d078; }
+.t-run { color: #9ad8ff; border-color: #4fc3ff; }
+.t-answer { color: #ffa8d6; border-color: #ff5fb0; }
+.t-new { color: #d8bcff; border-color: #b583ff; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+@media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+.card { display: flex; gap: 14px; align-items: flex-start; padding: 12px; background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+.card.skip { opacity: .72; }
+.card .ics { display: flex; flex-direction: column; gap: 8px; align-items: center; flex: none; }
+.card .tx { min-width: 0; flex: 1; }
+.card .nm { font: 400 18px/1.15 var(--game); color: var(--off); }
+.card .su { margin-top: 3px; font: 400 14px/1.3 var(--game); color: var(--body); }
+.card .rule { margin-top: 7px; font-size: 12.5px; line-height: 1.4; color: var(--faint); }
+.card .tags { margin-top: 8px; }
+.card .nm, .card .su { font-variant-ligatures: none; font-feature-settings: "liga" 0, "clig" 0, "calt" 0; }
+.sum { margin-top: 26px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); }
+.sum table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.sum td, .sum th { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.sum th { font: 700 10px/1.2 var(--pixel); letter-spacing: .12em; color: var(--faint); text-transform: uppercase; }
+</style>
+</head>
+<body>
+<main>
+  <h1>MORE ACHIEVEMENTS · DRAFT</h1>
+  <p class="lead">Ideas for the next achievements, for the owner to cut, rename and approve. Nothing here is in the game. There are 15 today; this sheet proposes <b id="count"></b> more in six groups. Every one has its own picture in the same style (24 x 24 pixels, in the tile frame), a name, a one-line text and a note on what it would take to build. A name or a rule can be changed in one line.</p>
+  <div class="legend" id="legend"></div>
+  <p class="note">All of them would be kept only in the browser, like the others, and would count in solo runs, the Daily and multiplayer unless they say otherwise. The ones judged "when a run ends" show their banner as the report appears. The ones marked "from what is stored" can be given to existing players quietly from their logbook and gem cabinet, with no banner.</p>
+  <div id="groups"></div>
+  <div class="sum" id="sum"></div>
+</main>
+<script>
+/*TOOLKIT*/
+const rainS = (t) => { t = Math.max(0, Math.min(.999, t)) * 5; const i = Math.floor(t); return mix(RAINBOW[i], RAINBOW[i + 1], t - i) }
+function moon(g, cx, cy, r, ox, oy, r2) { for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) { const dx = x + .5 - cx, dy = y + .5 - cy; if (dx * dx + dy * dy > r * r) continue; const ex = x + .5 - (cx + ox), ey = y + .5 - (cy + oy); if (ex * ex + ey * ey <= r2 * r2) continue; px(g, x, y, mix(rainS(((Math.atan2(dy, dx) + Math.PI) / (2 * Math.PI) + .08) % 1), '#ffffff', .12)) } }
+
+/* ---------- small helpers for this sheet */
+const BM = { 0: ['111', '101', '101', '101', '111'], 1: ['010', '110', '010', '010', '111'], 2: ['111', '001', '111', '100', '111'], 3: ['111', '001', '111', '001', '111'], 5: ['111', '100', '111', '001', '111'], 7: ['111', '001', '010', '010', '010'], V: ['101', '101', '101', '101', '010'], S: ['011', '100', '010', '001', '110'] }
+/** digits and letters in a 3 x 5 face at scale s, with an optional drop shadow; colFn(x, y) gives the colour */
+function digits(g, str, x0, y0, s, colFn, shadow) {
+  const cells = []
+  ;[...str].forEach((ch, i) => BM[ch].forEach((row, ry) => [...row].forEach((v, rx) => { if (v === '1') cells.push([x0 + (i * 4 + rx) * s, y0 + ry * s]) })))
+  if (shadow) for (const [x, y] of cells) rect(g, x + 1, y + 1, s, s, shadow)
+  for (const [x, y] of cells) rect(g, x, y, s, s, typeof colFn === 'string' ? colFn : colFn(x, y))
+}
+const star = (g, cx, cy, R, r, col) => { const pts = []; for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r : R; pts.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]) } poly(g, pts, col) }
+/** a spacesuit helmet: cream shell, blue visor on the side the face looks to (dir = 1 right, -1 left) */
+function helmet(g, cx, cy, r, dir = 1) {
+  disc(g, cx, cy, r, '#d9c9a5'); disc(g, cx - .6, cy - .6, r - .8, '#fff0d0')
+  ell(g, cx + dir * r * .22, cy + .4, r * .62, r * .5, '#1d4a86'); ell(g, cx + dir * r * .22, cy + .2, r * .56, r * .42, '#2b5fa0')
+  px(g, cx + dir * r * .22 - dir * 1, cy - r * .22, '#bfe4ff'); px(g, cx + dir * r * .22 - dir * 2, cy - r * .22 + 1, '#bfe4ff')
+}
+function flame(g, outer, mid, core) {
+  const T = (pts) => pts.map(([x, y]) => [12 + (x - 12) * 1.12, 0.5 + (y - 1) * .8])
+  polyFn(g, T([[12, 1], [15, 6], [18, 11], [18, 16], [15, 20], [12, 21], [9, 20], [6, 16], [6, 11], [8, 8], [10, 12], [11, 6]]), typeof outer === 'string' ? () => outer : outer)
+  poly(g, T([[12, 9], [15, 13], [15, 17], [12, 20], [9, 17], [9, 13]]), mid)
+  poly(g, T([[12, 13], [13.6, 16], [12, 19], [10.4, 16]]), core)
+}
+
+/* ---------- the pictograms, 24 x 24 */
+const GL = {
+  uncharted(g) {
+    disc(g, 12, 12, 10, '#0d1330'); for (let k = 0; k < 28; k += 2) { const a = k * Math.PI / 14; px(g, 12 + 10.1 * Math.cos(a), 12 + 10.1 * Math.sin(a), '#6f7fc0') }
+    const Q = ['01110', '10001', '00001', '00010', '00100', '00000', '00100']
+    Q.forEach((row, ry) => [...row].forEach((v, rx) => { if (v === '1') { rect(g, 7 + rx * 2 + 1, 5 + ry * 2 + 1, 2, 2, '#2a1a66'); rect(g, 7 + rx * 2, 5 + ry * 2, 2, 2, '#bdf0ff') } }))
+    px(g, 4, 6, '#fff'); px(g, 19, 17, '#ffe9a0'); px(g, 18, 5, '#c4a0ff'); px(g, 5, 18, '#ff9ccd')
+  },
+  'so-close'(g) {
+    rect(g, 1, 8, 20, 9, '#6f7fc0'); rect(g, 2, 9, 18, 7, '#0b1122')
+    for (let x = 2; x < 17; x++) for (let y = 9; y < 16; y++) px(g, x, y, mix(rainS((x - 2) / 14), y === 9 ? '#ffffff' : '#000000', y === 9 ? .4 : y >= 14 ? .22 : 0))
+    rect(g, 21, 4, 2, 17, '#ffd866'); rect(g, 21, 4, 2, 1, '#fff6d0'); poly(g, [[21, 1], [21, 7], [15, 4]], '#ff5a5a')
+    px(g, 18, 11, '#fff'); px(g, 18, 12, 'rgba(255,255,255,.5)'); px(g, 18, 13, 'rgba(255,255,255,.25)')
+    return (p) => { sparkle(p, 18, 20, '#fff'); px(p, 4, 4, '#ffe9a0'); px(p, 10, 21, '#bdf0ff') }
+  },
+  planck(g) {
+    const B = [[8, 8, 6], [16, 7, 5], [16, 16, 6], [7, 17, 4.5], [12, 12, 3.4], [20, 11.5, 2.6]]
+    B.forEach(([x, y, r], i) => { const c = rainS(i / 5); disc(g, x, y, r, c); disc(g, x, y, r - 1.3, mix(c, '#0d1330', .72)); px(g, x - r * .45, y - r * .45, '#fff'); px(g, x - r * .45 + 1, y - r * .45, '#fff') })
+    return (p) => { sparkle(p, 12, 12, '#fff'); px(p, 2, 3, '#bdf0ff'); px(p, 21, 21, '#ffe9a0') }
+  },
+  'past-edge'(g) {
+    rect(g, 1, 14, 11, 8, '#8a5a14'); rect(g, 1, 14, 11, 2, '#ffd866'); rect(g, 1, 16, 11, 1, '#c58a1f')
+    for (let k = 0; k <= 22; k++) { const t = k / 22, x = 11 + 11 * t, y = 13 - 9 * Math.sin(t * Math.PI * .85); if (k % 2 === 0) rect(g, Math.round(x), Math.round(y), 2, 2, rainS(t)) }
+    star(g, 20.5, 5, 3.6, 1.5, '#fff6d0')
+    px(g, 15, 19, '#6f7fc0'); px(g, 20, 17, '#6f7fc0'); px(g, 18, 21, '#c4a0ff')
+  },
+  'first-dive'(g) {
+    rect(g, 4, 14, 3, 7, '#3de0c0'); rect(g, 4, 14, 1, 7, '#9af5e0')
+    rect(g, 7, 15, 11, 7, '#ff8a3c'); rect(g, 7, 15, 11, 1, '#ffb27a'); rect(g, 15, 15, 3, 7, '#d96a22'); rect(g, 10, 17, 5, 1, '#ffe9a0')
+    helmet(g, 12, 9, 7)
+  },
+  'ten-dives'(g) { helmet(g, 12, 6, 5, 1); digits(g, '10', 5, 12, 2, '#8dffb4', '#0d3a22') },
+  'fifty-dives'(g) { helmet(g, 12, 6, 5, 1); digits(g, '50', 5, 12, 2, '#9ad8ff', '#0c2a52') },
+  'hundred-dives'(g) { helmet(g, 12, 6, 5, 1); digits(g, '100', 1, 12, 2, '#d8bcff', '#2a1850'); px(g, 3, 4, '#fff'); px(g, 20, 3, '#ffe9a0') },
+  clean(g) {
+    disc(g, 11, 12, 9.5, '#8b97b5'); disc(g, 11, 12, 8, '#fff6e0')
+    for (const [x, y] of [[11, 5], [11, 19], [4, 12], [18, 12]]) px(g, x, y, '#6b7696')
+    line(g, 11, 12, 11, 7, '#2a1a66'); line(g, 11, 12, 15, 12, '#2a1a66'); disc(g, 11, 12, 1, '#2a1a66')
+    disc(g, 18, 18, 5, '#1e7a3a'); disc(g, 18, 18, 4, '#59d97c'); line(g, 15, 18, 17, 20, '#fff', 1); line(g, 17, 20, 20, 15, '#fff', 1); line(g, 15, 19, 17, 21, '#fff', 1); line(g, 17, 21, 20, 16, '#fff', 1)
+  },
+  'no-easy'(g) {
+    ell(g, 12, 13, 9, 6, '#8b97b5'); ell(g, 11, 12, 8, 5, '#cdd6ee'); ell(g, 8, 10, 2.2, 1.2, '#fff')
+    line(g, 4, 3, 20, 21, '#ff5a5a', 2); line(g, 20, 3, 4, 21, '#ff5a5a', 2)
+  },
+  buzzer(g) {
+    rect(g, 10, 1, 4, 2, '#c58a1f'); rect(g, 11, 3, 2, 3, '#c58a1f'); rect(g, 17, 4, 3, 2, '#c58a1f')
+    disc(g, 12, 14, 9.5, '#8b97b5'); disc(g, 12, 14, 8, '#fff6e0')
+    for (let a = -90; a <= -50; a += 2) line(g, 12, 14, Math.round(12 + 7.4 * Math.cos(a * Math.PI / 180)), Math.round(14 + 7.4 * Math.sin(a * Math.PI / 180)), '#ff5a5a')
+    line(g, 12, 14, Math.round(12 + 6.4 * Math.cos(-64 * Math.PI / 180)), Math.round(14 + 6.4 * Math.sin(-64 * Math.PI / 180)), '#2a1a66'); disc(g, 12, 14, 1.2, '#2a1a66')
+    for (const [x, y] of [[12, 7], [12, 21], [5, 14], [19, 14]]) px(g, x, y, '#6b7696')
+  },
+  'quick-draw'(g) {
+    poly(g, [[15, 1], [4, 13], [11, 13], [8, 23], [20, 9], [13, 9]], '#ffe066'); poly(g, [[15, 3], [8, 12], [12, 12], [10, 19], [16, 10], [12, 10]], '#fff6b0')
+    return (p) => { px(p, 3, 4, '#fff'); px(p, 20, 17, '#ffc857'); px(p, 21, 4, '#fff') }
+  },
+  'close-enough'(g) {
+    rect(g, 2, 3, 20, 13, '#eef2ff'); g.clearRect(2, 3, 1, 1); g.clearRect(21, 3, 1, 1); g.clearRect(2, 15, 1, 1); g.clearRect(21, 15, 1, 1)
+    poly(g, [[6, 15], [6, 21], [12, 15]], '#eef2ff')
+    line(g, 7, 9, 10, 12, '#1e7a3a', 2); line(g, 10, 12, 17, 6, '#1e7a3a', 2); line(g, 7, 8, 10, 11, '#59d97c', 1); line(g, 10, 11, 17, 5, '#59d97c', 1)
+  },
+  'open-book'(g) {
+    poly(g, [[2, 8], [11, 10], [11, 21], [2, 19]], '#fff6e0'); poly(g, [[22, 8], [13, 10], [13, 21], [22, 19]], '#e9dcc0')
+    rect(g, 11, 10, 2, 11, '#8a5a2b'); rect(g, 1, 19, 10, 2, '#c58a1f'); rect(g, 13, 19, 10, 2, '#c58a1f')
+    for (let k = 0; k < 4; k++) { line(g, 4, 11 + k * 2, 9, 12 + k * 2, '#8d99c0'); line(g, 15, 12 + k * 2, 20, 11 + k * 2, '#a99fbf') }
+    smallGem(g, 12, 4, '#c4a0ff', '#fff')
+    return (p) => { px(p, 6, 3, '#fff'); px(p, 19, 3, '#ffe9a0') }
+  },
+  'daily-debut'(g) {
+    rect(g, 3, 4, 18, 18, '#eef2ff'); rect(g, 3, 4, 18, 5, '#ff5fb0'); rect(g, 3, 4, 18, 1, '#ff9ccd'); rect(g, 7, 2, 2, 5, '#8d99c0'); rect(g, 15, 2, 2, 5, '#8d99c0')
+    star(g, 12, 15.5, 5, 2.2, '#ffc857'); star(g, 12, 15.5, 3.4, 1.4, '#fff2b0')
+  },
+  'streak-3'(g) { flame(g, '#ff8a3c', '#ffc857', '#fff2b0'); digits(g, '3', 10, 17, 1, '#fff6d0', '#2a1a66') },
+  'streak-7'(g) { flame(g, '#ffa03c', '#ffe066', '#ffffff'); digits(g, '7', 10, 17, 1, '#fff6d0', '#2a1a66'); px(g, 4, 6, '#ffe066'); px(g, 19, 9, '#ffe066') },
+  'streak-30'(g) { flame(g, '#4fc3ff', '#bdf0ff', '#ffffff'); digits(g, '30', 8, 17, 1, '#fff6d0', '#2a1a66'); px(g, 4, 6, '#bdf0ff'); px(g, 19, 9, '#bdf0ff') },
+  'streak-100'(g) {
+    flame(g, (x, y) => rainS((y - 1) / 15), '#fff6d0', '#ffffff'); digits(g, '100', 6, 17, 1, '#fff6d0', '#2a1a66')
+    crescentDot(g)
+  },
+  'face-to-face'(g) {
+    for (const [x0, dir, bx] of [[5.5, 1, 2], [18.5, -1, 15]]) {
+      rect(g, bx, 14, 7, 8, '#ff8a3c'); rect(g, bx, 14, 7, 1, '#ffb27a'); rect(g, bx + (dir > 0 ? 5 : 0), 14, 2, 8, '#d96a22')
+      helmet(g, x0, 9, 4.8, dir)
+    }
+    poly(g, [[13.6, 2], [10.4, 10.6], [12.8, 10.6], [10.8, 19], [14.8, 8.8], [12.4, 8.8]], '#ffe066'); poly(g, [[13.2, 4], [11.4, 10], [13, 10], [12, 15], [13.8, 9.6], [12.2, 9.6]], '#fff6b0')
+  },
+    'room-champion'(g) {
+    rect(g, 2, 14, 7, 8, '#cdd6ee'); rect(g, 2, 14, 7, 1, '#fff'); rect(g, 15, 16, 7, 6, '#d79a5a'); rect(g, 15, 16, 7, 1, '#ffc891'); rect(g, 8, 10, 8, 12, '#ffd866'); rect(g, 8, 10, 8, 1, '#fff6d0'); rect(g, 8, 20, 8, 2, '#c58a1f')
+    digits(g, '1', 11, 13, 1, '#2a1a66'); digits(g, '2', 4, 16, 1, '#2a1a66'); digits(g, '3', 17, 18, 1, '#5a3a1b')
+    star(g, 12, 5, 4.6, 2, '#ffe066'); star(g, 12, 5, 2.8, 1.2, '#fff')
+  },
+  reigning(g) {
+    helmet(g, 12, 14, 8, 1)
+    polyFn(g, [[6.5, 8], [6.5, 2.5], [9.2, 5], [12, 1], [14.8, 5], [17.5, 2.5], [17.5, 8]], () => '#ffd866'); rect(g, 6, 7, 12, 2, '#c58a1f'); px(g, 12, 4, '#ff5a5a'); px(g, 8, 7, '#5be0ff'); px(g, 16, 7, '#5bf0b0')
+  },
+  'well-rounded'(g) {
+    for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) { const dx = x + .5 - 12, dy = y + .5 - 12, d = Math.sqrt(dx * dx + dy * dy); if (d > 10.4) continue; const a = (Math.atan2(dy, dx) + Math.PI) / (2 * Math.PI), s = Math.floor(a * 11), edge = Math.abs(a * 11 - Math.round(a * 11)) < .06 && d > 3.6; px(g, x, y, edge ? '#0d1330' : mix(rainS(s / 10), d < 6 ? '#ffffff' : '#000000', d < 6 ? .25 : .05)) }
+    disc(g, 12, 12, 3.6, '#0d1330'); smallGem(g, 12, 12, '#ffffff', '#c4a0ff')
+  },
+  'full-shelf'(g) {
+    rect(g, 2, 17, 20, 3, '#8a5a2b'); rect(g, 2, 17, 20, 1, '#c98a45'); rect(g, 3, 20, 2, 3, '#5a3a1b'); rect(g, 19, 20, 2, 3, '#5a3a1b')
+    smallGem(g, 5, 13, '#5be0ff', '#fff'); smallGem(g, 10, 13, '#ff5fb0', '#fff'); smallGem(g, 15, 13, '#ffe066', '#fff'); smallGem(g, 20, 13, '#5bf0b0', '#fff')
+    return (p) => { sparkle(p, 12, 5, '#fff', true); px(p, 3, 6, '#ffe9a0'); px(p, 21, 6, '#bdf0ff') }
+  },
+  'gem-hunter'(g) {
+    smallGem(g, 7, 17, '#5be0ff', '#fff'); smallGem(g, 17, 17, '#ff5fb0', '#fff'); smallGem(g, 12, 10, '#ffe066', '#fff')
+    smallGem(g, 12, 18, '#c4a0ff', '#fff')
+    return (p) => { sparkle(p, 12, 3, '#fff'); sparkle(p, 3, 9, '#ffe9a0'); sparkle(p, 21, 9, '#bdf0ff') }
+  },
+  'singularity-seven'(g) {
+    const C = ['#5be0ff', '#5bf0b0', '#ffe066', '#ffffff', '#ff9a3c', '#ff5fb0', '#c4a0ff']
+    for (let k = 0; k < 7; k++) { const a = Math.PI + k * Math.PI / 6, x = 12 + 9.2 * Math.cos(a), y = 17.5 + 9.2 * Math.sin(a); poly(g, [[x, y - 2.8], [x + 2.8, y], [x, y + 2.8], [x - 2.8, y]], C[k]); px(g, x - 1, y - 1, '#fff') }
+    rect(g, 2, 21, 20, 1, '#6f7fc0')
+    return (p) => { sparkle(p, 12, 4, '#fff', true); px(p, 3, 4, '#ffe9a0'); px(p, 21, 4, '#bdf0ff') }
+  },
+}
+function crescentDot(g) { px(g, 3, 3, '#fff'); px(g, 20, 4, '#fff'); px(g, 21, 11, '#ffe9a0') }
+
+function glyph(id, locked) { const [c, g] = cv(24, 24); const post = GL[id](g); outline(c); if (typeof post === 'function') post(g); if (locked) dim(c); return c }
+const GREY = { bg: '#0d1328', edge: '#323d62' }
+function tile(id, tier, locked) {
+  const t = locked ? GREY : TIER[tier], [c, g] = cv(40, 40)
+  rect(g, 1, 1, 38, 38, t.edge); rect(g, 2, 2, 36, 36, t.bg); g.clearRect(0, 0, 1, 1); g.clearRect(39, 0, 1, 1); g.clearRect(0, 39, 1, 1); g.clearRect(39, 39, 1, 1)
+  if (!locked) rect(g, 3, 3, 34, 1, 'rgba(255,255,255,.16)'); else for (let x = 3; x < 37; x += 4) { rect(g, x, 2, 2, 1, '#070b17'); rect(g, x, 37, 2, 1, '#070b17') }
+  g.drawImage(glyph(id, locked), 8, 8)
+  return c
+}
+const show = (canvas, s) => { canvas.style.width = canvas.width * s + 'px'; canvas.style.height = canvas.height * s + 'px'; return canvas }
+
+/* ---------- the proposals. tier = the colour of its tile (0 grey, 1 green, 2 blue, 3 violet, 4 gold, 5 pink, 6 the Singularity violet).
+   how: stored = can be given quietly from the logbook or the cabinet; run = judged when the run ends; answer = judged at the moment of an answer; new = needs a small new piece.
+   build: true = I would build it. */
+const GROUPS = [
+  { id: 'journey', title: 'The dive', note: 'How far a single run goes. They use the run total the game already has when the report opens.', items: [
+    { id: 'uncharted', tier: 2, name: 'Uncharted', text: 'Dive into the Unexplored: 600 points in a run.', rule: 'Total of a run is 600 or more (the Unexplored starts at 600).', how: 'run', build: true },
+    { id: 'so-close', tier: 4, name: 'So Close', text: 'Finish a run less than 10 points short of Planck Foam.', rule: 'Total is 690 to 699. The report already says "Planck Foam was N points away". A consolation prize, and a funny one.', how: 'run', build: true },
+    { id: 'planck', tier: 6, name: 'The Edge of Physics', text: 'Reach Planck Foam: 700 points in a run.', rule: 'Total is 700 or more, the finale plays. This is the same as a perfect run (seven Mythic answers make exactly 700). Other names: "Planck Foam", "Smaller Than Small".', how: 'run', build: true },
+    { id: 'past-edge', tier: 6, name: 'Past the Edge', text: 'Finish a run 50 points past Planck Foam.', rule: 'Total is 750 or more. Needs gems: seven Mythic answers are only 700. The number is easy to change.', how: 'run', build: true },
+  ] },
+  { id: 'runs', title: 'Runs', note: 'Played, and how. "Runs played" is the logbook the game already keeps (solo, Daily and multiplayer).', items: [
+    { id: 'first-dive', tier: 0, name: 'First Dive', text: 'Finish your first run.', rule: 'Runs played is 1 or more.', how: 'stored', build: true },
+    { id: 'ten-dives', tier: 1, name: 'Getting Deeper', text: 'Finish 10 runs.', rule: 'Runs played is 10 or more.', how: 'stored', build: true },
+    { id: 'fifty-dives', tier: 2, name: 'Deep Diver', text: 'Finish 50 runs.', rule: 'Runs played is 50 or more.', how: 'stored', build: true },
+    { id: 'hundred-dives', tier: 3, name: 'Bottomless', text: 'Finish 100 runs.', rule: 'Runs played is 100 or more. Optional: a long goal for the most loyal players.', how: 'stored', build: false },
+    { id: 'clean', tier: 1, name: 'Beat the Clock', text: 'Finish a run without a single time-out.', rule: 'All seven questions answered in time. Judged from the run\'s records.', how: 'run', build: true },
+    { id: 'no-easy', tier: 4, name: 'No Easy Answers', text: 'Finish a run with no Common answer.', rule: 'All seven answered, every one Uncommon or better.', how: 'run', build: true },
+  ] },
+  { id: 'quirks', title: 'Moments', note: 'Small things that happen during a question.', items: [
+    { id: 'buzzer', tier: 5, name: 'Buzzer Beater', text: 'Score an answer with under one second left.', rule: 'The clock had under 1 second when the answer was sent.', how: 'answer', build: true },
+    { id: 'quick-draw', tier: 5, name: 'Quick Draw', text: 'Score an answer within 3 seconds of the question.', rule: 'Sent within 3 seconds of the question appearing. Optional: it rewards typing speed more than knowledge.', how: 'answer', build: false },
+    { id: 'close-enough', tier: 5, name: 'Close Enough', text: 'Say yes to a "Did you mean…?"', rule: 'The player accepts a suggested correction. Fits the game\'s charm: the odd surprise suggestions are wanted.', how: 'answer', build: true },
+    { id: 'open-book', tier: 3, name: 'Open Book', text: 'Read what counted on a finished run.', rule: 'The player opens the screen that lists every accepted answer. Rewards using a feature people may not find.', how: 'new', build: true },
+  ] },
+  { id: 'daily', title: 'The Daily', note: 'The streak is the one the logbook already shows: days in a row on which a run of any kind was finished. (It can be changed to count only the Daily; then the game has to start remembering which days were Dailies.)', items: [
+    { id: 'daily-debut', tier: 4, name: 'Daily Debut', text: 'Finish your first Daily.', rule: 'A Daily run reaches its report.', how: 'run', build: true },
+    { id: 'streak-3', tier: 4, name: 'On a Roll', text: 'Finish a run 3 days in a row.', rule: 'Streak is 3 or more.', how: 'stored', build: true },
+    { id: 'streak-7', tier: 4, name: 'Full Week', text: 'Finish a run 7 days in a row.', rule: 'Streak is 7 or more.', how: 'stored', build: true },
+    { id: 'streak-30', tier: 4, name: 'Moon Cycle', text: 'Finish a run 30 days in a row.', rule: 'Streak is 30 or more (about a lunar month).', how: 'stored', build: true },
+    { id: 'streak-100', tier: 4, name: 'Hundred Days', text: 'Finish a run 100 days in a row.', rule: 'Streak is 100 or more. A long goal; the flame turns from orange to gold to blue-white to rainbow along the four.', how: 'stored', build: false },
+  ] },
+  { id: 'multi', title: 'Multiplayer', note: 'Rooms of two to four. A match is not recorded on the server, so these are judged in the browser from the final standings.', items: [
+    { id: 'face-to-face', tier: 3, name: 'Face to Face', text: 'Finish a multiplayer match.', rule: 'A match reaches its final screen.', how: 'run', build: true },
+    { id: 'room-champion', tier: 3, name: 'Room Champion', text: 'Win a multiplayer match.', rule: 'Your standing is first (a tie for first counts).', how: 'new', build: true },
+    { id: 'reigning', tier: 3, name: 'Reigning Champion', text: 'Win 10 multiplayer matches.', rule: 'Needs a counter of wins kept in the browser. Optional.', how: 'new', build: false },
+  ] },
+  { id: 'gems', title: 'More about gems', note: 'The cabinet already knows the category of every gem it holds.', items: [
+    { id: 'well-rounded', tier: 6, name: 'Well Rounded', text: 'Find a gem in every category.', rule: 'The cabinet holds at least one gem in each of the 11 categories.', how: 'stored', build: true },
+    { id: 'full-shelf', tier: 6, name: 'Full Shelf', text: 'Find every gem of one category.', rule: 'The cabinet holds all of a category\'s gems (about 91 each). The cabinet already says COMPLETE next to such a category.', how: 'stored', build: true },
+    { id: 'gem-hunter', tier: 6, name: 'Gem Hunter', text: 'Find 3 gems in one run.', rule: 'Three of the seven answers of one run are gems (found again counts too: it is about the run).', how: 'run', build: true },
+    { id: 'singularity-seven', tier: 6, name: 'Singularity Seven', text: 'A gem in all 7 questions of one run.', rule: 'Seven gems: 840 points, the highest possible. The rarest thing in the game.', how: 'run', build: true },
+  ] },
+]
+const HOW = { stored: ['FROM WHAT IS STORED', 't-stored', 'Can be given quietly to existing players.'], run: ['WHEN A RUN ENDS', 't-run', 'Judged from the run\'s records as the report opens.'], answer: ['AT THE ANSWER', 't-answer', 'Judged in the moment an answer is sent.'], new: ['SMALL NEW PIECE', 't-new', 'Needs a new small hook or counter kept in the browser.'] }
+const all = GROUPS.flatMap((g) => g.items)
+document.getElementById('count').textContent = all.length
+const lg = document.getElementById('legend')
+lg.append(Object.assign(document.createElement('span'), { innerHTML: '<span class="tag t-build">★ BUILD</span>I would build it. Without the star: optional, my suggestion is to skip it for now.' }))
+for (const k of Object.keys(HOW)) lg.append(Object.assign(document.createElement('span'), { innerHTML: `<span class="tag ${HOW[k][1]}">${HOW[k][0]}</span>${HOW[k][2]}` }))
+const host = document.getElementById('groups')
+for (const grp of GROUPS) {
+  const h = el('h2'); h.append(el('b', '', grp.title), el('span', '', grp.items.length + ' ideas')); host.append(h, el('p', 'note', grp.note))
+  const grid = el('div', 'grid')
+  for (const a of grp.items) {
+    const card = el('div', 'card' + (a.build ? '' : ' skip')), ics = el('div', 'ics'), tx = el('div', 'tx'), tags = el('div', 'tags')
+    ics.append(show(tile(a.id, a.tier, false), 2.6), show(tile(a.id, a.tier, true), 1.1))
+    tx.append(el('div', 'nm', a.name), el('div', 'su', a.text), el('div', 'rule', a.rule))
+    if (a.build) tags.append(Object.assign(el('span', 'tag t-build'), { textContent: '★ BUILD' }))
+    tags.append(Object.assign(el('span', 'tag ' + HOW[a.how][1]), { textContent: HOW[a.how][0] }))
+    tx.append(tags); card.append(ics, tx); grid.append(card)
+  }
+  host.append(grid)
+}
+const sum = document.getElementById('sum'), built = all.filter((a) => a.build).length
+sum.innerHTML = `<table><tr><th>Group</th><th>Ideas</th><th>I would build</th><th>What the rest needs</th></tr>${GROUPS.map((g) => `<tr><td>${g.title}</td><td>${g.items.length}</td><td>${g.items.filter((a) => a.build).length}</td><td>${[...new Set(g.items.map((a) => HOW[a.how][0].toLowerCase()))].join(', ')}</td></tr>`).join('')}<tr><td><b>All</b></td><td><b>${all.length}</b></td><td><b>${built}</b></td><td>With the 15 already in the game: <b>${15 + all.length}</b> if all are built, <b>${15 + built}</b> with only the starred ones.</td></tr></table>`
+document.fonts.ready.then(() => document.body.classList.add('ready'))
+</script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+import { ACHIEVEMENTS } from '@minitude/core'
 import { loadAssets } from './assets'
 import { Game } from './game'
 import { Sfx } from './audio'
@@ -42,6 +43,7 @@ async function main(): Promise<void> {
     ach.onChime = (gem) => sfx.achievement(gem)
     game.achievements = ach
     game.cabinet.achievements = ach
+    ach.cabinet = game.cabinet
     ach.sync(game.cabinet.gemDays, game.cabinet.knownTotal)
   }
   const ansEl = document.getElementById('answers')
@@ -58,6 +60,7 @@ async function main(): Promise<void> {
     // test mode: the clock only moves when asked (used by the browser tests)
     ;(window as unknown as { __mt: unknown }).__mt = {
       game,
+      achievementIds: ACHIEVEMENTS.map((a) => a.id),
       advance: (s: number, draw = true) => game.debugAdvance(s, draw),
       state: () => game.debugState(),
       answer: (t: string) => game.debugAnswer(t),

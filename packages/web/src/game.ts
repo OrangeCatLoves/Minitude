@@ -99,6 +99,8 @@ export class Game {
   /** the checker thinks the player made a typo and asked "did you mean ...?". The question clock keeps running while it waits. Null = not asking. */
   private confirm: { text: string; suggestion: string } | null = null
   private lockT = 0
+  /** the full clock of the current question in seconds (0 until it has started): time used = this minus the time left, for Quick Draw */
+  private clockSeconds = 0
   private lockRemain = 0
   private deadline = Infinity
   private message = ''
@@ -766,6 +768,7 @@ export class Game {
     this.missPending = false
     // the player's clock starts when the prompt is on screen (see fetchQuestion)
     this.deadline = Infinity
+    this.clockSeconds = 0
     this.input.value = ''
     this.input.focus({ preventScroll: true })
     this.sound.question(this.tl.recs[i])
@@ -773,6 +776,7 @@ export class Game {
       // a match question: the server has already started its clock and sent the prompt with it
       this.questions[i] = vq.start.question
       this.startedIdx = i
+      this.clockSeconds = vq.start.seconds
       this.deadline = Math.max(this.T, start + 0.55) + vq.left
     } else if (this.run) this.fetchQuestion(this.run, i, 0)
   }
@@ -785,6 +789,7 @@ export class Game {
         this.questions[i] = resp.question
         const r = this.tl.recs[i]
         if (r && r === this.tl.last() && !r.known) {
+          this.clockSeconds = run.seconds
           this.deadline = Math.max(this.T, r.start + 0.55) + run.seconds
           if (this.message) this.message = ''
         }
@@ -830,7 +835,7 @@ export class Game {
     // the server must know the question has started; if the first message was lost, send it again first (a match question starts for everybody at once)
     const ready = this.inVersus || this.startedIdx === r.i ? go() : sendStart(runId, r.i).then(() => { this.startedIdx = r.i }).then(go)
     ready.then(
-      (resp) => this.onAnswer(r, resp, text),
+      (resp) => this.onAnswer(r, resp, text, confirm === 'yes'),
       (err: unknown) => this.onAnswerFailed(r, err),
     )
   }
@@ -845,7 +850,7 @@ export class Game {
     this.message = ''
     this.confirm = { text, suggestion }
   }
-  private onAnswer(r: Rec, resp: Awaited<ReturnType<typeof sendAnswer>>, text: string): void {
+  private onAnswer(r: Rec, resp: Awaited<ReturnType<typeof sendAnswer>>, text: string, confirmed = false): void {
     if (r.known) return
     this.pending = false
     if (resp.status === 'confirm' && resp.answer) { this.askConfirm(r, text, resp.answer); return }
@@ -856,7 +861,9 @@ export class Game {
       if (resp.tier === GEM_TIER) this.recordGem(r)
       schedule(r, core, { lock: this.lockT, respondedAt: this.T })
       // achievements: solo, the Daily and multiplayer all score an answer here. The banner waits until the answer's own show is over (its card, or the dive's end).
-      this.achievements?.onScored(resp.tier, this.cabinet?.count ?? 0, this.cabinet?.knownTotal ?? null, (r.cardOn ? r.card + r.clen : r.fe) + 0.25)
+      // the moments: the time left and used when the answer was sent (the checker's own time is not counted), and a "Did you mean…?" said yes to
+      const moment = { secondsLeft: this.lockRemain, secondsUsed: this.clockSeconds > 0 ? Math.max(0, this.clockSeconds - this.lockRemain) : undefined, confirmed }
+      this.achievements?.onScored(resp.tier, this.cabinet?.count ?? 0, this.cabinet?.knownTotal ?? null, (r.cardOn ? r.card + r.clen : r.fe) + 0.25, moment)
       if (core.post === 1) {
         this.lastPostVariant = pickPostFirst(this.lastPostVariant)
         r.postVariant = this.lastPostVariant
@@ -965,7 +972,14 @@ export class Game {
     this.phase = 'report'
     this.reportAt = at
     this.reportData = buildReport(this.records)
-    this.after?.prepare({ mode: this.inVersus ? 'versus' : this.mode === 'daily' ? 'daily' : 'solo', runId: this.run?.runId ?? null, points: this.reportData.total, fresh })
+    const mode = this.inVersus ? 'versus' : this.mode === 'daily' ? 'daily' : 'solo'
+    this.after?.prepare({ mode, runId: this.run?.runId ?? null, points: this.reportData.total, fresh })
+    // achievements judged when a run ends (after the logbook has it): the banner shows as the report appears
+    if (fresh) {
+      const you = this.versus.room?.you
+      const won = this.inVersus && !!this.versus.end?.standings.some((st) => st.seat === you && st.rank === 1)
+      this.achievements?.onRunEnd({ mode, total: this.reportData.total, tiers: this.records.map((x) => (x.miss ? null : x.tier)), won }, at + 0.8)
+    }
     this.input.blur()
     this.sound.report(at, isPerfect(this.records))
     if (this.mode === 'daily') void this.fetchReportDaily(0)
@@ -1232,6 +1246,7 @@ export class Game {
     if (!src || !r || !this.answers) return
     this.sound.unlock()
     this.answers.open(src, i, r.miss || !r.known ? null : { answer: r.answer, tier: r.ti, points: r.pts })
+    this.achievements?.onOpenBook(this.T + 0.4)
   }
 
   /** what the report shows besides the run: the second button's name and, for a daily, its standing and the countdown */
