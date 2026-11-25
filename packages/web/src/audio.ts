@@ -563,11 +563,9 @@ export class Sfx implements SoundHook {
     for (let i = 0; i < 7; i++) {
       this.put(at + 1.0 + 0.28 * i, (R, d, t0) => { tick(R, d, t0, 1300 + 120 * i, 0.10, -0.3 + 0.1 * i); bell(R, d, t0, 1046.5 * 1.12 ** i, 0.25, 0.05, 0.28, -0.3 + 0.1 * i) })
     }
-    this.put(at + 3.4, (R, d, t0) => {
-      ;[523.25, 659.25, 783.99, 1046.5].forEach((f, i) => bell(R, d, t0 + 0.09 * i, f, 1.8, 0.22))
-      tone(R, d, t0, 130.8, 1.4, 'tri', 0.01, 0.5, 0.3)
-      if (perfect) sparkles(R, d, t0 + 0.2, 1.6, 12, [2093, 2637, 3136, 3520], 0.06, 99)
-    })
+    // the closing chord that used to follow the seven rows (four rising bells over a low note) was removed at the owner's request on 25 Nov 2026;
+    // a perfect run keeps its sparkle at that moment
+    if (perfect) this.put(at + 3.4, (R, d, t0) => sparkles(R, d, t0 + 0.2, 1.6, 12, [2093, 2637, 3136, 3520], 0.06, 99))
   }
 
   // ---- everything that follows a judged answer

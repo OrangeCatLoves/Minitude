@@ -20,6 +20,10 @@ The video's audio was normalised after mixing. The browser mix was matched to it
 - `post.gain`, `makeup.gain`, `this.fin.gain` in `build()` - overall levels.
 - The compressor settings in `build()` (the original used a custom slow gain curve).
 
+## The report
+
+- `Sfx.report`: two swishes, a fast run of ticks, then a tick and a bell for each of the seven rows. The closing chord that followed them (four rising bells over a low note, 3.4 s after the report opened) was **removed at the owner's request on 25 Nov 2026**; a perfect run still gets its sparkle at that moment.
+
 ## Not done
 
 - No music. The video had none.
